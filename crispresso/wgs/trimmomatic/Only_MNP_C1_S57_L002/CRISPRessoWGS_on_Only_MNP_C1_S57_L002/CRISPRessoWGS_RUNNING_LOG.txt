@@ -1,0 +1,48 @@
+CRISPResso version 2.3.1
+[Command used]:
+/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPRessoWGS --bam_file /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/gatk/trimmomatic/markdup/Only_MNP_C1_S57_L002.markdup.bam --region_file /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/offtargets/combined/offtargets_crispresso_wgs.bed --reference_file /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna --output_folder /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002 --name Only_MNP_C1_S57_L002 --n_processes 4 --min_reads_to_use_region 10 --min_frequency_alleles_around_cut_to_plot 0.05 --expand_ambiguous_alignments --place_report_in_output_folder --skip_failed
+
+[Execution log]:
+Index file for input .bam file exists, skipping generation.
+The index for the reference fasta file is already present! Skipping generation.
+Retrieving reference sequences for amplicons and checking for sgRNAs
+
+Processing each region...
+Extracting reads in:NC_024331.1:13951159-13951261 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_1.bam
+Extracting reads in:NC_024349.1:24881997-24882099 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_7.bam
+Extracting reads in:NC_024331.1:26228756-26228858 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_2.bam
+Extracting reads in:NC_024331.1:5708684-5708786 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_0.bam
+Extracting reads in:NC_024340.1:12200615-12200717 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_6.bam
+Extracting reads in:NC_024338.1:20512892-20512994 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_4.bam
+Extracting reads in:NC_024339.1:7034780-7034882 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_5.bam
+Extracting reads in:NC_024332.1:5810611-5810713 and creating .bam file: /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/ANALYZED_REGIONS/REGION_3.bam
+Running CRISPResso on each region...
+
+The region [NC_024331.1_5708724_3mm_CRISPOR] has enough reads (21) mapped to it!
+
+The region [NC_024331.1_13951199_4mm_CRISPOR] has enough reads (12) mapped to it!
+
+The region [NC_024331.1_26228796_4mm_CRISPOR] has enough reads (12) mapped to it!
+
+The region [NC_024332.1_5810651_4mm_CRISPOR] has enough reads (17) mapped to it!
+
+The region [NC_024338.1_20512932_4mm_CRISPOR] has enough reads (12) mapped to it!
+
+The region [NC_024339.1_7034820_4mm_CRISPOR] has enough reads (10) mapped to it!
+
+The region [NC_024340.1_12200655_4mm_CRISPOR] has enough reads (12) mapped to it!
+
+The region [NC_024349.1_24882037_4mm_CRISPOR] has enough reads (12) mapped to it!
+Running CRISPResso with 4 processes
+Completed 1/8 runs
+Completed 2/8 runs
+Completed 3/8 runs
+Completed 4/8 runs
+Completed 5/8 runs
+Completed 6/8 runs
+Completed 7/8 runs
+Completed 8/8 runs
+Finished all regions
+Skipping folder '/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/CRISPResso_on_NC_024340.1_12200655_4mm_CRISPOR'. Cannot find run data status file at '/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/CRISPRessoWGS_on_Only_MNP_C1_S57_L002/CRISPResso_on_NC_024340.1_12200655_4mm_CRISPOR/CRISPResso2_info.json'.
+Skipping the folder CRISPResso_on_NC_024340.1_12200655_4mm_CRISPOR: not enough reads, incomplete, or empty folder.
+Analysis Complete!

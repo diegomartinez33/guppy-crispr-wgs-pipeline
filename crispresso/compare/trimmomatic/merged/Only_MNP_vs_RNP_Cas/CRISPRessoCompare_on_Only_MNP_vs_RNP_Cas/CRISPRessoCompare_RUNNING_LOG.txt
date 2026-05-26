@@ -1,0 +1,8 @@
+[Command used]:
+CRISPRessoCompare /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPRessoCompare /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/ontarget/trimmomatic/merged/RNP_Cas/CRISPResso_on_RNP_Cas /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/ontarget/trimmomatic/merged/Only_MNP/CRISPResso_on_Only_MNP --sample_1_name RNP_Cas --sample_2_name Only_MNP --output_folder /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/compare/trimmomatic/merged/Only_MNP_vs_RNP_Cas --name Only_MNP_vs_RNP_Cas
+
+[Execution log]:
+Loading data for amplicon bdnf_fwd
+Loading data for amplicon bdnf_rc
+Calculating significant base counts...
+Analysis Complete!

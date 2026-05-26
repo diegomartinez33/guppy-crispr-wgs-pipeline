@@ -1,0 +1,38 @@
+CRISPResso version 2.3.1
+[Command used]:
+/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPResso -r1 /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C4_S60_L002/CRISPRessoWGS_on_Only_MNP_C4_S60_L002/ANALYZED_REGIONS/REGION_1.fastq.gz -a GATTTGCAGTGGCGTCGACATCTTCCTTCTCACATGGATCCCTTATGCCGGGGCCGTCTTTCAACAGACACGTTTCAGTTTGGACATTCAAGCTGGTTTCCAT -o /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C4_S60_L002/CRISPRessoWGS_on_Only_MNP_C4_S60_L002 --name NC_024331.1_13951199_4mm_CRISPOR -g TGAAAGACGGCCCCGGCATA --trimmomatic_command None --min_frequency_alleles_around_cut_to_plot 0.05 --conversion_nuc_from C --fastp_command fastp --prime_editing_gap_extend_penalty 0 --needleman_wunsch_aln_matrix_loc EDNAFULL --verbosity 3 --expand_ambiguous_alignments --min_average_read_quality 0 --prime_editing_gap_open_penalty -50 --aln_seed_len 10 --place_report_in_output_folder --needleman_wunsch_gap_extend -2 --needleman_wunsch_gap_open -20 --conversion_nuc_to T --min_bp_quality_or_N 0 --flexiguide_homology 80 --max_rows_alleles_around_cut_to_plot 50 --max_paired_end_reads_overlap None --aln_seed_count 5 --exclude_bp_from_right 15 --exclude_bp_from_left 15 --plot_window_size 20 --config_file None --needleman_wunsch_gap_incentive 1 --flash_command None --aln_seed_min 2 --default_min_aln_score 60 --n_processes 1 --quantification_window_center -3 --flexiguide_seq None --prime_editing_pegRNA_extension_quantification_window_size 5 --min_paired_end_reads_overlap 10 --min_single_bp_quality 0 --quantification_window_size 1 --prime_editing_pegRNA_scaffold_min_match_length 1
+
+[Execution log]:
+Computing quantification windows
+CRISPRessoPro not installed
+Added 0 guides with flexible matching
+	Original flexiguides: ['None']
+	Found guides: []
+	Mismatch locations: []
+Aligning sequences...
+Processing reads; N_TOT_READS: 0 N_COMPUTED_ALN: 0 N_CACHED_ALN: 0 N_COMPUTED_NOTALN: 0 N_CACHED_NOTALN: 0
+Finished reads; N_TOT_READS: 12 N_COMPUTED_ALN: 2 N_CACHED_ALN: 10 N_COMPUTED_NOTALN: 0 N_CACHED_NOTALN: 0
+Done!
+Quantifying indels/substitutions...
+Done!
+Calculating allele frequencies...
+Done!
+Saving processed data...
+Making Plots...
+Plotting read bar plot
+Plotting read class pie chart and bar plot
+Begin processing plots for amplicon Reference
+Plotting nucleotide quilt across amplicon
+Plotting nucleotide distribuition around sgRNA TGAAAGACGGCCCCGGCATA for Reference
+Plotting indel size distribution for Reference
+Plotting frequency deletions/insertions for Reference
+Plotting amplication modifications for Reference
+Plotting modification frequency for Reference
+Plotting quantification window locations for Reference
+Plotting position dependent indel for Reference
+Plotting allele distribution around cut for Reference
+Done!
+Done!
+Removing Intermediate files...
+ Low number of total reads: <10000. Total reads: 12.
+Analysis Complete!

@@ -1,0 +1,13 @@
+CRISPResso version 2.3.1
+[Command used]:
+/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPResso -r1 /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Plasmid_Ko_P4_S64_L002/CRISPRessoWGS_on_Plasmid_Ko_P4_S64_L002/ANALYZED_REGIONS/REGION_6.fastq.gz -a ACGTCTGTCTTGATAGTGTGATGGAAATTCAGTGCAAACTCCACCTGCCCGGCGCGCCTCTCTTCACGCAGACTGTTAAATAGTGCATACCCACTGCTARCAT -o /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Plasmid_Ko_P4_S64_L002/CRISPRessoWGS_on_Plasmid_Ko_P4_S64_L002 --name NC_024340.1_12200655_4mm_CRISPOR -g AGAGAGGCGCGCCGGGCAGG --min_paired_end_reads_overlap 10 --verbosity 3 --needleman_wunsch_aln_matrix_loc EDNAFULL --min_average_read_quality 0 --quantification_window_center -3 --conversion_nuc_to T --plot_window_size 20 --trimmomatic_command None --fastp_command fastp --needleman_wunsch_gap_open -20 --flexiguide_homology 80 --default_min_aln_score 60 --exclude_bp_from_left 15 --place_report_in_output_folder --prime_editing_gap_extend_penalty 0 --min_frequency_alleles_around_cut_to_plot 0.05 --max_paired_end_reads_overlap None --exclude_bp_from_right 15 --flash_command None --prime_editing_pegRNA_extension_quantification_window_size 5 --quantification_window_size 1 --aln_seed_count 5 --min_bp_quality_or_N 0 --max_rows_alleles_around_cut_to_plot 50 --n_processes 1 --flexiguide_seq None --prime_editing_pegRNA_scaffold_min_match_length 1 --config_file None --needleman_wunsch_gap_incentive 1 --min_single_bp_quality 0 --conversion_nuc_from C --aln_seed_len 10 --expand_ambiguous_alignments --prime_editing_gap_open_penalty -50 --aln_seed_min 2 --needleman_wunsch_gap_extend -2
+
+[Execution log]:
+Traceback (most recent call last):
+  File "/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/lib/python3.8/site-packages/CRISPResso2/CRISPRessoCORE.py", line 1679, in main
+    raise CRISPRessoShared.NTException('Reference amplicon sequence %d (%s) contains invalid characters: %s'%(idx, this_name, ' '.join(wrong_nt)))
+CRISPResso2.CRISPRessoShared.NTException: Reference amplicon sequence 0 (Reference) contains invalid characters: R
+
+Alphabet error, please check your input.
+
+ERROR: Reference amplicon sequence 0 (Reference) contains invalid characters: R

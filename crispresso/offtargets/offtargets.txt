@@ -1,0 +1,9 @@
+TGAGAGACGCCCCGGGCATGNGG	NC_024331.1 Poecilia reticulata strain Guanapo linkage group LG1, Guppy_female_1.0+MT, whole genome shotgun sequence	5708723	TGAGAGACGCttCGGGCATcTGG	+	3
+TGAGAGACGCCCCGGGCATGNGG	NC_024332.1 Poecilia reticulata strain Guanapo linkage group LG2, Guppy_female_1.0+MT, whole genome shotgun sequence	5810650	aGAGAGACGCtCgGGGCAaGCGG	+	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024331.1 Poecilia reticulata strain Guanapo linkage group LG1, Guppy_female_1.0+MT, whole genome shotgun sequence	13951198	TGAaAGACGgCCCcGGCATaAGG	-	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024333.1 Poecilia reticulata strain Guanapo linkage group LG3, Guppy_female_1.0+MT, whole genome shotgun sequence	15922035	TGAGAGACGCCCCGGGCATGCGG	-	0
+TGAGAGACGCCCCGGGCATGNGG	NC_024339.1 Poecilia reticulata strain Guanapo linkage group LG9, Guppy_female_1.0+MT, whole genome shotgun sequence	7034819	TGAGAGAaGCtCtGGGaATGAGG	-	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024338.1 Poecilia reticulata strain Guanapo linkage group LG8, Guppy_female_1.0+MT, whole genome shotgun sequence	20512931	TGAGAGACGCCgCaGGaATtTGG	-	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024340.1 Poecilia reticulata strain Guanapo linkage group LG10, Guppy_female_1.0+MT, whole genome shotgun sequence	12200654	aGAGAGgCGCgCCGGGCAgGTGG	-	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024331.1 Poecilia reticulata strain Guanapo linkage group LG1, Guppy_female_1.0+MT, whole genome shotgun sequence	26228795	aGAGAGACGCCtCtGaCATGTGG	+	4
+TGAGAGACGCCCCGGGCATGNGG	NC_024349.1 Poecilia reticulata strain Guanapo linkage group LG19, Guppy_female_1.0+MT, whole genome shotgun sequence	24882036	TtAGtGACGCCCCGGGtAaGGGG	+	4

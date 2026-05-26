@@ -1,0 +1,8 @@
+[Command used]:
+CRISPRessoCompare /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPRessoCompare /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/ontarget/trimmomatic/merged/Control/CRISPResso_on_Control /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/ontarget/trimmomatic/merged/Plasmid_Ko/CRISPResso_on_Plasmid_Ko --sample_1_name Control --sample_2_name Plasmid_Ko --output_folder /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/compare/trimmomatic/merged/Plasmid_Ko_vs_Control --name Plasmid_Ko_vs_Control
+
+[Execution log]:
+Loading data for amplicon bdnf_fwd
+Loading data for amplicon bdnf_rc
+Calculating significant base counts...
+Analysis Complete!
