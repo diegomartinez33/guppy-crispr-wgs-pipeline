@@ -1,0 +1,24 @@
+[Command used]:
+/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crispresso2_env/bin/CRISPRessoAggregate -p /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Control_MNP_I_S54_L002/ -p /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Control_MNP_II_S55_L002/ -p /hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Control_MNP_III_S56_L002/ --name Control_wgs_aggregate --min_reads_for_inclusion 10 --place_report_in_output_folder --n_processes 4
+
+[Execution log]:
+Read 0 folders (0 not imported)
+No CRISPResso runs could be imported.
+Files in current directory:
+	crispresso_wgs_aggregate.sh
+	CRISPRessoAggregate_on_Control_wgs_aggregate
+	CRISPRessoAggregate_on_RNP_Cas_wgs_aggregate
+	logs
+	test_reads.sam
+	CRISPRessoAggregate_on_Only_MNP_wgs_aggregate
+	crispresso_pooled_groups.sh
+	run_merged_crispresso_steps.sh
+	test_crispresso.sh
+	test_200.sorted.bam
+	crispresso_compare_merged.sh
+	casoffinder.sh
+	crispresso_wgs.sh
+	combine_offtargets.py
+	test_200.sorted.bam.bai
+	(Complete listing truncated)
+Analysis Complete!

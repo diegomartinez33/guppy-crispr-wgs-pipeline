@@ -1,0 +1,5 @@
+Group,N,Mean_Depth_mean,Mean_Depth_std,Total_Reads_mean,Coverage_Pct_mean,Mean_MapQ_mean
+Control,3,48.54,0.63,383.0,100.0,60.0
+Only_MNP,4,44.89,4.94,349.0,100.0,60.0
+Plasmid_Ko,4,45.45,6.25,358.5,100.0,60.0
+RNP_Cas,4,55.64,6.97,438.25,100.0,59.98

@@ -1,0 +1,51 @@
+{
+  "running_info": {
+    "version": "2.3.1",
+    "args": {
+      "_type": "argparse.Namespace",
+      "value": {
+        "prefix": [
+          "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C1_S57_L002/",
+          "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C2_S58_L002/",
+          "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C3_S59_L002/",
+          "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/crispresso/wgs/trimmomatic/Only_MNP_C4_S60_L002/"
+        ],
+        "suffix": "",
+        "name": "Only_MNP_wgs_aggregate",
+        "min_reads_for_inclusion": 10,
+        "place_report_in_output_folder": true,
+        "suppress_report": false,
+        "suppress_plots": false,
+        "max_samples_per_summary_plot": 150,
+        "n_processes": "4",
+        "debug": false,
+        "verbosity": 3,
+        "use_matplotlib": false
+      }
+    },
+    "log_filename": "CRISPRessoAggregate_RUNNING_LOG.txt",
+    "start_time": {
+      "_type": "datetime.datetime",
+      "value": "2026-05-24 15:19:41.291523"
+    },
+    "start_time_string": "2026-05-24 15:19:41",
+    "end_time": {
+      "_type": "datetime.datetime",
+      "value": "2026-05-24 15:19:43.304932"
+    },
+    "end_time_string": "2026-05-24 15:19:43",
+    "running_time": {
+      "_type": "datetime.timedelta",
+      "value": {
+        "days": 0,
+        "seconds": 2,
+        "microseconds": 13409
+      }
+    },
+    "running_time_string": "0:00:02.013409"
+  },
+  "results": {
+    "alignment_stats": {},
+    "general_plots": {}
+  }
+}

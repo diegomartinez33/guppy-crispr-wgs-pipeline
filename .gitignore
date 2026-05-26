@@ -1,0 +1,54 @@
+# Large data directories — skip traversal entirely (1.6 TB total)
+raw_fastq/
+trimmed_fastp/
+trimmed_trimmomatic/
+reference/
+gatk/
+crispresso/
+mapping/
+multiqc_report/
+
+# GenomicsDB workspace — thousands of TileDB binary segment files
+gatk/trimmomatic/genomicsdb/
+gatk/fastp/genomicsdb/
+
+# Test BAMs that ended up in codes/
+codes/CRISPResso/test_200.sorted.bam
+codes/CRISPResso/test_200.sorted.bam.bai
+
+# Large data files — catch any stragglers not covered by directory rules
+*.bam
+*.bai
+*.vcf.gz
+*.vcf
+*.tbi
+*.fastq.gz
+*.fastq
+*.fq.gz
+*.fna
+*.fa
+*.fai
+*.dict
+*.amd
+*.ann
+*.bwt
+*.pac
+*.sa
+*.zip
+*.tdb
+*.tar.gz
+*.tar
+
+# SLURM logs
+logs/
+*.out
+*.err
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Temporary files
+tmp/
+*.tmp
