@@ -189,9 +189,9 @@ If you use this pipeline, please cite the tools it depends on:
 ## Author
 
 Diego Andrés Martínez  
-Bioinformatics researcher  
+Biomedical engineer and Biologist  
 Universidad de los Andes, Colombia  
-diegoandres3322@gmail.com
+da.martinez33@uniandes.edu.co
 
 ## License
 
