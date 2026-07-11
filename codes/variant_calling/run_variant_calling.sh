@@ -1,38 +1,33 @@
 #!/bin/bash
+# Full GATK variant-calling pipeline — trimmomatic track
+# Chain: HaplotypeCaller (15 samples, medium partition) → GenomicsDB → GenotypeGVCFs → VariantFiltration
 
 mkdir -p logs/
 
-# Esperar a que el mapeo termine primero
-# Reemplaza XXXXX con los job IDs de bwa_fastp y bwa_trimmomatic
+cd "$(dirname "$0")"
 
-# ── Pipeline fastp ────────────────────────────────────────────────────────────
-#MARKDUP_F=$(sbatch --parsable mark_duplicates.sh)
-#echo "Mark duplicates job ID: $MARKDUP_F"
+HAPLO_JID=$(sbatch --parsable haplotype_caller.sh)
+echo "HaplotypeCaller job ID: ${HAPLO_JID}  (15 samples, medium partition)"
 
-# --dependency=afterok:${MARKDUP_F} \
-# HAPLO_F=$(sbatch --parsable \
-#   haplotype_caller.sh)
-# echo "HaplotypeCaller job ID: $HAPLO_F"
+GENOMICSDB_JID=$(sbatch --parsable \
+    --dependency=afterok:${HAPLO_JID} \
+    genomics_db_import.sh)
+echo "GenomicsDBImport job ID: ${GENOMICSDB_JID}"
 
-#  --dependency=afterok:${HAPLO_F} \
-GENOMICSDB_F=$(sbatch --parsable \
-  genomics_db_import.sh)
-echo "GenomicsDBImport job ID: $GENOMICSDB_F"
+GENOTYPE_JID=$(sbatch --parsable \
+    --dependency=afterok:${GENOMICSDB_JID} \
+    genotype_gvcf.sh)
+echo "GenotypeGVCFs job ID: ${GENOTYPE_JID}"
 
-GENOTYPE_F=$(sbatch --parsable \
-  --dependency=afterok:${GENOMICSDB_F} \
-  genotype_gvcf.sh)
-echo "GenotypeGVCFs job ID: $GENOTYPE_F"
+VARFILT_JID=$(sbatch --parsable \
+    --dependency=afterok:${GENOTYPE_JID} \
+    variant_filtration.sh)
+echo "VariantFiltration job ID: ${VARFILT_JID}"
 
-VARFILT_F=$(sbatch --parsable \
-  --dependency=afterok:${GENOTYPE_F} \
-  variant_filtration.sh)
-echo "VariantFiltration job ID: $VARFILT_F"
+OFFT_JID=$(sbatch --parsable \
+    --dependency=afterok:${GENOTYPE_JID} \
+    select_offtargets.sh)
+echo "Off-target variants job ID: ${OFFT_JID}"
 
-OFFT_JOB=$(sbatch --parsable \
-  --dependency=afterok:${GENOTYPE_F} \
-  select_offtargets.sh)
-echo "Off-target variants: $OFFT_JOB"
-
-#echo "Pipeline fastp: $MARKDUP_F → $HAPLO_F → $GENOMICSDB_F → $GENOTYPE_F → $VARFILT_F"
-echo "Pipeline trimmomatic: $GENOMICSDB_F → $GENOTYPE_F → $VARFILT_F → $OFFT_JOB"
+echo ""
+echo "Pipeline: ${GENOMICSDB_JID} → ${GENOTYPE_JID} → ${VARFILT_JID} + ${OFFT_JID}"

@@ -8,10 +8,16 @@ crispresso/
 mapping/
 multiqc_report/
 6KAD5R5/
+/assembly/
 
 # GenomicsDB workspace — thousands of TileDB binary segment files
 gatk/trimmomatic/genomicsdb/
 gatk/fastp/genomicsdb/
+
+# Assembly pipeline intermediate/log/downloaded data (scripts in codes/assembly/ stay tracked)
+codes/assembly/intermediate_files/
+codes/assembly/logs/
+codes/assembly/busco_downloads/
 
 # Test BAMs that ended up in codes/
 codes/CRISPResso/test_200.sorted.bam

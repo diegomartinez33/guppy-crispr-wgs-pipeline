@@ -2,7 +2,7 @@
 #SBATCH --job-name=genotype_trimmomatic
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=10:00:00
+#SBATCH --time=20:00:00
 #SBATCH --output=logs/genotype_trimmomatic.out
 #SBATCH --error=logs/genotype_trimmomatic.err
 #SBATCH --partition=short
@@ -21,7 +21,7 @@ mkdir -p "$OUTPUT_DIR" logs/
 TMPDIR="/tmp/${USER}_${SLURM_JOB_ID}"
 mkdir -p "$TMPDIR"
 export TMPDIR
-trap "rm -rf $TMPDIR" EXIT
+trap 'rm -rf "$TMPDIR"' EXIT
 echo "Using TMPDIR: $TMPDIR"
 echo "Available space: $(df -h /tmp | awk 'NR==2 {print $4}')"
 
@@ -41,12 +41,11 @@ gatk GenotypeGVCFs \
 
 GVCF_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/gatk/trimmomatic/gvcf
 
-ls ${GVCF_DIR}/*.g.vcf.gz | wc -l      # debe dar 15
-ls ${GVCF_DIR}/*.g.vcf.gz.tbi | wc -l  # debe dar 15
+find "${GVCF_DIR}" -name "*.g.vcf.gz" | wc -l
+find "${GVCF_DIR}" -name "*.g.vcf.gz.tbi" | wc -l
 
-# Si faltan índices
 module load gatk4/4.4.0.0
-for gvcf in ${GVCF_DIR}/*.g.vcf.gz; do
+for gvcf in "${GVCF_DIR}"/*.g.vcf.gz; do
     if [ ! -f "${gvcf}.tbi" ]; then
         echo "Indexing: $gvcf"
         gatk IndexFeatureFile -I "$gvcf"

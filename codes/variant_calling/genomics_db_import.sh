@@ -2,7 +2,7 @@
 #SBATCH --job-name=genomicsdb_trimmomatic
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=12:00:00
+#SBATCH --time=20:00:00
 #SBATCH --output=logs/genomicsdb_trimmomatic.out
 #SBATCH --error=logs/genomicsdb_trimmomatic.err
 #SBATCH --partition=short

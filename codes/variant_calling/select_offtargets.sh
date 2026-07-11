@@ -2,7 +2,7 @@
 #SBATCH --job-name=select_offtargets
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=02:00:00
+#SBATCH --time=20:00:00
 #SBATCH --output=logs/select_offtargets.out
 #SBATCH --error=logs/select_offtargets.err
 #SBATCH --partition=short
