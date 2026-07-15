@@ -226,7 +226,7 @@ for chrom in chroms_ordered:
     sd = sub["density"].std(ddof=1)
 
     fig, ax = plt.subplots(figsize=(14, 4))
-    midpoints = (sub["start"] + sub["end"]) / 2 / 1e6   # Mb
+    midpoints = ((sub["start"] + sub["end"]) / 2 / 1e6).to_numpy()   # Mb
 
     ax.plot(midpoints, sub["density"], color="#aaaaaa", linewidth=0.5, alpha=0.6)
 
