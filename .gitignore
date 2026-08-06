@@ -9,6 +9,7 @@ mapping/
 multiqc_report/
 6KAD5R5/
 /assembly/
+intermediate_files/
 
 # GenomicsDB workspace — thousands of TileDB binary segment files
 gatk/trimmomatic/genomicsdb/
@@ -18,6 +19,15 @@ gatk/fastp/genomicsdb/
 codes/assembly/intermediate_files/
 codes/assembly/logs/
 codes/assembly/busco_downloads/
+codes/assembly/*.log.info
+
+# IGV files — track BED features but not large binary GFF3/indices
+igv_files/*.gz
+igv_files/*.tbi
+igv_files/*.bam
+igv_files/*.bai
+igv_files/*.fna
+igv_files/*.fai
 
 # Test BAMs that ended up in codes/
 codes/CRISPResso/test_200.sorted.bam

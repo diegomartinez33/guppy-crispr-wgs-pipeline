@@ -22,7 +22,7 @@ echo "Start: $(date)"
 # ── 1. GFF3 — sort, bgzip, tabix ─────────────────────────────────────────────
 echo ""
 echo "[ 1. Preparing GFF3 annotation ]"
-GFF_IN=${PSEUDO_DIR}/colombian_pseudogenome.gff3
+GFF_IN=${PSEUDO_DIR}/colombian_pseudogenome.liftoff.gff3
 GFF_SORTED=${IGV_DIR}/colombian_pseudogenome.gff3.gz
 
 echo "  Sorting..."
@@ -66,7 +66,7 @@ echo "  scp -r da.martinez33@hypatia:${IGV_DIR} ~/igv_guppy/"
 echo ""
 echo " Or download individual files:"
 for f in "$IGV_DIR"/*; do
-    echo "    $(du -sh "$f" 2>/dev/null | awk '{print $1}')  $(basename $f)"
+    echo "    $(du -sh "$f" 2>/dev/null | awk '{print $1}')  $(basename "$f")"
 done
 
 echo ""
