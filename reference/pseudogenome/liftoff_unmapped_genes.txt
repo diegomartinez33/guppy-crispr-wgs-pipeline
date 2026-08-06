@@ -1,0 +1,4 @@
+gene-trnad-guc-2
+gene-trnah-gug-5
+gene-trnay-gua-5
+gene-LOC103465184
