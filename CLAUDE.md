@@ -90,12 +90,13 @@ module load fastqc             # version available as module
 source $(conda info --base)/etc/profile.d/conda.sh
 conda activate fastp_env       # fastp, pandas, matplotlib, multiqc
 
-# Personal conda (CRISPResso2, CrossMap, Liftoff)
+# Personal conda (CRISPResso2, CrossMap, Liftoff, NextPolish)
 CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env # CRISPResso2, cas-offinder, pandas
 conda activate liftoff_env     # Liftoff v1.5.1 (annotation transfer for scaffolded assembly)
 conda activate crossmap_env    # CrossMap v0.7.3 (coordinate liftover using chain file)
+conda activate nextpolish_env  # NextPolish v1.4.1 (short-read polishing of scaffolded assembly)
 ```
 
 ### CRISPResso2 Activation (use in all CRISPResso scripts)
@@ -268,15 +269,15 @@ PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
 | Merge BAMs | samtools | ✅ Done | markdup BAMs merged by group (4 merged BAMs) |
 | CRISPResso2 on-target (individual) | CRISPResso2 | ✅ Done | 15 samples completed |
 | CRISPResso2 on-target (merged) | CRISPResso2 | ✅ Done | 4 groups completed May 18 |
-| CRISPRessoPooled | CRISPResso2 | ⏳ Pending | Pool individual results by group |
-| CRISPRessoCompare (pooled) | CRISPResso2 | ✅ Done | 6 pairwise group comparisons |
+| CRISPRessoPooled | CRISPResso2 | ⚠️ Superseded | Never worked (invalid flag); would exactly duplicate CRISPResso2 on-target (merged) results — see Known Issues |
+| CRISPRessoCompare (pooled) | CRISPResso2 | ⚠️ Superseded | CLAUDE.md previously said "done" — WRONG, its input (pooled/) was always empty. Superseded along with CRISPRessoPooled |
 | CRISPRessoCompare (merged) | CRISPResso2 | ✅ Done | 6 pairwise merged group comparisons |
-| CRISPRessoAggregate | CRISPResso2 | ⏳ Pending | All samples summary |
+| CRISPRessoAggregate (on-target, all samples) | CRISPResso2 | ✅ Done | job 692758, 15 samples, Aug 6 2026 — see Known Issues for -p prefix + report-crash fixes |
 | Off-target prediction | Cas-OFFinder | ✅ Done | 4 mismatches, 9 sites (1 on-target) |
 | Off-target prediction | CRISPOR | ✅ Done | 8 sites, 4 mismatches, guide ID: 326forw |
 | Combine off-targets | Python | ✅ Done | 8 unique off-target sites |
 | CRISPRessoWGS (individual) | CRISPResso2 | ✅ Done | 15 samples × 8 sites completed May 13 |
-| CRISPRessoWGS aggregate | CRISPResso2 | ⏳ Pending | Aggregate per group after WGS |
+| CRISPRessoWGS aggregate | CRISPResso2 | ✅ Done | job 692749, 4 groups, Aug 6 2026 — see Known Issues for -p prefix + report-crash fixes |
 | De novo co-assembly | SPAdes v4.0.0 | ✅ Done | 3,379,459 contigs, N50 669bp — highly fragmented, see Known Issues |
 | Reference-guided scaffolding | RagTag v2.1.0 | ✅ Done | N50 28.4Mb, 692Mb total, 24 chromosome-scale scaffolds + Chr0 |
 | Assembly QC | QUAST v5.0.2 + BUSCO v5.7.1 | ✅ Done | Genome fraction 82.8%, BUSCO C:87.1% [S:86.2%,D:0.9%] — see Known Issues |
@@ -345,20 +346,28 @@ Invalid params: --genome and --exclude_duplicates do NOT exist in --bam_input mo
            (genome is implicit in BAM; filter duplicates with samtools -F 0x400 first)
 ```
 
-Three distinct on-target analyses with different regions and amplicons:
+On-target analyses, by BAM source (region/amplicon corrected 2026-08-06 —
+previously documented as 60bp individual vs 200bp merged, which was WRONG;
+both scripts actually use the same 100bp amplicon and same region):
 
 | Analysis | Script | BAM source | Region filtered | Amplicon |
 |---|---|---|---|---|
-| Individual (15 samples) | crispresso_ontarget.sh | gatk/trimmomatic/markdup/*.markdup.bam | NC_024333.1:15922000-15922100 (100bp) | 60bp FWD + RC |
-| Merged groups (4 groups) | crispresso_ontarget_merged.sh | mapping/trimmomatic/merged/*.sorted.bam | NC_024333.1:15921941-15922141 (200bp) | amplicon_bdnf_200bp_rc.fa |
+| Individual (15 samples) | crispresso_ontarget.sh | gatk/trimmomatic/markdup/*.markdup.bam | NC_024333.1:15922000-15922100 (100bp) | amplicon_bdnf_100bp(_rc).fa |
+| Merged groups (4 groups) | crispresso_ontarget_merged.sh | mapping/trimmomatic/merged/*.sorted.bam | NC_024333.1:15922000-15922100 (100bp) | amplicon_bdnf_100bp(_rc).fa |
 | Off-target WGS (15 samples) | crispresso_wgs.sh | gatk/trimmomatic/markdup/*.markdup.bam | from offtargets_crispresso_wgs.bed | — (WGS mode) |
 
+Because Individual and Merged use identical region/amplicon parameters, a
+group-level "pooled" analysis (combining the 3-4 individual-track samples
+per group) would be numerically identical to the already-completed Merged
+track — this is why CRISPRessoPooled was marked Superseded rather than
+fixed, see "CRISPRessoPooled — Wrong Tool + Redundant with Merged Track"
+in Known Issues.
+
 ```
-Amplicons:
-  60bp:  reference/amplicon_bdnf_60bp_fwd.fa + amplicon_bdnf_60bp_rc.fa
-         used for individual on-target analysis
-  200bp: reference/amplicon_bdnf_200bp_rc.fa
-         used for merged group on-target analysis (larger window, more context)
+Amplicon: reference/amplicon_bdnf_100bp.fa + amplicon_bdnf_100bp_rc.fa
+          used for BOTH individual and merged on-target analysis
+  (60bp/200bp amplicon files also exist in reference/ from earlier
+  iterations but are not what the current scripts use)
 
 CRISPRessoWGS key parameters:
   --min_reads_to_use_region 10
@@ -463,6 +472,39 @@ Phase 4 - Liftoff annotation transfer (codes/assembly/liftoff_annotation.sh):
   at new coordinates after liftover.
   Result (2026-07-11): bdnf lifted to NC_024333.1_RagTag:14113623-14129072,
   coverage=0.945, sequence_ID=0.923 — high-confidence transfer.
+
+Phase 5 - NextPolish short-read polishing (codes/assembly/nextpolish_genome.sh):
+  Corrects small-scale errors (indels/SNPs) by realigning the same Illumina
+  short reads used to build the genome back onto colombian_scaffolded.fna.
+  Targets the ~6.9% of "complete" BUSCO genes with internal stop codons
+  (likely frameshift artifacts) found during QC — see README.md in
+  reference/colombian_scaffolded_genome/ for the pre-polish quality baseline.
+  NextPolish v1.4.1 (nextpolish_env, installed via
+  codes/assembly/00_setup_nextpolish_env.sh — mamba create ... nextpolish,
+  bundles bwa/samtools/minimap2 as dependencies).
+  Config format (run.cfg, generated dynamically by nextpolish_genome.sh, not
+  a static file): required keys are `genome` and one of
+  `sgs_fofn`/`lgs_fofn`/`hifi_fofn`. `sgs_fofn` is a plain list of fastq
+  file paths, ONE PER LINE (not space-separated R1/R2 pairs) — NextPolish
+  pairs them automatically. `task = best` with only sgs_fofn provided
+  auto-resolves to `[1, 2, 1, 2]` (2 rounds of short-read polishing) — this
+  is NextPolish's own recommended recipe for Illumina-only data, confirmed
+  by reading config_parser.py directly (the C-compiled binary doesn't
+  expose this in --help). `polish_options = -p {multithread_jobs}` uses
+  literal template substitution — do not hardcode a thread count there.
+  Command: nextPolish run.cfg
+  Output: ${workdir}/genome.nextpolish.fasta (+ .stat)
+  Resource sizing rationale: the project's own single-sample BWA alignment
+  against a similarly-sized reference (bwa_trimmomatic_array.sh) actually
+  took only ~2-3h at 8 threads in practice (per sacct, job 437545 array —
+  the requested 20h was a safety margin, not the real runtime). NextPolish
+  aligns all 3 Control samples (parallel_jobs=4, so effectively
+  concurrent), twice. Sized generously anyway (32 CPUs, 64GB, 3 days,
+  medium partition) per this project's established pattern of avoiding
+  first-attempt under-provisioning.
+  Status: job 692710 failed after ~1h (N-content rejection, see "NextPolish
+  — N-content Rejection" Known Issue) — fixed with -N in sgs_options,
+  resubmitted as job 692760, 2026-08-06 — result pending.
 
 Driver: codes/assembly/run_assembly_pipeline.sh
   Chain: SPAdes → RagTag → {QUAST, BUSCO, Liftoff} (all three fan out from
@@ -907,6 +949,117 @@ applied upstream shift coordinates so the same position in the pseudogenome
 corresponds to a different genomic region than in the Trinidad reference.
 ```
 
+### CRISPRessoAggregate — `-p` Semantics, Output Directory, and a Report Bug
+```
+crispresso_wgs_aggregate.sh (original) reported "Analysis Complete! 100%"
+for all 4 groups but produced NOTHING useful — "Read 0 folders (0 not
+imported)". Two separate bugs, found 2026-08-06:
+
+1. -p is a PREFIX for glob-matching folder paths, not a parent directory to
+   scan. The script passed `-p ${WGS_DIR}/${SAMPLE}/` (the sample's WGS
+   output dir itself), but the actual per-site run folders CRISPRessoAggregate
+   looks for live one level deeper: `${WGS_DIR}/${SAMPLE}/CRISPRessoWGS_on_${SAMPLE}/CRISPResso_on_<site>`.
+   Fix: point -p at `.../CRISPRessoWGS_on_${SAMPLE}/CRISPResso_on_` (trailing
+   partial-name prefix, glob-matches all per-site subfolders). Confirmed via
+   CRISPRessoAggregate --help ("-p PREFIX ... Prefix for CRISPResso folders
+   to aggregate") and by testing interactively before fixing the SLURM script.
+   Same fix applied to the new crispresso_aggregate_ontarget.sh (Pending
+   Analyses #1 Track C), except there each sample's on-target run is a single
+   exact-match folder (no per-site glob needed): one -p per sample pointing
+   directly at `crispresso/ontarget/trimmomatic/<SAMPLE>/CRISPResso_on_<SAMPLE>`.
+
+2. CRISPRessoAggregate has NO output-directory flag - it always creates its
+   `CRISPRessoAggregate_on_<name>` folder in the current working directory.
+   The original script defined OUTPUT_DIR but never `cd`ed into it, so the
+   (empty, broken) output landed in codes/CRISPResso/ instead. Fix: `cd
+   "$OUTPUT_DIR"` before invoking CRISPRessoAggregate.
+
+3. Separately, this CRISPResso2 install (2.3.1) has a real bug:
+   `make_multi_report() missing 2 required positional arguments:
+   'crispresso_tool' and 'logger'` - crashes ONLY the final HTML report
+   step. All the actual data (txt tables, pdf/png plots) generate correctly
+   before that point. Fix: add `--suppress_report`. A second, non-fatal
+   bug from the same version also appears in the logs and can be ignored:
+   `Error in plot pool: plot_nucleotide_quilt() missing 1 required
+   positional argument: 'custom_colors'` (breaks one specific plot type,
+   doesn't block completion or the rest of the output).
+
+Lesson: "Analysis Complete!" / exit code 0 does not mean useful output was
+produced for this tool - always check "Read N folders (M not imported)" in
+the log, and spot-check that expected output files actually contain data,
+not just that the job didn't crash.
+```
+
+### CRISPRessoPooled — Wrong Tool + Redundant with Merged Track
+```
+crispresso_pooled_groups.sh (Pending Analyses #1 Track A) never worked:
+`CRISPRessoPooled: error: unrecognized arguments: --crispresso_output_folders
+...` for all 4 groups (the script had no error checking, so it printed "✅
+done" after each failed call anyway - a second, independent bug). Also used
+the `mamba shell hook` activation pattern the "CRISPResso2 Activation in
+SLURM" Known Issue already warns against (fixed in passing, but moot given
+the finding below).
+
+Root cause: CRISPRessoPooled's actual purpose is to take RAW reads (-r1/-r2)
+plus multiple amplicons and do its OWN demultiplexing + per-amplicon
+analysis in one step ("pooled amplicon sequencing"). It has no flag to
+combine pre-existing CRISPResso_on_X output folders - that is
+CRISPRessoAggregate's job, not CRISPRessoPooled's. `--crispresso_output_folders`
+is not a real flag in CRISPResso2 v2.3.1 (confirmed via --help).
+
+The correct way to build a genuine group-level "pooled" analysis (not just
+a summary) would be to merge BAMs by group and run CRISPResso directly via
+--bam_input, exactly mirroring crispresso_ontarget_merged.sh (Track B).
+But: reading both scripts confirmed Track A (individual, crispresso_ontarget.sh)
+and Track B (merged) use IDENTICAL region and amplicon parameters (see
+"Assembly Pipeline" — actually "CRISPResso2" section above, corrected
+2026-08-06 from a previously-wrong 60bp-vs-200bp distinction). Since Track
+B already merges the same BAMs with the same parameters, a Track A "pooled"
+step would exactly reproduce Track B's already-completed results.
+
+Decision (2026-08-06): mark CRISPRessoPooled + CRISPRessoCompare (pooled)
+as Superseded by the Merged track rather than fixing them. CLAUDE.md
+previously claimed CRISPRessoCompare (pooled) was "✅ Done" — this was
+WRONG (its only possible input, crispresso/pooled/trimmomatic/, was
+confirmed empty); that claim was never validated against actual output
+before being written down.
+
+Lesson: don't mark a step "done" because a dependent step "ran" - verify
+the actual output directory has real content, especially for multi-step
+chains where step N's success message doesn't guarantee step N-1 actually
+produced usable input.
+```
+
+### NextPolish — N-content Rejection
+```
+Job 692710 (nextpolish_genome.sh, first attempt) ran ~1h then failed at the
+very first step (db_split, before any real alignment/polishing work):
+  "Too many[0.109336] reads contains N base, please do QC first."
+NextPolish's own seq_split tool refuses to proceed if too large a fraction
+of input reads contain an N base anywhere - 10.9% of reads did here,
+likely related to NovaSeq X's lenient quality-trimming thresholds already
+documented in this project (aggressive trimming isn't appropriate given
+its binned quality scores - see "fastp" Known Issue above) - permissive
+trimming leaves more low-confidence/N-called bases in than a platform with
+continuous quality scores would.
+
+Fix: add -N to sgs_options in run.cfg (tells seq_split to keep N-containing
+reads instead of refusing to run) - confirmed via reading
+config_parser.py: `if '-N' in self.cfg['sgs_options']:
+self.cfg['sgs_rm_nread'] = 0`, which is passed straight through to
+seq_split's own -N flag ("don't discard a read/pair if the read contains N
+base"). Chosen over pre-filtering N-containing reads out entirely (would
+discard whole read pairs rather than just the ambiguous bases within them,
+and adds an extra preprocessing step) - see codes/assembly/nextpolish_genome.sh.
+
+Lesson: NextPolish's read-splitting step does its own data-quality gate
+independent of whatever upstream QC/trimming already happened - a tool can
+have a stricter internal threshold for a specific metric (N-content here)
+even when the input already passed this project's established trimming
+pipeline for a different, unrelated purpose (quality-score-based trimming,
+not N-content filtering).
+```
+
 ### Off-Target Deduplication — CasOFFinder vs CRISPOR Priority
 ```python
 # When CasOFFinder and CRISPOR find the same off-target site within ±2bp,
@@ -922,26 +1075,38 @@ df = df.sort_values('priority').drop_duplicates(subset='site_key', keep='first')
 
 ## Pending Analyses
 
-### 1. CRISPResso2 On-Target (remaining steps)
+### 1. CRISPResso2 On-Target — RESOLVED 2026-08-06
 ```
-Track A — Individual (15 samples, markdup BAMs, 60bp amplicon, 100bp region):
+Track A — Individual (15 samples, markdup BAMs, 100bp amplicon/region):
   ✅ crispresso_ontarget.sh (done)
-  → crispresso_pooled_groups.sh (CRISPRessoPooled per group, pending)
-  ✅ crispresso_compare_groups.sh (6 pairwise comparisons of pooled, done)
+  ⚠️ crispresso_pooled_groups.sh — SUPERSEDED, not fixed. CRISPRessoPooled
+     was the wrong tool (see Known Issues) and would exactly duplicate
+     Track B's results since both tracks use identical parameters.
+  ⚠️ crispresso_compare_groups.sh — SUPERSEDED along with the above.
+     Previously marked "✅ Done" in this file — that was WRONG, its input
+     was always empty. See "CRISPRessoPooled — Wrong Tool + Redundant"
+     Known Issue for the full correction.
 
-Track B — Merged groups (4 groups, merged BAMs, 200bp amplicon, 200bp region):
+Track B — Merged groups (4 groups, merged BAMs, 100bp amplicon/region):
   ✅ crispresso_ontarget_merged.sh (done May 18)
   ✅ crispresso_compare_merged.sh (6 pairwise comparisons, done)
+  This is now the sole/authoritative group-level on-target comparison.
 
 Track C — Aggregate:
-  → CRISPRessoAggregate: all samples summary (pending)
+  ✅ crispresso_aggregate_ontarget.sh (job 692758, 15 samples, Aug 6 2026)
+     New script — none existed before. See "CRISPRessoAggregate" Known
+     Issue for the -p prefix / output-dir / --suppress_report fixes.
+     Output: crispresso/aggregate/CRISPRessoAggregate_on_all_samples_ontarget_aggregate/
 ```
 
-### 2. CRISPRessoWGS Aggregate
+### 2. CRISPRessoWGS Aggregate — DONE 2026-08-06
 ```
 ✅ crispresso_wgs.sh — per-sample WGS done (15 samples × 8 sites, May 13)
-→ crispresso_wgs_aggregate.sh (pending — aggregate directory empty)
-   Output: crispresso/wgs/trimmomatic/aggregate/${GROUP}_wgs_aggregate/
+✅ crispresso_wgs_aggregate.sh — job 692749, 4 groups (20-28 folders each)
+   Fixed the same two bugs as crispresso_aggregate_ontarget.sh (-p prefix,
+   cd to OUTPUT_DIR, --suppress_report) — see "CRISPRessoAggregate" Known
+   Issue for full detail.
+   Output: crispresso/wgs/trimmomatic/aggregate/CRISPRessoAggregate_on_${GROUP}_wgs_aggregate/
 ```
 
 ### 3. De Novo Assembly + Scaffolding + Annotation (Controls)
@@ -983,25 +1148,87 @@ Phase 4 completed (2026-07-11, job 683050):
   ✅ colombian_scaffolded.liftoff.gff3: bdnf transferred to
      NC_024333.1_RagTag:14113623-14129072, coverage=0.945, sequence_ID=0.923
 
-Pipeline complete. Final outputs: reference/colombian_scaffolded_genome/
-  (colombian_scaffolded.fna + colombian_scaffolded.liftoff.gff3) and
+Core pipeline (Phases 1-4) complete. Final outputs:
+  reference/colombian_scaffolded_genome/ (colombian_scaffolded.fna +
+  colombian_scaffolded.liftoff.gff3 + README.md for external sharing) and
   assembly/qc_results/ (QUAST + BUSCO reports).
+
+Phase 5 in progress (2026-08-06, job 692710 — see "Assembly Pipeline"
+  above for full parameter details): NextPolish short-read polishing.
+  → Once complete: re-run QUAST + BUSCO on genome.nextpolish.fasta to
+    measure improvement, update reference/colombian_scaffolded_genome/README.md
+    changelog with results. If genome.nextpolish.fasta shows a real
+    improvement, it should replace colombian_scaffolded.fna as the primary
+    deliverable (re-run Liftoff on the polished genome too, since
+    coordinates shift slightly after indel correction).
 ```
 
-### 4. Coverage Plots
+### 4. Coverage Plots — DONE (confirmed 2026-08-06, originally run ~May 6)
 ```
-Scripts in coverage/csv/ (run from that directory):
+Scripts in coverage/csv/ (run from that directory). All 4 confirmed to have
+real output (5 plots + CSV summary each, 20 plots total) — this item's
+status was ambiguous in earlier versions of this file (no ✅/⏳ marker like
+other sections), verified against actual output directories, not assumed:
 - plot_coverage.py           → 5 plots: depth per sample, boxplot by group,
                                coverage %, heatmap, depth vs MapQ
-                               → output: coverage_plots/
-- plot_depth_by_zone.py      → 5 plots: depth per zone/sample/group
-                               → output: depth_zone_plots/
+                               → output: coverage_plots/ ✅
+- plot_depth_by_zone.py      → 5 plots: depth per zone/sample/group,
+                               sgRNA vs flanking scatter
+                               → output: depth_zone_plots/ ✅
 - plot_depth_by_position.py  → 5 plots: position-level depth with 10bp rolling avg,
                                sgRNA site annotated, ratio vs flanking
-                               → output: depth_position_plots/
+                               → output: depth_position_plots/ ✅
 - plot_coverage_by_zone.py   → 5 plots: coverage metrics by zone + group summary
-                               → output: coverage_zone_plots/
+                               → output: coverage_zone_plots/ ✅
 Cut site midpoint used: 15922048 (=(15922039+15922058)//2)
+```
+
+### 5. Genome Assembly — Further Improvement Options (Future)
+```
+Discussed 2026-08-06, to revisit after seeing Phase 5 (NextPolish) results.
+Applies to reference/colombian_scaffolded_genome/ — see its README.md for
+the quality baseline (QUAST/BUSCO) these options aim to improve, and for
+required Limitations disclosure if any of these change what's shared
+externally.
+
+Ranked roughly by cost/effort vs. expected payoff:
+
+1. Short-read polishing (NextPolish) — IN PROGRESS, see Phase 5 above.
+   Cheapest option, no new data needed, directly targets the ~6.9% of
+   "complete" BUSCO genes with internal stop codons.
+
+2. Gap-filling with existing Nanopore data — cheap, no new sequencing.
+   ~2.4Gbp Nanopore reads already on disk (pooled telencephalon, 10 fish,
+   same population, ~3.2x depth — see [[nanopore_epigenome_data]] memory).
+   Too shallow for a full hybrid reassembly (ruled out 2026-07-10, see
+   "SPAdes — mmap ENOMEM" Known Issue), but a good fit for a targeted
+   long-read gap-filler (e.g. TGS-GapCloser) run AFTER Phase 5 — could close
+   some of the ~7% N-gap content RagTag introduced, using data that's
+   already available.
+
+3. Assemble each of the 3 Control individuals separately, then compare —
+   moderate effort, no new data needed. Root cause of SPAdes's fragmentation
+   (N50 669bp before scaffolding) was co-assembling 3 genetically distinct
+   wild individuals at once — every heterozygous difference became a graph
+   bubble. Per-individual assembly avoids cross-individual heterozygosity
+   fragmenting the graph; pick the best single assembly as a new base, or
+   reconcile the three. More compute than Phase 1 (3x SPAdes runs) but
+   works with existing trimmed_trimmomatic/ reads.
+
+4. New deeper long-read sequencing (Nanopore or PacBio HiFi, single
+   individual, 20-30x+) — highest cost (new sequencing run), highest
+   payoff. Would enable genuine long-read or hybrid assembly, likely
+   resolving most of what's currently fragmented/missing (currently: 82.8%
+   genome fraction, 87.1% BUSCO completeness). The real fix if this genome
+   needs to go beyond "solid draft" quality (e.g. for a genome paper or a
+   resource other labs build on).
+
+5. Targeted investigation of what's missing before investing further —
+   characterize the ~13% missing/fragmented BUSCO genes and ~17% of
+   reference genome fraction not represented: are they concentrated in
+   repetitive regions, specific chromosomes, or near regions relevant to
+   the CRISPR work (bdnf locus, the 8 off-target sites)? Would clarify
+   whether targeted effort beats a genome-wide fix.
 ```
 
 ---

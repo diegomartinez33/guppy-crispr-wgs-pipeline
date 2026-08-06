@@ -29,6 +29,16 @@
 # sized generously here (32 CPUs, 64GB, 3 days, medium partition) rather
 # than risk a repeat of this project's history of first-attempt
 # under-provisioning (see SPAdes/RagTag/QUAST Known Issues in CLAUDE.md).
+#
+# sgs_options includes -N: NextPolish's own seq_split tool refused to run
+# on attempt 1 (job 692710) - "Too many[0.109336] reads contains N base,
+# please do QC first" (10.9% of reads have an N somewhere, likely related
+# to NovaSeq X's lenient quality-trimming thresholds already documented in
+# this project - aggressive trimming isn't appropriate for its binned
+# quality scores). -N tells seq_split to keep N-containing reads instead of
+# refusing to proceed (confirmed via config_parser.py: '-N' in sgs_options
+# sets sgs_rm_nread=0, passed through to seq_split's own -N flag). See
+# "NextPolish — N-content Rejection" in CLAUDE.md Known Issues.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
 INPUT_DIR=${PROJECT_DIR}/trimmed_trimmomatic
@@ -74,7 +84,7 @@ polish_options = -p {multithread_jobs}
 
 [sgs_option]
 sgs_fofn = ${SGS_FOFN}
-sgs_options = -max_depth 100
+sgs_options = -max_depth 100 -N
 EOF
 echo "run.cfg written: ${RUN_CFG}"
 cat "$RUN_CFG"

@@ -20,6 +20,12 @@ export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"
 
 echo "Start time: $(date)"
 
+# CRISPRessoAggregate has no output-directory flag - it always creates its
+# folder in the current working directory, so we must cd into OUTPUT_DIR
+# first (first attempt, May 2026, missed this and wrote output into
+# codes/CRISPResso/ instead - see "CRISPRessoAggregate" Known Issue).
+cd "$OUTPUT_DIR"
+
 # ── Aggregate por grupo ───────────────────────────────────────────────────────
 for GROUP in Control Only_MNP Plasmid_Ko RNP_Cas; do
     echo "=== Aggregating: $GROUP ==="
@@ -31,17 +37,25 @@ for GROUP in Control Only_MNP Plasmid_Ko RNP_Cas; do
         RNP_Cas)    SAMPLES="RNP_Cas1_S65_L002 RNP_Cas2_S66_L002 RNP_Cas3_S67_L002 RNP_Cas4_S68_L002" ;;
     esac
 
-    # Construir prefijos
+    # Construir prefijos: -p debe apuntar DENTRO de CRISPRessoWGS_on_<sample>/
+    # a "CRISPResso_on_" (prefijo de las 8 corridas por sitio), no a la
+    # carpeta de la muestra en sí - CRISPRessoAggregate hace glob-match sobre
+    # el prefijo dado, no escanea subdirectorios recursivamente.
     PREFIX_ARGS=""
     for SAMPLE in $SAMPLES; do
-        PREFIX_ARGS="$PREFIX_ARGS -p ${WGS_DIR}/${SAMPLE}/"
+        PREFIX_ARGS="$PREFIX_ARGS -p ${WGS_DIR}/${SAMPLE}/CRISPRessoWGS_on_${SAMPLE}/CRISPResso_on_"
     done
 
+    # --suppress_report: esta versión de CRISPResso2 (2.3.1) tiene un bug en
+    # make_multi_report() (faltan argumentos posicionales) que hace fallar
+    # SOLO la generación del reporte HTML final - las tablas/plots de datos
+    # (lo que realmente importa) se generan correctamente antes de ese punto.
     CRISPRessoAggregate \
       $PREFIX_ARGS \
       --name "${GROUP}_wgs_aggregate" \
       --min_reads_for_inclusion 10 \
       --place_report_in_output_folder \
+      --suppress_report \
       --n_processes 4
 
     echo "✅ $GROUP aggregated"
