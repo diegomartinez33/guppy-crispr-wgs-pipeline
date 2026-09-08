@@ -1432,6 +1432,99 @@ df['priority'] = df['Source'].map({'CRISPOR': 0, 'CasOFFinder': 1})
 df = df.sort_values('priority').drop_duplicates(subset='site_key', keep='first')
 ```
 
+### PCR Primer Design for On-/Off-Target Validation (2026-09-08)
+
+New pipeline (`codes/analysis/design_offtarget_primers.py` +
+`run_offtarget_primer_design.sh`, one call per gene) designs PCR primers
+around each site in a gene's `combined_offtargets.csv` (on-target + all
+known off-targets), for gel-based indel checks and deep targeted
+sequencing of the same sites already covered by the WGS off-target
+analysis. Parameterized via `--gene`/`--sites-csv`/`--ref-version` —
+`bdnf` is the first gene run (real edited samples exist); reusable as-is
+for the other 7 candidate genes once their edits/off-target lists exist.
+Design is done against the reference genome first (matching
+`ko_guide_scan.py`'s pattern), then candidate primer footprints are
+checked against the Colombian pseudogenome for population variants.
+
+**`eprimer3` needs an external `primer3_core` binary not shipped by the
+`emboss/6.6.0` module** — confirmed via `Died: eprimer3 uses external
+program 'primer3_core' which is not in the PATH or defined as
+EMBOSS_PRIMER3_CORE`. It uses the legacy boulder-IO protocol (Primer3
+≤1.x), incompatible with the modern default build (2.6.1). Fix: one-time
+`mamba create -n primer3_env -c bioconda -c conda-forge primer3=1.1.4`
+(`codes/analysis/setup_primer3.sh`), then every caller exports
+`EMBOSS_PRIMER3_CORE=<...>/envs/primer3_env/bin/primer3_core`.
+
+**Pseudogenome coordinate drift breaks naive fixed-buffer alignment
+between reference and pseudogenome windows.** Initial assumption of a
+small (~100bp) buffer to locate the pseudogenome-equivalent window failed
+for 6/9 bdnf sites — actual indel-driven drift is much larger and
+non-uniform: the bdnf-locus chromosome (`NC_024333.1`) is 5,314bp longer
+in the pseudogenome overall, with ~2,838bp already accumulated by the
+~15.9Mb bdnf locus specifically. Fix: reuse the existing
+`reference/pseudogenome/colombian_pseudogenome.chain` file (a byproduct
+of `make_pseudogenome.sh`'s `bcftools consensus -c`) via
+`CrossMap bed <chain> <bed>` (from the `crossmap_env` conda env) to
+liftover the exact reference window to pseudogenome coordinates before
+extraction. Fixed population-check coverage from 3/9 to 7/9 sites (the
+remaining 2 are the IUPAC-blocked sites below, expected).
+
+**IUPAC ambiguity codes in the reference FASTA silently break
+`eprimer3`/`primer3_core` — and `eprimer3` still exits 0.** bdnf's
+`off_target_1` and `off_target_7` returned 0 primer candidates; root
+cause was `primer3_core: Error: Unrecognized base in input sequence` from
+leftover IUPAC ambiguity codes (K/M/R/S/W/Y) at unresolved-heterozygous
+positions in the 2014 short-read reference assembly
+(`GCF_000633615.1`) — same root cause already documented for the
+CRISPOR failures on agap3/grin1a/gria1a. `primer3_core` hard-rejects
+**any** such code anywhere in its input window (lowercase soft-masking
+alone is fine). The bug: `eprimer3` returns exit code 0 even when
+`primer3_core` fails this way internally, so a bare `returncode != 0`
+check silently swallows it. Fix: `design_offtarget_primers.py` now
+pre-flight-checks the extraction window for non-ACGTN bases before
+calling `eprimer3` (skips with an explicit `INPUT_ERROR_AMBIGUOUS_BASES`
+status + exact per-code counts), and also scans stdout/stderr text for
+`Error:`/`Died:` as a defensive fallback. The output CSV carries a
+`design_status`/`design_note` column pair so a hard input failure is
+never confused with a genuine "searched cleanly, found nothing" result
+(`NO_CANDIDATES_FOUND`).
+
+**Does this affect the already-completed GATK+CRISPResso2 WGS off-target
+results for these same 2 sites? No, for both, based on direct checks:**
+the ±500bp window used for *primer design* is far wider than the window
+the original WGS analysis actually used (the exact `start-end` interval
+for GATK's `select_offtargets.sh`, or that ±`WGS_PADDING=40` from
+`combine_offtargets.py` for CRISPRessoWGS's amplicon, ~103bp). Checked
+ambiguous-base presence specifically in those narrower windows:
+- `off_target_1` (`NC_024331.1:5708724-5708747` core;
+  `5708684-5708787` padded): **zero** ambiguous bases in either window.
+  All 143 ambiguous bases found were artifacts of the much wider
+  primer-design window only.
+- `off_target_7` (`NC_024340.1:12200655-12200678` core;
+  `12200615-12200718` padded): core interval is clean; the padded
+  window has exactly **one** ambiguous base (`R`), at genomic position
+  12200714 — 36bp past the core interval's end, ~4bp from the padded
+  window's outer edge (i.e., in the padding margin, not near the actual
+  cut site).
+- Read depth/MAPQ spot-check (one markdup BAM) at both sites: normal
+  coverage (~45-51x), MAPQ predominantly 60 — no sign BWA mapping itself
+  was disrupted by the ambiguous bases nearby.
+
+**Follow-up integrity sweep (2026-09-08)**: extended the same core-vs-
+padded-window ambiguous-base check to all 9 bdnf sites x both reference
+versions (18 site x version combinations) — the only gene with real
+off-target data on disk today (the other 7 candidate genes have no
+edited samples / `combined_offtargets.csv` yet, so nothing to sweep for
+them). Result: **0/18 core intervals** (the exact GATK `SelectVariants`
+window) have any ambiguous base; **17/18 padded windows** (the
+CRISPRessoWGS amplicon window) are clean, the sole exception being the
+already-identified `off_target_7`/v1 case above. v2 (the new long-read
+assembly) is clean in all 18 windows, consistent with it having far less
+unresolved heterozygosity than the 2014 short-read v1 assembly. No new
+cases found — this confirms off_target_7/v1 remains the only actual
+point of contact between this issue and the already-reported WGS
+results, for everything currently on disk.
+
 ---
 
 ## Pending Analyses
@@ -2061,6 +2154,58 @@ sites); Phase 2 (RagTag re-scaffolding of the ALREADY
 polished/gap-filled Colombian contigs against the new reference - SPAdes/
 NextPolish/TGS-GapCloser do NOT need to be re-run) deliberately deferred
 until Phase 1 is done, per the user-approved plan.
+
+Status check-in 2026-09-08: HaplotypeCaller (job 716490, array 1-15%8) at
+~56% by genomic position across the 8 currently-running tasks (samples.txt
+lines 1-8, started 2026-09-06 11:45); lines 9-15 still queued behind the
+8-task concurrency limit. Downstream GenomicsDBImport/GenotypeGVCFs/
+VariantFiltration (716491-716493) remain PENDING (Dependency). Rough
+estimate ~4-5 more days for all 15 to clear HaplotypeCaller.
+
+Considered and explicitly rejected: branching off a Control-only (3-sample)
+joint-genotyping side-chain to unblock pseudogenome v2/assembly Phase 2
+early, since Control_MNP_I/II/III happen to be samples.txt lines 1-3 (in
+the first, already-running batch) and would finish well before the other
+12. Rejected because (1) genomics_db_import.sh's SAMPLE_LIST is currently
+the full 15-sample samples.txt with no subset option (a real code change,
+not just a config flip), and (2) more importantly, it would be a
+methodological deviation from how the v1 pseudogenome was built (full
+15-sample joint genotyping, THEN `bcftools view -s $CONTROLS` + fill-tags
+recomputes AF from just the controls) - VariantFiltration's site-level hard
+filters (QD/FS/MQ/etc.) are computed from pooled read evidence across
+however many samples are in the joint call, so a 3-sample-only cohort would
+compute them differently than a 15-sample cohort, breaking v1/v2
+comparability. No actual bias risk either way for the pseudogenome itself:
+AF_THRESH=0.667 is recomputed from the Controls' own GT values AFTER
+subsetting, regardless of cohort size, so edited/treatment samples' unique
+CRISPR-induced variants cannot leak into the Control consensus through this
+path. Decision: keep joint-genotyping all 15 together, subset to Controls
+only at the very end, same as v1.
+```
+
+### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
+```
+codes/analysis/design_offtarget_primers.py (+ run_offtarget_primer_design.sh),
+parameterized by --gene/--sites-csv/--ref-version. See "PCR Primer Design
+for On-/Off-Target Validation" in Known Issues for the primer3_core and
+CrossMap-liftover fixes this required.
+
+bdnf v1 (crispresso/offtargets/combined/combined_offtargets.csv, 9 sites):
+DONE. analysis/offtarget_primers/bdnf_v1_primers.csv - 37 rows: 35 real
+candidate pairs (7 sites x 5) + 2 clean placeholder rows for off_target_1/
+off_target_7 (design_status=INPUT_ERROR_AMBIGUOUS_BASES, see Known Issues).
+on_target's top candidate: SPECIFIC (1 amplimer), primer_variant_flag=NONE.
+Population-variant check (vs colombian_pseudogenome.fna) available for 7/9
+sites (the 2 IUPAC-blocked sites have no primers to check by definition).
+
+Pending:
+  - bdnf v2: blocked on reference/pseudogenome_v2/ (item #8's GATK v2
+    chain must finish first; the script's --ref-version v2 path is
+    already wired but pseudogenome_v2 doesn't exist yet).
+  - Other 7 candidate genes (agap3, grin1a/b, gria1a/b, gria2b, nlgn1):
+    blocked on those genes having real edited samples + their own
+    combined_offtargets.csv - no code changes needed, same command with
+    --gene/--sites-csv swapped.
 ```
 
 ---
