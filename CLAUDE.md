@@ -1942,6 +1942,39 @@ this container version's actual TSV header includes targetSeq,
 mitSpecScore, offtargetCount, "Doench '16-Score" (all consumed here), even
 though it otherwise differs from the older sample TSVs bundled in the
 crisporWebsite repo docs.
+
+**Follow-up 2026-09-08 - why agap3/grin1a/gria1a have NO CRISPOR TSVs at
+all** (`crispor_available: false` in report_data.json; the manual PAM-scan
+CSVs still exist and are unaffected, per #6). Re-ran ko_guide_scan.py for
+all 3 to capture the actual crispor.py traceback (previously only the
+truncated last-800-char stderr tail was ever seen, not logged to disk).
+Root cause confirmed as the same recurring IUPAC ambiguity-code issue
+(K/M/R/S/W/Y in the 2014 short-read reference, see primer-design and
+combine_offtargets Known Issues above) - but here it's a HARD, UNCAUGHT
+crash inside crispor.py itself, in two different internal code paths that
+don't guard against non-ACGTN input at all (unlike the Azimuth soft-fail
+already noted for individual guides overlapping an ambiguous site -
+gria1a's case is actually this SAME Azimuth code path, just crashing the
+whole run instead of one guide):
+  - agap3, grin1a: `revComp()` (called from `writePamFlank`/
+    `flankSeqIter` during off-target/flank sequence extraction) ->
+    `KeyError: 'S'` - its complement-base dict has no 'S' entry.
+  - gria1a: Azimuth-2.0's `nucleotide_features()` (one-hot encoding for
+    the Doench'16 efficiency model) -> `ValueError: 'R' is not in list` -
+    its fixed alphabet list has no 'R' entry.
+Both failures happen against BOTH guppyRefTrinidad and
+guppyColPseudogenome for all 3 genes - confirms the ambiguous base is
+physically present in the v1 reference assembly near these genes, not
+introduced only by the pseudogenome's `bcftools consensus` step.
+`run_crispor()`'s existing try/except-equivalent (checking `returncode !=
+0`) already handles this gracefully at the ko_guide_scan.py level (prints
+a WARNING, returns `{}`, the manual scan's classification is entirely
+unaffected) - this is a real gap in CRISPOR's own code, not a bug in this
+project's wrapper, and not fixable without patching the container's
+bundled crispor.py/Azimuth-2.0 to skip or N-mask ambiguous bases before
+scoring (not done - out of scope, efficiency/off-target scoring is a
+supplement to the manual scan, never the primary classifier, per this
+item's original goal statement above).
 ```
 
 ### 8. Migration to GCF_904066995.2 (v2) — IN PROGRESS 2026-09-05

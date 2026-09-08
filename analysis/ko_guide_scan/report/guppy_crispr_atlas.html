@@ -1,0 +1,645 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Guppy CRISPR Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F4F2;
+    --surface:#FFFFFF;
+    --surface-alt:#E7EDE9;
+    --ink:#182420;
+    --ink-soft:#51605A;
+    --ink-faint:#8A968F;
+    --border:#D4DDD7;
+    --border-strong:#B7C4BC;
+    --accent:#0E7A69;
+    --accent-ink:#083F37;
+    --accent-soft:#DFF0EC;
+    --safe:#2F7A4F;
+    --safe-soft:#E4F2E8;
+    --danger:#AC3A2E;
+    --danger-soft:#F7E5E2;
+    --high:#B4590F;
+    --high-soft:#F5E7D8;
+    --mod:#9C7A0A;
+    --mod-soft:#F3EED3;
+    --excluded:#7C857F;
+    --excluded-soft:#E9ECEA;
+    --baseA:#2C7A3F;
+    --baseC:#25579E;
+    --baseG:#5B4A1E;
+    --baseT:#A3352B;
+    --shadow: 0 1px 2px rgba(20,30,26,0.06), 0 6px 20px -8px rgba(20,30,26,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131A17;
+      --surface:#1B2420;
+      --surface-alt:#22302A;
+      --ink:#E7EEEA;
+      --ink-soft:#AEBCB4;
+      --ink-faint:#71827A;
+      --border:#2E3C35;
+      --border-strong:#3E4E45;
+      --accent:#4FC3AA;
+      --accent-ink:#B9EDE0;
+      --accent-soft:#1E3833;
+      --safe:#6FBE8B;
+      --safe-soft:#1D3327;
+      --danger:#E08A7C;
+      --danger-soft:#3A241F;
+      --high:#E3A868;
+      --high-soft:#3B2E1B;
+      --mod:#D8C468;
+      --mod-soft:#37311A;
+      --excluded:#9AA69E;
+      --excluded-soft:#293430;
+      --baseA:#6FCB84;
+      --baseC:#7FB0EA;
+      --baseG:#C9B27A;
+      --baseT:#E3897E;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131A17;
+    --surface:#1B2420;
+    --surface-alt:#22302A;
+    --ink:#E7EEEA;
+    --ink-soft:#AEBCB4;
+    --ink-faint:#71827A;
+    --border:#2E3C35;
+    --border-strong:#3E4E45;
+    --accent:#4FC3AA;
+    --accent-ink:#B9EDE0;
+    --accent-soft:#1E3833;
+    --safe:#6FBE8B;
+    --safe-soft:#1D3327;
+    --danger:#E08A7C;
+    --danger-soft:#3A241F;
+    --high:#E3A868;
+    --high-soft:#3B2E1B;
+    --mod:#D8C468;
+    --mod-soft:#37311A;
+    --excluded:#9AA69E;
+    --excluded-soft:#293430;
+    --baseA:#6FCB84;
+    --baseC:#7FB0EA;
+    --baseG:#C9B27A;
+    --baseT:#E3897E;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    line-height:1.55;
+    font-size:15.5px;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px 96px;}
+
+  h1,h2,h3{
+    font-family:"IBM Plex Serif", Georgia, serif;
+    text-wrap:balance;
+    color:var(--ink);
+    font-weight:600;
+    line-height:1.2;
+  }
+  code, .mono, .seq, table.data td.num, .stat-value{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+  }
+  a{color:var(--accent-ink);}
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--accent-ink);
+  }
+
+  /* ---- top bar ---- */
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{
+    max-width:920px; margin:0 auto; padding:12px 24px;
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+  }
+  .topbar-inner .brand{font-family:"IBM Plex Serif",serif; font-weight:600; font-size:15px;}
+  nav.jump{display:flex; gap:18px; flex-wrap:wrap;}
+  nav.jump a{
+    font-size:12.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-soft); text-decoration:none; font-weight:500;
+  }
+  nav.jump a:hover{color:var(--accent-ink);}
+
+  /* ---- masthead ---- */
+  .masthead{padding:56px 0 36px; border-bottom:1px solid var(--border);}
+  .masthead h1{font-size:clamp(30px,4.4vw,42px); margin:10px 0 14px;}
+  .masthead p.lede{max-width:62ch; color:var(--ink-soft); font-size:16.5px; margin:0 0 20px;}
+  .scope-strip{
+    display:flex; gap:28px; flex-wrap:wrap;
+    padding-top:18px; border-top:1px dashed var(--border-strong);
+  }
+  .scope-item .label{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint);}
+  .scope-item .value{font-family:"IBM Plex Mono",monospace; font-size:14.5px; margin-top:2px;}
+
+  section{padding:44px 0;}
+  section.divider-top{border-top:1px solid var(--border);}
+  section > h2{font-size:22px; margin:0 0 6px;}
+  section > .section-sub{color:var(--ink-soft); max-width:64ch; margin:0 0 26px; font-size:14.5px;}
+
+  /* ---- executive summary table ---- */
+  .table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px; background:var(--surface); box-shadow:var(--shadow);}
+  table.data{border-collapse:collapse; width:100%; min-width:640px;}
+  table.data th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-faint); font-weight:600; padding:11px 14px; border-bottom:1px solid var(--border);
+    background:var(--surface-alt); white-space:nowrap;
+  }
+  table.data td{padding:11px 14px; border-bottom:1px solid var(--border); font-size:13.5px; vertical-align:middle;}
+  table.data tbody tr:last-child td{border-bottom:none;}
+  table.data tbody tr:hover{background:var(--surface-alt);}
+  table.data td.num{text-align:right;}
+  table.data a.gene-link{font-weight:600; color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--border-strong);}
+  table.data a.gene-link:hover{color:var(--accent-ink); border-color:var(--accent);}
+
+  .bar{display:flex; height:8px; border-radius:4px; overflow:hidden; min-width:110px; background:var(--surface-alt);}
+  .bar span{display:block; height:100%;}
+  .seg-IDENTICAL{background:var(--safe);}
+  .seg-PAM_BROKEN{background:var(--danger);}
+  .seg-SEED_VARIANT{background:var(--high);}
+  .seg-DISTAL_VARIANT{background:var(--mod);}
+  .seg-EXON_JUNCTION_ARTIFACT{background:var(--excluded);}
+
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600;
+    padding:2px 9px; border-radius:99px; white-space:nowrap;
+  }
+  .pill-IDENTICAL{background:var(--safe-soft); color:var(--safe);}
+  .pill-PAM_BROKEN{background:var(--danger-soft); color:var(--danger);}
+  .pill-SEED_VARIANT{background:var(--high-soft); color:var(--high);}
+  .pill-DISTAL_VARIANT{background:var(--mod-soft); color:var(--mod);}
+  .pill-EXON_JUNCTION_ARTIFACT{background:var(--excluded-soft); color:var(--excluded);}
+  .pill-ok{background:var(--accent-soft); color:var(--accent-ink);}
+  .pill-off{background:var(--excluded-soft); color:var(--ink-faint);}
+
+  /* ---- criteria section ---- */
+  .criteria-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:720px){.criteria-grid{grid-template-columns:1fr;}}
+  .crit-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:22px 24px; box-shadow:var(--shadow);
+  }
+  .crit-card h3{font-size:17px; margin:0 0 4px; display:flex; align-items:center; gap:9px;}
+  .crit-card .tag{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 7px; border-radius:5px;
+    background:var(--accent-soft); color:var(--accent-ink); font-weight:600;
+  }
+  .crit-card p.role{color:var(--ink-soft); font-size:13.5px; margin:2px 0 16px;}
+  .crit-card ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:11px;}
+  .crit-card li{font-size:13.8px;}
+  .crit-card li b{color:var(--ink);}
+  .zone-diagram{
+    margin-top:18px; border-top:1px dashed var(--border-strong); padding-top:16px;
+  }
+  .zone-diagram .zone-label{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px;}
+  .zone-track{display:flex; height:28px; border-radius:6px; overflow:hidden; font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600;}
+  .zone-track > div{display:flex; align-items:center; justify-content:center; color:#fff;}
+  .zone-ko-good{background:var(--safe); flex:3;}
+  .zone-ko-avoid{background:var(--excluded); flex:1;}
+  .zone-utr{background:var(--border-strong); flex:0.6; color:var(--ink-soft) !important;}
+  .zone-tss{background:var(--accent); flex:1.4;}
+  .zone-cds-avoid{background:var(--excluded); flex:3;}
+
+  .callout{
+    margin-top:26px; padding:18px 20px; border-radius:10px;
+    background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    font-size:14px;
+  }
+  .callout .eyebrow{display:block; margin-bottom:6px;}
+
+  /* ---- gene cards ---- */
+  .gene-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:26px 26px 22px; margin-bottom:22px; box-shadow:var(--shadow); scroll-margin-top:64px;
+  }
+  .gene-card > .gene-head{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;
+    border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;
+  }
+  .gene-head h3{font-size:20px; margin:0 0 4px; font-style:italic;}
+  .gene-meta{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-soft);}
+  .gene-meta b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-weight:500;}
+  .gene-stats{display:flex; gap:22px; flex-wrap:wrap;}
+  .gene-stats .stat{text-align:right;}
+  .gene-stats .stat-value{font-size:20px; font-weight:600;}
+  .gene-stats .stat-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+
+  .subhead{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; margin:20px 0 10px;}
+  .subhead:first-of-type{margin-top:4px;}
+
+  .empty-note{font-size:13px; color:var(--ink-faint); font-style:italic; padding:8px 0;}
+
+  .base-A{color:var(--baseA);}
+  .base-C{color:var(--baseC);}
+  .base-G{color:var(--baseG);}
+  .base-T{color:var(--baseT);}
+  .pam-wrap{background:var(--surface-alt); border-radius:4px; padding:0 3px; margin-left:2px;}
+
+  .note-crispor-off{
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-faint);
+    background:var(--excluded-soft); border-radius:7px; padding:8px 12px; margin:10px 0 14px;
+  }
+  .guide-id{font-size:10px; color:var(--ink-faint); margin-top:3px; font-weight:500;}
+  tr.offtarget-row td{
+    background:var(--surface-alt); font-size:11.5px; color:var(--ink-soft);
+    padding:7px 14px 11px !important; border-bottom:1px solid var(--border) !important;
+  }
+  tr.offtarget-row .ot-item{white-space:nowrap; margin-right:4px;}
+  tr.main-guide-row td{border-bottom:none !important;}
+
+  footer{
+    border-top:1px solid var(--border); padding:40px 0 20px; color:var(--ink-faint); font-size:12.5px;
+  }
+  footer p{max-width:70ch;}
+
+  ::selection{background:var(--accent-soft); color:var(--accent-ink);}
+</style>
+
+<header class="top">
+  <div class="topbar-inner">
+    <span class="brand">Guppy CRISPR Atlas</span>
+    <nav class="jump">
+      <a href="#summary">Resumen</a>
+      <a href="#criteria">Criterios</a>
+      <a href="#genes">Genes</a>
+      <a href="#methods">Métodos</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="masthead">
+    <span class="eyebrow">Poecilia reticulata · Población colombiana</span>
+    <h1>Variantes poblacionales y guías candidatas para 8 genes de interés</h1>
+    <p class="lede">Comparación gen por gen entre la referencia de Trinidad (GCF_000633615.1) y el pseudogenoma colombiano (bcftools consensus + Liftoff), con guías SpCas9 candidatas rankeadas para <b>CRISPRko</b> (dentro del CDS) y <b>CRISPRi</b> (ventana −50/+300pb del TSS), y los criterios para elegir guía según el sistema a usar.</p>
+    <div class="scope-strip">
+      <div class="scope-item"><div class="label">Genes analizados</div><div class="value">8</div></div>
+      <div class="scope-item"><div class="label">Guías CRISPRko</div><div class="value">3116</div></div>
+      <div class="scope-item"><div class="label">Guías CRISPRi</div><div class="value">377</div></div>
+      <div class="scope-item"><div class="label">Población</div><div class="value">pseudogenome (v1)</div></div>
+      <div class="scope-item"><div class="label">Motor de PAM</div><div class="value">SpCas9 · NGG</div></div>
+      <div class="scope-item"><div class="label">Actualizado</div><div class="value">2026-09-07</div></div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Resumen ejecutivo</h2>
+    <p class="section-sub">Clasificación de cada guía candidata en el CDS de referencia frente a su ventana equivalente en el pseudogenoma. <span class="pill pill-IDENTICAL">IDENTICAL</span> = guía intacta en la población; las demás categorías son grados de afectación por variantes; <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> son candidatos descartados por cruzar una unión exón-exón (no son ADN genómico real).</p>
+
+    <div class="table-scroll">
+      <table class="data" id="summary-table">
+        <thead>
+          <tr>
+            <th>Gen</th>
+            <th>CDS</th>
+            <th>Exones</th>
+            <th class="num">Guías</th>
+            <th>Composición</th>
+            <th class="num">Afectadas</th>
+            <th>CRISPOR</th>
+          </tr>
+        </thead>
+        <tbody id="summary-tbody"></tbody>
+      </table>
+    </div>
+
+    <p class="section-sub" style="margin-top:30px;">Lo mismo para <b>CRISPRi</b>: candidatos en la ventana −50/+300pb alrededor del TSS de cada transcrito representativo (no hay <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> aquí — es ADN genómico contiguo, no CDS empalmado).</p>
+    <div class="table-scroll">
+      <table class="data" id="summary-table-crispri">
+        <thead>
+          <tr>
+            <th>Gen</th>
+            <th>TSS</th>
+            <th class="num">Guías</th>
+            <th>Composición</th>
+            <th class="num">Afectadas</th>
+            <th>CRISPOR</th>
+          </tr>
+        </thead>
+        <tbody id="summary-tbody-crispri"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="criteria" class="divider-top">
+    <h2>Criterios para elegir la mejor guía</h2>
+    <p class="section-sub">La posición óptima dentro del gen es distinta según el sistema: CRISPRko busca romper la proteína editando el ADN; CRISPRi busca silenciar la transcripción sin cortar. Tu intuición es correcta en el fondo, con matices importantes en ambos extremos.</p>
+
+    <div class="criteria-grid">
+      <div class="crit-card">
+        <h3>CRISPRko <span class="tag">Cas9 · corte de doble cadena</span></h3>
+        <p class="role">Objetivo: indel por NHEJ → frameshift → proteína truncada/degradada (NMD)</p>
+        <ol>
+          <li><b>Exón temprano y constitutivo.</b> Idealmente en el primer tercio del CDS, presente en todas las isoformas relevantes — un frameshift ahí arrastra el resto de la proteína. Evita el <b>último exón</b>: un codón de paro prematuro ahí suele escapar de NMD (nonsense-mediated decay) y puede producir una proteína truncada parcialmente funcional en vez de un null real.</li>
+          <li><b>Sin variantes poblacionales en PAM o semilla.</b> Usa solo guías <span class="pill pill-IDENTICAL">IDENTICAL</span> contra el pseudogenoma — un PAM roto o un SNP en las 10pb proximales al PAM puede anular el corte en la población que realmente vas a editar.</li>
+          <li><b>Alta especificidad, bajo off-target real.</b> mitSpecScore de CRISPOR alto (&gt;90) y offtargetCount bajo — recuerda que Cas-OFFinder/CRISPOR buscan sobre el genoma completo, no solo el CDS.</li>
+          <li><b>Eficiencia de corte razonable.</b> Score Doench 2016 más alto = mayor probabilidad de indel por alelo editado, pero es la señal más débil de las cuatro — no sacrifiques posición o especificidad por unos puntos de Doench.</li>
+          <li><b>Evita uniones exón-exón.</b> Un candidato que solo existe en el CDS empalmado (no en ADN genómico contiguo) no es editable — ya filtrado como <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> en esta tabla.</li>
+        </ol>
+        <div class="zone-diagram">
+          <div class="zone-label">Dónde cortar en el gen (5' → 3')</div>
+          <div class="zone-track">
+            <div class="zone-utr">5'UTR</div>
+            <div class="zone-ko-good">CDS temprano/medio — objetivo</div>
+            <div class="zone-ko-avoid">último exón — evitar</div>
+            <div class="zone-utr">3'UTR</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="crit-card">
+        <h3>CRISPRi <span class="tag">dCas9-KRAB · sin corte</span></h3>
+        <p class="role">Objetivo: bloquear el reclutamiento/avance de la ARN polimerasa cerca del TSS</p>
+        <ol>
+          <li><b>Ventana estrecha alrededor del TSS.</b> La literatura (Gilbert et al. 2014; Horlbeck et al. 2016) converge en <b>−50 a +300 pb</b> respecto al sitio de inicio de transcripción — no en el promotor "en general". Fuera de esa ventana el silenciamiento cae drásticamente, sin importar qué tan buena sea la guía.</li>
+          <li><b>La hebra importa menos que la posición.</b> A diferencia de lo que se suele asumir, dCas9-KRAB funciona en ambas hebras dentro de la ventana — prioriza distancia al TSS, no orientación.</li>
+          <li><b>Nunca dentro del CDS.</b> Guías CRISPRi corriente abajo del TSS (en exones internos) casi no silencian — el bloqueo de RNAPII solo es eficiente cerca del inicio.</li>
+          <li><b>Evita también variantes poblacionales en esa ventana.</b> El mismo criterio de "sin SNP en PAM/semilla" aplica — pero aquí la ventana de interés es genómica (TSS ±350pb), no el CDS que ya escaneamos.</li>
+          <li><b>Especificidad sobre eficiencia.</b> Como no hay reparación de por medio, un off-target real es más costoso (silenciamiento fuera de blanco) — prioriza mitSpecScore/offtargetCount incluso más que para KO.</li>
+        </ol>
+        <div class="zone-diagram">
+          <div class="zone-label">Dónde silenciar en el gen (5' → 3')</div>
+          <div class="zone-track">
+            <div class="zone-tss">−50…+300pb del TSS — objetivo</div>
+            <div class="zone-cds-avoid">resto del CDS — no funciona bien</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="eyebrow">Nota sobre este reporte</span>
+      Las guías listadas abajo son las <b>predichas directamente por CRISPOR</b> (no un escaneo manual de PAMs) — cada una trae su ID de CRISPOR, sus scores reales (MIT, CFD, Doench'16/Moreno-Mateos para KO) y sus <b>off-targets reales</b> (posición genómica, mismatches, score CFD), tomados de correr <code>crispor.py</code> contra el genoma de referencia registrado. La comparación contra el pseudogenoma colombiano (IDENTICAL/PAM_BROKEN/etc.) se sigue calculando con el alineamiento propio del proyecto — CRISPOR no compara genomas entre sí, solo evalúa uno a la vez. El score Doench'16 no aparece en las tablas de CRISPRi: está entrenado para eficiencia de corte/indel, no de silenciamiento por dCas9-KRAB.
+    </div>
+  </section>
+
+  <section id="genes" class="divider-top">
+    <h2>Guías candidatas por gen</h2>
+    <p class="section-sub">Por gen: hasta 5 guías de CRISPOR <b>CRISPRko</b> (CDS, priorizando exón no-terminal → especificidad MIT/CFD → off-targets reales → Doench'16/Moreno-Mateos) y hasta 5 <b>CRISPRi</b> (ventana TSS, priorizando especificidad → off-targets reales → cercanía al TSS), cada una con sus 3 off-targets reales más relevantes. Debajo de cada tabla, las guías de esa misma región afectadas por variantes poblacionales — evítalas para esta población.</p>
+    <div id="gene-cards"></div>
+  </section>
+
+  <section id="methods" class="divider-top">
+    <h2>Métodos y limitaciones</h2>
+    <p class="section-sub" style="margin-bottom:14px;">
+      Las guías mostradas y sus métricas/off-targets vienen del propio <code>crispor.py</code> (contenedor Singularity) corrido contra el genoma de referencia registrado: <b>CRISPRko</b> con el CDS completo del transcrito representativo como entrada, <b>CRISPRi</b> con la ventana genómica −50/+300pb alrededor de su TSS (inicio del mRNA, no del CDS). La clasificación de seguridad poblacional (IDENTICAL/PAM_BROKEN/SEED_VARIANT/DISTAL_VARIANT) sigue viniendo del alineamiento propio del proyecto (minimap2 --cs) contra la misma región en el pseudogenoma colombiano — ko_guide_scan.py / crispri_tss_scan.py — y se une a cada guía de CRISPOR por su secuencia exacta de 23pb (espaciador+PAM). Solo se muestran candidatos <span class="pill pill-IDENTICAL">IDENTICAL</span>; los off-targets reales (top 3 por guía, orden mismatches↑/CFD↓) salen del TSV de off-targets que <code>crispor.py</code> ya calcula contra el genoma completo.
+    </p>
+    <div class="note-crispor-off" style="max-width:680px; flex-direction:column; align-items:flex-start; gap:10px;">
+      <div>⚠ <b>CRISPRko — agap3, grin1a y gria1a</b> no tienen puntajes de CRISPOR: el genoma de referencia (ensamblaje 2014, short-read) contiene códigos de ambigüedad IUPAC (R/Y/S/W/K/M) en el CDS de esas regiones — probablemente sitios heterocigotos sin resolver. Confirmado que es un fallo duro y no controlado dentro del propio <code>crispor.py</code>, en dos puntos distintos de su código que no toleran caracteres fuera de A/C/G/T/N: para agap3 y grin1a, su función <code>revComp()</code> (usada al extraer la secuencia flanqueante para contar off-targets) no reconoce la letra <code>'S'</code> (<code>KeyError: 'S'</code>); para gria1a, el modelo de eficiencia Azimuth-2.0 (Doench'16) no reconoce la letra <code>'R'</code> en su alfabeto fijo de codificación (<code>ValueError: 'R' is not in list</code>). El escaneo manual y la clasificación de variantes no se ven afectados; solo falta el ranking adicional por especificidad/eficiencia para esos 3 genes. <b>CRISPRi — solo agap3</b> tiene el mismo problema en su ventana TSS (es una región genómica distinta y mucho más pequeña que el CDS, así que la mayoría de genes no tropiezan con un código de ambigüedad ahí aunque sí lo hagan en el CDS).</div>
+      <div>↻ <b>Plan de re-análisis:</b> el genoma de referencia macho más nuevo (GCF_904066995.2, PacBio+Hi-C, 2025) tiene una migración en curso en el proyecto — al completarse, estos 3 genes se volverán a correr contra esa referencia y su pseudogenoma v2. Al ser un ensamblaje long-read mucho mejor resuelto, es probable que ya no tenga estos códigos de ambigüedad en las mismas posiciones, lo que debería permitir obtener los puntajes de CRISPOR que faltan aquí.</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Guppy CRISPR Atlas · generado a partir de analysis/ko_guide_scan/*.csv · pipeline: ko_guide_scan.py (CRISPRko) + crispri_tss_scan.py (CRISPRi) + CRISPOR (Singularity) · off-target_data project, 2026-09-07.</p>
+  </footer>
+
+</div>
+
+<script>
+const DATA = {"bdnf": {"transcript": "XM_008405147.2", "cds_len": 885, "n_exons": 2, "strand": "-", "chrom": "NC_024333.1", "gene_span": "15920888-15935548", "classification_counts": {"IDENTICAL": 148, "EXON_JUNCTION_ARTIFACT": 2}, "total_guides": 150, "variant_affected_guides": [], "top_ko_candidates": [{"target_seq": "ATATGCCGGTTCAGTGAGAAAGG", "spacer": "ATATGCCGGTTCAGTGAGAA", "pam": "AGG", "guide_id_crispor": "51forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 10, "pop_offtarget_count": 10, "top_offtargets": [{"chrom": "NC_024338.1", "start": 12275581, "end": 12275603, "strand": "-", "mismatch_count": 4, "mit_score": 0.5268485915492956, "cfd_score": 0.242647059}, {"chrom": "NC_024344.1", "start": 6065889, "end": 6065911, "strand": "+", "mismatch_count": 4, "mit_score": 0.44683722853915653, "cfd_score": 0.1582417580533752}, {"chrom": "NC_024336.1", "start": 11663952, "end": 11663974, "strand": "+", "mismatch_count": 4, "mit_score": 0.2157940045248868, "cfd_score": 0.15589569145691612}], "doench16_score": 51.0, "moreno_mateos_score": 44.0, "cds_pos_1based": 31, "frac_cds": 0.035, "strand": "+", "in_last_exon": false}, {"target_seq": "TATGCCGGTTCAGTGAGAAAGGG", "spacer": "TATGCCGGTTCAGTGAGAAA", "pam": "GGG", "guide_id_crispor": "52forw", "classification": "IDENTICAL", "mit_spec_score": 95.0, "cfd_spec_score": 97.0, "offtarget_count": 22, "pop_offtarget_count": 23, "top_offtargets": [{"chrom": "NC_024344.1", "start": 21765108, "end": 21765130, "strand": "+", "mismatch_count": 3, "mit_score": 0.2870162297128589, "cfd_score": 0.1531986530286195}, {"chrom": "NC_024352.1", "start": 5742203, "end": 5742225, "strand": "-", "mismatch_count": 3, "mit_score": 0.4685140562248997, "cfd_score": 0.06862745094989106}, {"chrom": "NC_024345.1", "start": 11972365, "end": 11972387, "strand": "-", "mismatch_count": 4, "mit_score": 0.3519434335443038, "cfd_score": 0.6233766233786215}], "doench16_score": 55.0, "moreno_mateos_score": 57.0, "cds_pos_1based": 32, "frac_cds": 0.036, "strand": "+", "in_last_exon": false}, {"target_seq": "TTTCTCTGCTCAGGATATGCCGG", "spacer": "TTTCTCTGCTCAGGATATGC", "pam": "CGG", "guide_id_crispor": "37forw", "classification": "IDENTICAL", "mit_spec_score": 89.0, "cfd_spec_score": 96.0, "offtarget_count": 56, "pop_offtarget_count": 56, "top_offtargets": [{"chrom": "NC_024351.1", "start": 6867039, "end": 6867061, "strand": "+", "mismatch_count": 2, "mit_score": 0.466857142857143, "cfd_score": 0.02299331087627741}, {"chrom": "NC_024332.1", "start": 31183703, "end": 31183725, "strand": "-", "mismatch_count": 3, "mit_score": 0.07411445966514461, "cfd_score": 0.2596153845}, {"chrom": "NC_024344.1", "start": 16661692, "end": 16661714, "strand": "+", "mismatch_count": 3, "mit_score": 1.2504273504273504, "cfd_score": 0.15126050397478993}], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 17, "frac_cds": 0.019, "strand": "+", "in_last_exon": false}, {"target_seq": "TGTGTGGCATTTCTCTGCTCAGG", "spacer": "TGTGTGGCATTTCTCTGCTC", "pam": "AGG", "guide_id_crispor": "28forw", "classification": "IDENTICAL", "mit_spec_score": 80.0, "cfd_spec_score": 92.0, "offtarget_count": 83, "pop_offtarget_count": 84, "top_offtargets": [{"chrom": "NC_024339.1", "start": 1013561, "end": 1013583, "strand": "+", "mismatch_count": 2, "mit_score": 0.629233604651163, "cfd_score": 0.008714596873638344}, {"chrom": "NC_024352.1", "start": 18592406, "end": 18592428, "strand": "+", "mismatch_count": 3, "mit_score": 2.5435073627844713, "cfd_score": 0.29478609625200536}, {"chrom": "NC_024335.1", "start": 7437851, "end": 7437873, "strand": "+", "mismatch_count": 3, "mit_score": 0.4785185185185185, "cfd_score": 0.18518518492592592}], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 8, "frac_cds": 0.009, "strand": "+", "in_last_exon": false}, {"target_seq": "CGACGGCCCCCCGAGGCCATGGG", "spacer": "CGACGGCCCCCCGAGGCCAT", "pam": "GGG", "guide_id_crispor": "214forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024340.1", "start": 22255834, "end": 22255856, "strand": "-", "mismatch_count": 4, "mit_score": 0.3128679435483871, "cfd_score": 0.11254262992497156}, {"chrom": "NC_024342.1", "start": 17965415, "end": 17965437, "strand": "-", "mismatch_count": 4, "mit_score": 0.010874814666666672, "cfd_score": 0.05844155842207792}, {"chrom": "NC_024339.1", "start": 16359911, "end": 16359933, "strand": "-", "mismatch_count": 4, "mit_score": 0.07418407499999999, "cfd_score": 0.004547176976127321}], "doench16_score": 45.0, "moreno_mateos_score": 74.0, "cds_pos_1based": 194, "frac_cds": 0.219, "strand": "+", "in_last_exon": true}], "crispor_available": true, "crispri": {"total_guides": 36, "classification_counts": {"IDENTICAL": 36}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "TACAAGTAAATAGTCGTGCTTGG", "spacer": "TACAAGTAAATAGTCGTGCT", "pam": "TGG", "guide_id_crispor": "107forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 16, "pop_offtarget_count": 16, "top_offtargets": [{"chrom": "NC_024333.1", "start": 13624272, "end": 13624294, "strand": "-", "mismatch_count": 3, "mit_score": 0.11664837647058822, "cfd_score": 0.0}, {"chrom": "NC_024346.1", "start": 21121572, "end": 21121594, "strand": "+", "mismatch_count": 3, "mit_score": 0.37015655058043123, "cfd_score": 0.0}, {"chrom": "NC_024346.1", "start": 5178879, "end": 5178901, "strand": "+", "mismatch_count": 4, "mit_score": 0.098291961222103, "cfd_score": 0.56875000021875}], "tss_rel_start": 36, "tss_rel_end": 58, "strand_in_window": "+"}, {"target_seq": "ATATGCCGGTTCAGTGAGAAAGG", "spacer": "ATATGCCGGTTCAGTGAGAA", "pam": "AGG", "guide_id_crispor": "270forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 10, "pop_offtarget_count": 10, "top_offtargets": [{"chrom": "NC_024338.1", "start": 12275581, "end": 12275603, "strand": "-", "mismatch_count": 4, "mit_score": 0.5268485915492956, "cfd_score": 0.242647059}, {"chrom": "NC_024344.1", "start": 6065889, "end": 6065911, "strand": "+", "mismatch_count": 4, "mit_score": 0.44683722853915653, "cfd_score": 0.1582417580533752}, {"chrom": "NC_024336.1", "start": 11663952, "end": 11663974, "strand": "+", "mismatch_count": 4, "mit_score": 0.2157940045248868, "cfd_score": 0.15589569145691612}], "tss_rel_start": 199, "tss_rel_end": 221, "strand_in_window": "+"}, {"target_seq": "TTGGGTCTGCGCGCAATGTGTGG", "spacer": "TTGGGTCTGCGCGCAATGTG", "pam": "TGG", "guide_id_crispor": "310forw", "classification": "IDENTICAL", "mit_spec_score": 97.0, "cfd_spec_score": 99.0, "offtarget_count": 8, "pop_offtarget_count": 7, "top_offtargets": [{"chrom": "NC_024352.1", "start": 4737133, "end": 4737155, "strand": "+", "mismatch_count": 2, "mit_score": 0.7817469879518073, "cfd_score": 0.0443652208080808}, {"chrom": "NC_024336.1", "start": 1193164, "end": 1193186, "strand": "+", "mismatch_count": 4, "mit_score": 0.8070153061224489, "cfd_score": 0.4388746806596761}, {"chrom": "NC_024348.1", "start": 15331517, "end": 15331539, "strand": "-", "mismatch_count": 4, "mit_score": 0.8070153061224489, "cfd_score": 0.4388746806596761}], "tss_rel_start": 239, "tss_rel_end": 261, "strand_in_window": "+"}, {"target_seq": "ATGTGATCTCGGCTGCGTGTTGG", "spacer": "ATGTGATCTCGGCTGCGTGT", "pam": "TGG", "guide_id_crispor": "333forw", "classification": "IDENTICAL", "mit_spec_score": 97.0, "cfd_spec_score": 98.0, "offtarget_count": 18, "pop_offtarget_count": 17, "top_offtargets": [{"chrom": "NC_024352.1", "start": 12207248, "end": 12207270, "strand": "-", "mismatch_count": 4, "mit_score": 0.805112123493976, "cfd_score": 0.686674670734994}, {"chrom": "NC_024336.1", "start": 11489972, "end": 11489994, "strand": "-", "mismatch_count": 4, "mit_score": 0.24643788209606998, "cfd_score": 0.26190476203117913}, {"chrom": "NC_024337.1", "start": 16069447, "end": 16069469, "strand": "-", "mismatch_count": 4, "mit_score": 0.20838751060520355, "cfd_score": 0.25641025647252746}], "tss_rel_start": 262, "tss_rel_end": 284, "strand_in_window": "+"}, {"target_seq": "TTAGTCTGGCAGCGCATTGCTGG", "spacer": "TTAGTCTGGCAGCGCATTGC", "pam": "TGG", "guide_id_crispor": "133forw", "classification": "IDENTICAL", "mit_spec_score": 96.0, "cfd_spec_score": 99.0, "offtarget_count": 15, "pop_offtarget_count": 15, "top_offtargets": [{"chrom": "NC_024345.1", "start": 12247988, "end": 12248010, "strand": "+", "mismatch_count": 3, "mit_score": 2.338826466916354, "cfd_score": 0.2125603866183575}, {"chrom": "NC_024349.1", "start": 9625672, "end": 9625694, "strand": "-", "mismatch_count": 4, "mit_score": 0.13269123127593363, "cfd_score": 0.18070588225505882}, {"chrom": "NC_024344.1", "start": 3065054, "end": 3065076, "strand": "-", "mismatch_count": 4, "mit_score": 0.47628326612903227, "cfd_score": 0.1210927005319003}], "tss_rel_start": 62, "tss_rel_end": 84, "strand_in_window": "+"}], "crispor_available": true}}, "agap3": {"transcript": "XM_008434264.2", "cds_len": 3966, "n_exons": 18, "strand": "-", "chrom": "NC_024347.1", "gene_span": "20981071-21131956", "classification_counts": {"IDENTICAL": 492, "EXON_JUNCTION_ARTIFACT": 65}, "total_guides": 557, "variant_affected_guides": [], "top_ko_candidates": [{"target_seq": "ATTCCTTAGCAGTGGAACCGTGG", "spacer": "ATTCCTTAGCAGTGGAACCG", "pam": "TGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 6, "frac_cds": 0.002, "strand": "+", "in_last_exon": false}, {"target_seq": "CATCCACGGTTCCACTGCTAAGG", "spacer": "CATCCACGGTTCCACTGCTA", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 9, "frac_cds": 0.002, "strand": "-", "in_last_exon": false}, {"target_seq": "GAACCGTGGATGTGACCCCGAGG", "spacer": "GAACCGTGGATGTGACCCCG", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 20, "frac_cds": 0.005, "strand": "+", "in_last_exon": false}, {"target_seq": "ACTCCTCGGGGTCACATCCACGG", "spacer": "ACTCCTCGGGGTCACATCCA", "pam": "CGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 23, "frac_cds": 0.006, "strand": "-", "in_last_exon": false}, {"target_seq": "ACGTTCAGTGGCACTCCTCGGGG", "spacer": "ACGTTCAGTGGCACTCCTCG", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 35, "frac_cds": 0.009, "strand": "-", "in_last_exon": false}], "crispor_available": false, "crispri": {"total_guides": 40, "classification_counts": {"IDENTICAL": 40}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "ACACTCCCTCATGCTCTACATGG", "spacer": "ACACTCCCTCATGCTCTACA", "pam": "TGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "tss_rel_start": 5, "tss_rel_end": 27, "strand_in_window": "+"}, {"target_seq": "TCTTGCCATGTAGAGCATGAGGG", "spacer": "TCTTGCCATGTAGAGCATGA", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "tss_rel_start": 10, "tss_rel_end": 32, "strand_in_window": "-"}, {"target_seq": "TTCTTGCCATGTAGAGCATGAGG", "spacer": "TTCTTGCCATGTAGAGCATG", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "tss_rel_start": 11, "tss_rel_end": 33, "strand_in_window": "-"}, {"target_seq": "TGGCAAGAACTCAGAGATTAAGG", "spacer": "TGGCAAGAACTCAGAGATTA", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "tss_rel_start": 25, "tss_rel_end": 47, "strand_in_window": "+"}, {"target_seq": "GGCAAGAACTCAGAGATTAAGGG", "spacer": "GGCAAGAACTCAGAGATTAA", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "tss_rel_start": 26, "tss_rel_end": 48, "strand_in_window": "+"}], "crispor_available": false}}, "grin1a": {"transcript": "XM_017307812.1", "cds_len": 2919, "n_exons": 23, "strand": "-", "chrom": "NC_024342.1", "gene_span": "22464655-22515742", "classification_counts": {"IDENTICAL": 373, "EXON_JUNCTION_ARTIFACT": 68}, "total_guides": 441, "variant_affected_guides": [], "top_ko_candidates": [{"target_seq": "TCCTCTCGTGCTCCTGCGCGCGG", "spacer": "TCCTCTCGTGCTCCTGCGCG", "pam": "CGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 26, "frac_cds": 0.009, "strand": "+", "in_last_exon": false}, {"target_seq": "CCTCTCGTGCTCCTGCGCGCGGG", "spacer": "CCTCTCGTGCTCCTGCGCGC", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 27, "frac_cds": 0.009, "strand": "+", "in_last_exon": false}, {"target_seq": "CCCGCGCGCAGGAGCACGAGAGG", "spacer": "CCCGCGCGCAGGAGCACGAG", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 27, "frac_cds": 0.009, "strand": "-", "in_last_exon": false}, {"target_seq": "TCGTGCTCCTGCGCGCGGGCCGG", "spacer": "TCGTGCTCCTGCGCGCGGGC", "pam": "CGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 31, "frac_cds": 0.011, "strand": "+", "in_last_exon": false}, {"target_seq": "CTCGCAGCCGGCCCGCGCGCAGG", "spacer": "CTCGCAGCCGGCCCGCGCGC", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 38, "frac_cds": 0.013, "strand": "-", "in_last_exon": false}], "crispor_available": false, "crispri": {"total_guides": 71, "classification_counts": {"IDENTICAL": 71}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "TCGTGCTCCTGCGCGCGGGCCGG", "spacer": "TCGTGCTCCTGCGCGCGGGC", "pam": "CGG", "guide_id_crispor": "190forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024337.1", "start": 31248332, "end": 31248354, "strand": "-", "mismatch_count": 4, "mit_score": 0.07431125625, "cfd_score": 0.020474883707886887}, {"chrom": "NC_024352.1", "start": 12041628, "end": 12041650, "strand": "-", "mismatch_count": 4, "mit_score": 0.03734797285102043, "cfd_score": 0.01048951051048951}, {"chrom": "NC_024346.1", "start": 3199473, "end": 3199495, "strand": "-", "mismatch_count": 4, "mit_score": 0.255741314229249, "cfd_score": 0.009920634857030123}], "tss_rel_start": 119, "tss_rel_end": 141, "strand_in_window": "+"}, {"target_seq": "GCGACGAAACCGACCGGGGCGGG", "spacer": "GCGACGAAACCGACCGGGGC", "pam": "GGG", "guide_id_crispor": "17rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 5, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024338.1", "start": 27170020, "end": 27170042, "strand": "-", "mismatch_count": 4, "mit_score": 0.2136888054435484, "cfd_score": 0.2500173622105702}, {"chrom": "NC_024349.1", "start": 12326902, "end": 12326924, "strand": "+", "mismatch_count": 4, "mit_score": 0.2620289186981327, "cfd_score": 0.15918367362612246}, {"chrom": "NC_024353.1", "start": 10471974, "end": 10471996, "strand": "+", "mismatch_count": 4, "mit_score": 0.05201956867588933, "cfd_score": 0.06987577646273291}], "tss_rel_start": -34, "tss_rel_end": -12, "strand_in_window": "-"}, {"target_seq": "CGACGAAACCGACCGGGGCGGGG", "spacer": "CGACGAAACCGACCGGGGCG", "pam": "GGG", "guide_id_crispor": "16rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024340.1", "start": 2469501, "end": 2469523, "strand": "+", "mismatch_count": 4, "mit_score": 0.6095833333333334, "cfd_score": 0.21758241770470957}, {"chrom": "NC_024351.1", "start": 25677866, "end": 25677888, "strand": "+", "mismatch_count": 4, "mit_score": 0.06345447740963857, "cfd_score": 0.05416666662833333}, {"chrom": "NC_024340.1", "start": 3043592, "end": 3043614, "strand": "-", "mismatch_count": 4, "mit_score": 0.11739137554585151, "cfd_score": 0.0250000000125}], "tss_rel_start": -35, "tss_rel_end": -13, "strand_in_window": "-"}, {"target_seq": "CCCGCGCGCAGGAGCACGAGAGG", "spacer": "CCCGCGCGCAGGAGCACGAG", "pam": "AGG", "guide_id_crispor": "166rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024346.1", "start": 13603364, "end": 13603386, "strand": "+", "mismatch_count": 4, "mit_score": 0.08952640293367349, "cfd_score": 0.2136769483226055}, {"chrom": "NC_024350.1", "start": 9411903, "end": 9411925, "strand": "+", "mismatch_count": 4, "mit_score": 0.694060843373494, "cfd_score": 0.10267379692647745}, {"chrom": "NC_024336.1", "start": 4512924, "end": 4512946, "strand": "-", "mismatch_count": 4, "mit_score": 0.40334598553493456, "cfd_score": 0.020909926312270222}], "tss_rel_start": 115, "tss_rel_end": 137, "strand_in_window": "-"}, {"target_seq": "GCCCCGATGTTCACGATCTTGGG", "spacer": "GCCCCGATGTTCACGATCTT", "pam": "GGG", "guide_id_crispor": "200rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024339.1", "start": 32951495, "end": 32951517, "strand": "-", "mismatch_count": 3, "mit_score": 0.7686658776470588, "cfd_score": 0.16666666647222222}, {"chrom": "NW_007615015.1", "start": 338462, "end": 338484, "strand": "+", "mismatch_count": 4, "mit_score": 0.07434241287936683, "cfd_score": 0.019445794853670394}, {"chrom": "NC_024341.1", "start": 8100494, "end": 8100516, "strand": "-", "mismatch_count": 4, "mit_score": 0.007841877549333335, "cfd_score": 0.0}], "tss_rel_start": 149, "tss_rel_end": 171, "strand_in_window": "-"}], "crispor_available": true}}, "grin1b": {"transcript": "XM_008402785.2", "cds_len": 2817, "n_exons": 22, "strand": "+", "chrom": "NW_007615041.1", "gene_span": "74698-136373", "classification_counts": {"IDENTICAL": 408, "EXON_JUNCTION_ARTIFACT": 76}, "total_guides": 484, "variant_affected_guides": [], "top_ko_candidates": [{"target_seq": "TCCAACGCCCGTCTCCTACACGG", "spacer": "TCCAACGCCCGTCTCCTACA", "pam": "CGG", "guide_id_crispor": "329forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 2, "pop_offtarget_count": 2, "top_offtargets": [{"chrom": "NC_024335.1", "start": 29929385, "end": 29929407, "strand": "-", "mismatch_count": 4, "mit_score": 0.9045306691449814, "cfd_score": 0.05735294115735295}, {"chrom": "NC_024334.1", "start": 22498906, "end": 22498928, "strand": "+", "mismatch_count": 4, "mit_score": 0.0906069495226415, "cfd_score": 0.017146939771255056}], "doench16_score": 62.0, "moreno_mateos_score": 44.0, "cds_pos_1based": 309, "frac_cds": 0.11, "strand": "+", "in_last_exon": false}, {"target_seq": "AAGTACCCGGACGGCCTGACGGG", "spacer": "AAGTACCCGGACGGCCTGAC", "pam": "GGG", "guide_id_crispor": "1065forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024340.1", "start": 32697326, "end": 32697348, "strand": "+", "mismatch_count": 4, "mit_score": 0.12643817060085835, "cfd_score": 0.06997084551137027}, {"chrom": "NC_024352.1", "start": 21717105, "end": 21717127, "strand": "+", "mismatch_count": 4, "mit_score": 0.2733560311284047, "cfd_score": 0.046153846164102556}, {"chrom": "NC_024342.1", "start": 22498161, "end": 22498183, "strand": "-", "mismatch_count": 4, "mit_score": 0.11823300110126586, "cfd_score": 0.020634920726984127}], "doench16_score": 56.0, "moreno_mateos_score": 75.0, "cds_pos_1based": 1045, "frac_cds": 0.371, "strand": "+", "in_last_exon": false}, {"target_seq": "TGGCCGGCGGCATCGTCGCTGGG", "spacer": "TGGCCGGCGGCATCGTCGCT", "pam": "GGG", "guide_id_crispor": "2539forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024334.1", "start": 27315625, "end": 27315647, "strand": "-", "mismatch_count": 4, "mit_score": 0.1227225949578579, "cfd_score": 0.3438596491539182}, {"chrom": "NC_024333.1", "start": 33569839, "end": 33569861, "strand": "+", "mismatch_count": 4, "mit_score": 0.17776796625000002, "cfd_score": 0.06752077559260301}, {"chrom": "NC_024331.1", "start": 30632037, "end": 30632059, "strand": "-", "mismatch_count": 4, "mit_score": 0.24017859162895927, "cfd_score": 0.00954075384367842}], "doench16_score": 43.0, "moreno_mateos_score": 70.0, "cds_pos_1based": 2519, "frac_cds": 0.894, "strand": "+", "in_last_exon": false}, {"target_seq": "CAAGACGTGGGTTCGCTACCAGG", "spacer": "CAAGACGTGGGTTCGCTACC", "pam": "AGG", "guide_id_crispor": "2447forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024344.1", "start": 10756663, "end": 10756685, "strand": "-", "mismatch_count": 3, "mit_score": 0.381545982905983, "cfd_score": 0.6875}, {"chrom": "NC_024333.1", "start": 17433174, "end": 17433196, "strand": "-", "mismatch_count": 4, "mit_score": 0.0261246350485808, "cfd_score": 0.21992481207293238}, {"chrom": "NC_024346.1", "start": 3482174, "end": 3482196, "strand": "-", "mismatch_count": 4, "mit_score": 0.03520498583690986, "cfd_score": 0.125000000125}], "doench16_score": 50.0, "moreno_mateos_score": 45.0, "cds_pos_1based": 2427, "frac_cds": 0.862, "strand": "+", "in_last_exon": false}, {"target_seq": "CTCCGACCTCAAACGCCGTTTGG", "spacer": "CTCCGACCTCAAACGCCGTT", "pam": "TGG", "guide_id_crispor": "2732forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 7, "pop_offtarget_count": 7, "top_offtargets": [{"chrom": "NC_024332.1", "start": 7474382, "end": 7474404, "strand": "+", "mismatch_count": 3, "mit_score": 0.10745861265822783, "cfd_score": 0.03126503127417028}, {"chrom": "NC_024337.1", "start": 29863990, "end": 29864012, "strand": "+", "mismatch_count": 4, "mit_score": 0.42388108031674215, "cfd_score": 0.19032679747581702}, {"chrom": "NC_024338.1", "start": 18231938, "end": 18231960, "strand": "-", "mismatch_count": 4, "mit_score": 0.2733560311284047, "cfd_score": 0.08462560375592995}], "doench16_score": 29.0, "moreno_mateos_score": 25.0, "cds_pos_1based": 2712, "frac_cds": 0.963, "strand": "+", "in_last_exon": false}], "crispor_available": true, "crispri": {"total_guides": 55, "classification_counts": {"IDENTICAL": 55}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "CGCGCAAGCTCTCTTCCGTTCGG", "spacer": "CGCGCAAGCTCTCTTCCGTT", "pam": "CGG", "guide_id_crispor": "172forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 3, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024333.1", "start": 4819797, "end": 4819819, "strand": "+", "mismatch_count": 4, "mit_score": 0.20283670774647883, "cfd_score": 0.0833333334761905}, {"chrom": "NC_024353.1", "start": 8737829, "end": 8737851, "strand": "+", "mismatch_count": 4, "mit_score": 0.11841761399999998, "cfd_score": 0.08181818159510489}, {"chrom": "NC_024334.1", "start": 11555892, "end": 11555914, "strand": "-", "mismatch_count": 4, "mit_score": 0.049438539301310036, "cfd_score": 0.009740259746103899}], "tss_rel_start": 101, "tss_rel_end": 123, "strand_in_window": "+"}, {"target_seq": "TTGCTTCAGCGCCGATCCATCGG", "spacer": "TTGCTTCAGCGCCGATCCAT", "pam": "CGG", "guide_id_crispor": "319rev", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 3, "pop_offtarget_count": 3, "top_offtargets": [{"chrom": "NC_024347.1", "start": 559946, "end": 559968, "strand": "-", "mismatch_count": 4, "mit_score": 0.0861149423076923, "cfd_score": 0.07455621292071006}, {"chrom": "NC_024334.1", "start": 19670037, "end": 19670059, "strand": "+", "mismatch_count": 4, "mit_score": 0.13230132096774191, "cfd_score": 0.056249999859375}, {"chrom": "NC_024337.1", "start": 6905011, "end": 6905033, "strand": "+", "mismatch_count": 4, "mit_score": 0.18778306294014083, "cfd_score": 0.026525199004041926}], "tss_rel_start": 268, "tss_rel_end": 290, "strand_in_window": "-"}, {"target_seq": "GCGCAAGCTCTCTTCCGTTCGGG", "spacer": "GCGCAAGCTCTCTTCCGTTC", "pam": "GGG", "guide_id_crispor": "173forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024346.1", "start": 661374, "end": 661396, "strand": "+", "mismatch_count": 4, "mit_score": 0.1515077171540816, "cfd_score": 0.1315789472017544}, {"chrom": "NC_024339.1", "start": 15409028, "end": 15409050, "strand": "+", "mismatch_count": 4, "mit_score": 0.10684793091286308, "cfd_score": 0.04761904761904763}, {"chrom": "NC_024341.1", "start": 15789512, "end": 15789534, "strand": "-", "mismatch_count": 4, "mit_score": 0.044650540236051486, "cfd_score": 0.03708791210851648}], "tss_rel_start": 102, "tss_rel_end": 124, "strand_in_window": "+"}, {"target_seq": "TTGCGCGCGACGTCTTGTTTTGG", "spacer": "TTGCGCGCGACGTCTTGTTT", "pam": "TGG", "guide_id_crispor": "136rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 2, "pop_offtarget_count": 2, "top_offtargets": [{"chrom": "NC_024334.1", "start": 21139698, "end": 21139720, "strand": "-", "mismatch_count": 3, "mit_score": 1.1507042253521127, "cfd_score": 0.18920210202197807}, {"chrom": "NC_024342.1", "start": 14672139, "end": 14672161, "strand": "+", "mismatch_count": 4, "mit_score": 0.20899025933333337, "cfd_score": 0.09523809521428571}], "tss_rel_start": 85, "tss_rel_end": 107, "strand_in_window": "-"}, {"target_seq": "CTTCCGTTCGGGAGCGCGCCTGG", "spacer": "CTTCCGTTCGGGAGCGCGCC", "pam": "TGG", "guide_id_crispor": "184forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024337.1", "start": 9442082, "end": 9442104, "strand": "+", "mismatch_count": 3, "mit_score": 0.20461538461538462, "cfd_score": 0.015151515061038965}, {"chrom": "NC_024349.1", "start": 22621769, "end": 22621791, "strand": "-", "mismatch_count": 4, "mit_score": 0.45934875, "cfd_score": 0.08125}, {"chrom": "NC_024335.1", "start": 16654998, "end": 16655020, "strand": "-", "mismatch_count": 4, "mit_score": 0.050562142467248904, "cfd_score": 0.008249158242087542}], "tss_rel_start": 113, "tss_rel_end": 135, "strand_in_window": "+"}], "crispor_available": true}}, "gria1a": {"transcript": "XM_008419590.2", "cds_len": 2451, "n_exons": 13, "strand": "+", "chrom": "NC_024340.1", "gene_span": "2908673-2967179", "classification_counts": {"IDENTICAL": 294, "EXON_JUNCTION_ARTIFACT": 38, "PAM_BROKEN": 1}, "total_guides": 333, "variant_affected_guides": [{"gene": "gria1a", "cds_pos_1based": "731", "strand": "-", "ref_spacer": "ACGAGTGCAGACCTGCTGCA", "ref_pam": "AGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [752]", "ref_crispor_mitSpecScore": "", "ref_crispor_offtargetCount": "", "ref_crispor_doench16_score": "", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}], "top_ko_candidates": [{"target_seq": "GCGGTCTCGATGGGGAAGGATGG", "spacer": "GCGGTCTCGATGGGGAAGGA", "pam": "TGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 46, "frac_cds": 0.019, "strand": "-", "in_last_exon": false}, {"target_seq": "GTTAGCGGTCTCGATGGGGAAGG", "spacer": "GTTAGCGGTCTCGATGGGGA", "pam": "AGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 50, "frac_cds": 0.02, "strand": "-", "in_last_exon": false}, {"target_seq": "ACTGGTTAGCGGTCTCGATGGGG", "spacer": "ACTGGTTAGCGGTCTCGATG", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 54, "frac_cds": 0.022, "strand": "-", "in_last_exon": false}, {"target_seq": "AACTGGTTAGCGGTCTCGATGGG", "spacer": "AACTGGTTAGCGGTCTCGAT", "pam": "GGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 55, "frac_cds": 0.022, "strand": "-", "in_last_exon": false}, {"target_seq": "AAACTGGTTAGCGGTCTCGATGG", "spacer": "AAACTGGTTAGCGGTCTCGA", "pam": "TGG", "guide_id_crispor": null, "classification": "IDENTICAL", "mit_spec_score": null, "cfd_spec_score": null, "offtarget_count": null, "pop_offtarget_count": null, "top_offtargets": [], "doench16_score": null, "moreno_mateos_score": null, "cds_pos_1based": 56, "frac_cds": 0.023, "strand": "-", "in_last_exon": false}], "crispor_available": false, "crispri": {"total_guides": 38, "classification_counts": {"IDENTICAL": 38}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "CCATCATTGGCCTCTACGACAGG", "spacer": "CCATCATTGGCCTCTACGAC", "pam": "AGG", "guide_id_crispor": "129forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 9, "pop_offtarget_count": 8, "top_offtargets": [{"chrom": "NC_024344.1", "start": 27873932, "end": 27873954, "strand": "-", "mismatch_count": 3, "mit_score": 0.1572777777777778, "cfd_score": 0.0}, {"chrom": "NC_024340.1", "start": 23405074, "end": 23405096, "strand": "-", "mismatch_count": 4, "mit_score": 0.16037833499999996, "cfd_score": 0.1780219779824176}, {"chrom": "NC_024352.1", "start": 5373189, "end": 5373211, "strand": "+", "mismatch_count": 4, "mit_score": 0.14119542253521125, "cfd_score": 0.11978221422867513}], "tss_rel_start": 58, "tss_rel_end": 80, "strand_in_window": "+"}, {"target_seq": "AACTGGTTAGCGGTCTCGATGGG", "spacer": "AACTGGTTAGCGGTCTCGAT", "pam": "GGG", "guide_id_crispor": "198rev", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 7, "pop_offtarget_count": 8, "top_offtargets": [{"chrom": "NC_024353.1", "start": 5837495, "end": 5837517, "strand": "-", "mismatch_count": 3, "mit_score": 0.2984180790960453, "cfd_score": 0.10111111104888888}, {"chrom": "NC_024339.1", "start": 31602112, "end": 31602134, "strand": "-", "mismatch_count": 4, "mit_score": 0.694060843373494, "cfd_score": 0.36666666666904757}, {"chrom": "NC_024331.1", "start": 12525055, "end": 12525077, "strand": "-", "mismatch_count": 4, "mit_score": 0.02411784, "cfd_score": 0.24434389129436446}], "tss_rel_start": 147, "tss_rel_end": 169, "strand_in_window": "-"}, {"target_seq": "GTTAGCGGTCTCGATGGGGAAGG", "spacer": "GTTAGCGGTCTCGATGGGGA", "pam": "AGG", "guide_id_crispor": "193rev", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 8, "pop_offtarget_count": 8, "top_offtargets": [{"chrom": "NC_024337.1", "start": 20211607, "end": 20211629, "strand": "+", "mismatch_count": 4, "mit_score": 0.07866469949548192, "cfd_score": 0.1996777658822772}, {"chrom": "NC_024346.1", "start": 32016729, "end": 32016751, "strand": "-", "mismatch_count": 4, "mit_score": 0.22854304012008736, "cfd_score": 0.19649122819649123}, {"chrom": "NC_024334.1", "start": 18073807, "end": 18073829, "strand": "-", "mismatch_count": 4, "mit_score": 0.27298687775510205, "cfd_score": 0.17389204200507186}], "tss_rel_start": 142, "tss_rel_end": 164, "strand_in_window": "-"}, {"target_seq": "GAGTCATCGAGCACTACGGGTGG", "spacer": "GAGTCATCGAGCACTACGGG", "pam": "TGG", "guide_id_crispor": "282forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 8, "pop_offtarget_count": 8, "top_offtargets": [{"chrom": "NC_024336.1", "start": 10403758, "end": 10403780, "strand": "-", "mismatch_count": 3, "mit_score": 0.8935011350210967, "cfd_score": 0.20512820520512817}, {"chrom": "NC_024332.1", "start": 821664, "end": 821686, "strand": "-", "mismatch_count": 4, "mit_score": 0.6876829225352112, "cfd_score": 0.20454545446875}, {"chrom": "NC_024337.1", "start": 2697201, "end": 2697223, "strand": "-", "mismatch_count": 4, "mit_score": 0.24103429261363632, "cfd_score": 0.1844934403849308}], "tss_rel_start": 211, "tss_rel_end": 233, "strand_in_window": "+"}, {"target_seq": "AATGATGGCGTACACACCTTTGG", "spacer": "AATGATGGCGTACACACCTT", "pam": "TGG", "guide_id_crispor": "94rev", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 9, "pop_offtarget_count": 9, "top_offtargets": [{"chrom": "NC_024345.1", "start": 18393241, "end": 18393263, "strand": "+", "mismatch_count": 4, "mit_score": 0.3572830472161572, "cfd_score": 0.2600000001817143}, {"chrom": "NC_024334.1", "start": 21563547, "end": 21563569, "strand": "-", "mismatch_count": 4, "mit_score": 0.1760490458144796, "cfd_score": 0.16207792211549787}, {"chrom": "NC_024339.1", "start": 3274770, "end": 3274792, "strand": "-", "mismatch_count": 4, "mit_score": 0.47006286478599213, "cfd_score": 0.12987013004329004}], "tss_rel_start": 43, "tss_rel_end": 65, "strand_in_window": "-"}], "crispor_available": true}}, "gria1b": {"transcript": "XM_008428689.2", "cds_len": 2877, "n_exons": 19, "strand": "-", "chrom": "NC_024344.1", "gene_span": "27785474-27978363", "classification_counts": {"IDENTICAL": 332, "EXON_JUNCTION_ARTIFACT": 60}, "total_guides": 392, "variant_affected_guides": [], "top_ko_candidates": [{"target_seq": "CGAGGTGTTTCGTTTCGCCCTGG", "spacer": "CGAGGTGTTTCGTTTCGCCC", "pam": "TGG", "guide_id_crispor": "170forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 3, "pop_offtarget_count": 3, "top_offtargets": [{"chrom": "NC_024342.1", "start": 23213334, "end": 23213356, "strand": "-", "mismatch_count": 4, "mit_score": 0.04679147986338173, "cfd_score": 0.04897959167838828}, {"chrom": "NC_024348.1", "start": 21199631, "end": 21199653, "strand": "+", "mismatch_count": 4, "mit_score": 0.17535237556561076, "cfd_score": 0.045772409484333844}, {"chrom": "NC_024349.1", "start": 18898338, "end": 18898360, "strand": "-", "mismatch_count": 4, "mit_score": 0.03419040227639485, "cfd_score": null}], "doench16_score": 50.0, "moreno_mateos_score": 34.0, "cds_pos_1based": 150, "frac_cds": 0.052, "strand": "+", "in_last_exon": false}, {"target_seq": "CACCTACCGGCTAGAACTGGTGG", "spacer": "CACCTACCGGCTAGAACTGG", "pam": "TGG", "guide_id_crispor": "1406forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NW_007615032.1", "start": 140801, "end": 140823, "strand": "-", "mismatch_count": 4, "mit_score": 0.0624512445652174, "cfd_score": 0.17727272745000003}, {"chrom": "NC_024333.1", "start": 33040091, "end": 33040113, "strand": "+", "mismatch_count": 4, "mit_score": 0.07235316215399998, "cfd_score": 0.15942028982451686}, {"chrom": "NC_024338.1", "start": 12241069, "end": 12241091, "strand": "-", "mismatch_count": 4, "mit_score": 0.021131343037974686, "cfd_score": 0.0781249999140625}], "doench16_score": 56.0, "moreno_mateos_score": 56.0, "cds_pos_1based": 1386, "frac_cds": 0.482, "strand": "+", "in_last_exon": false}, {"target_seq": "CGCCTATGGTACACTTGAAGGGG", "spacer": "CGCCTATGGTACACTTGAAG", "pam": "GGG", "guide_id_crispor": "2138forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 99.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024350.1", "start": 4657379, "end": 4657401, "strand": "-", "mismatch_count": 4, "mit_score": 0.08623548387096774, "cfd_score": 0.2437673127963989}, {"chrom": "NC_024346.1", "start": 18502006, "end": 18502028, "strand": "+", "mismatch_count": 4, "mit_score": 0.11996170640060243, "cfd_score": 0.1955555553444444}, {"chrom": "NC_024352.1", "start": 19858353, "end": 19858375, "strand": "+", "mismatch_count": 4, "mit_score": 0.056884271945701365, "cfd_score": 0.18543956028296707}], "doench16_score": 55.0, "moreno_mateos_score": 38.0, "cds_pos_1based": 2118, "frac_cds": 0.736, "strand": "+", "in_last_exon": false}, {"target_seq": "TCTCTCGCCGTGGTAACGCAGGG", "spacer": "TCTCTCGCCGTGGTAACGCA", "pam": "GGG", "guide_id_crispor": "991forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024349.1", "start": 14458731, "end": 14458753, "strand": "+", "mismatch_count": 4, "mit_score": 0.06666736234177215, "cfd_score": 0.2626262624860029}, {"chrom": "NC_024345.1", "start": 15864087, "end": 15864109, "strand": "+", "mismatch_count": 4, "mit_score": 0.07084782495687773, "cfd_score": 0.09379509365481345}, {"chrom": "NC_024347.1", "start": 4110147, "end": 4110169, "strand": "-", "mismatch_count": 4, "mit_score": 0.018482879047413792, "cfd_score": 0.0}], "doench16_score": 63.0, "moreno_mateos_score": 43.0, "cds_pos_1based": 971, "frac_cds": 0.338, "strand": "+", "in_last_exon": false}, {"target_seq": "AAGTGTACCATAGGCGATCTCGG", "spacer": "AAGTGTACCATAGGCGATCT", "pam": "CGG", "guide_id_crispor": "2111rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024333.1", "start": 12471471, "end": 12471493, "strand": "+", "mismatch_count": 4, "mit_score": 0.3614684946779477, "cfd_score": 0.24857954562855122}, {"chrom": "NC_024344.1", "start": 20125986, "end": 20126008, "strand": "+", "mismatch_count": 4, "mit_score": 0.04465203862660943, "cfd_score": 0.08437500008437501}, {"chrom": "NC_024336.1", "start": 9216130, "end": 9216152, "strand": "+", "mismatch_count": 4, "mit_score": 0.1884294996835443, "cfd_score": 0.08018092112664471}], "doench16_score": 52.0, "moreno_mateos_score": 56.0, "cds_pos_1based": 2111, "frac_cds": 0.734, "strand": "-", "in_last_exon": false}], "crispor_available": true, "crispri": {"total_guides": 44, "classification_counts": {"IDENTICAL": 44}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "GCGTAATCCCATTCACGCCGTGG", "spacer": "GCGTAATCCCATTCACGCCG", "pam": "TGG", "guide_id_crispor": "194rev", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 1, "pop_offtarget_count": 2, "top_offtargets": [{"chrom": "NC_024340.1", "start": 3682306, "end": 3682328, "strand": "+", "mismatch_count": 4, "mit_score": 0.48547329545454543, "cfd_score": 0.16573660730859374}], "tss_rel_start": 143, "tss_rel_end": 165, "strand_in_window": "-"}, {"target_seq": "CGGCGTGAATGGGATTACGCAGG", "spacer": "CGGCGTGAATGGGATTACGC", "pam": "AGG", "guide_id_crispor": "217forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 2, "pop_offtarget_count": 2, "top_offtargets": [{"chrom": "NC_024333.1", "start": 29923638, "end": 29923660, "strand": "-", "mismatch_count": 4, "mit_score": 0.08228669659475807, "cfd_score": 0.080357142825}, {"chrom": "NC_024343.1", "start": 4864803, "end": 4864825, "strand": "-", "mismatch_count": 4, "mit_score": 0.017880583797413797, "cfd_score": 0.03708791202197802}], "tss_rel_start": 146, "tss_rel_end": 168, "strand_in_window": "+"}, {"target_seq": "GGGATTACGCAGGTTGCTCCGGG", "spacer": "GGGATTACGCAGGTTGCTCC", "pam": "GGG", "guide_id_crispor": "227forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 7, "pop_offtarget_count": 7, "top_offtargets": [{"chrom": "NC_024336.1", "start": 1342179, "end": 1342201, "strand": "+", "mismatch_count": 3, "mit_score": 0.2500854700854701, "cfd_score": 0.05118708449648622}, {"chrom": "NC_024340.1", "start": 6625226, "end": 6625248, "strand": "-", "mismatch_count": 3, "mit_score": 0.2500854700854701, "cfd_score": 0.05118708449648622}, {"chrom": "NC_024333.1", "start": 29923628, "end": 29923650, "strand": "-", "mismatch_count": 4, "mit_score": 0.12220862400513487, "cfd_score": 0.07959183686258504}], "tss_rel_start": 156, "tss_rel_end": 178, "strand_in_window": "+"}, {"target_seq": "CGGTGGATCCCTGCCGGCCACGG", "spacer": "CGGTGGATCCCTGCCGGCCA", "pam": "CGG", "guide_id_crispor": "197forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 8, "pop_offtarget_count": 8, "top_offtargets": [{"chrom": "NC_024349.1", "start": 17685870, "end": 17685892, "strand": "+", "mismatch_count": 4, "mit_score": 0.34314401408450707, "cfd_score": 0.20934256057120046}, {"chrom": "NC_024349.1", "start": 21334821, "end": 21334843, "strand": "+", "mismatch_count": 4, "mit_score": 0.1163913340909091, "cfd_score": 0.14869281024019607}, {"chrom": "NC_024344.1", "start": 19280149, "end": 19280171, "strand": "-", "mismatch_count": 4, "mit_score": 0.17214949330985915, "cfd_score": 0.10177903587270629}], "tss_rel_start": 126, "tss_rel_end": 148, "strand_in_window": "+"}, {"target_seq": "CATTCACGCCGTGGCCGGCAGGG", "spacer": "CATTCACGCCGTGGCCGGCA", "pam": "GGG", "guide_id_crispor": "185rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 9, "pop_offtarget_count": 9, "top_offtargets": [{"chrom": "NC_024343.1", "start": 18102334, "end": 18102356, "strand": "-", "mismatch_count": 4, "mit_score": 0.316035636971831, "cfd_score": 0.42415686271247066}, {"chrom": "NC_024342.1", "start": 8003662, "end": 8003684, "strand": "+", "mismatch_count": 4, "mit_score": 0.15296741416139242, "cfd_score": 0.2432579182928507}, {"chrom": "NC_024340.1", "start": 21665281, "end": 21665303, "strand": "+", "mismatch_count": 4, "mit_score": 0.025359960515021453, "cfd_score": 0.21768707457959185}], "tss_rel_start": 134, "tss_rel_end": 156, "strand_in_window": "-"}], "crispor_available": true}}, "gria2b": {"transcript": "XM_008421067.2", "cds_len": 2691, "n_exons": 16, "strand": "-", "chrom": "NC_024340.1", "gene_span": "30090619-30141296", "classification_counts": {"IDENTICAL": 289, "EXON_JUNCTION_ARTIFACT": 44, "PAM_BROKEN": 3, "SEED_VARIANT": 4, "DISTAL_VARIANT": 1}, "total_guides": 341, "variant_affected_guides": [{"gene": "gria2b", "cds_pos_1based": "245", "strand": "+", "ref_spacer": "GAGGAGTCTACGCCATCTTT", "ref_pam": "GGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [267]", "ref_crispor_mitSpecScore": "96", "ref_crispor_offtargetCount": "11", "ref_crispor_doench16_score": "35", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "2119", "strand": "+", "ref_spacer": "CAGAGAGTCCGCAAGTCTAA", "ref_pam": "AGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [2139]", "ref_crispor_mitSpecScore": "98", "ref_crispor_offtargetCount": "18", "ref_crispor_doench16_score": "41", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "2120", "strand": "+", "ref_spacer": "AGAGAGTCCGCAAGTCTAAA", "ref_pam": "GGG", "classification": "SEED_VARIANT", "pop_window": "AGAGAGTCCGCAAGTCTAAGGGG", "note": "variant at ref pos [2139]", "ref_crispor_mitSpecScore": "97", "ref_crispor_offtargetCount": "15", "ref_crispor_doench16_score": "41", "pop_crispor_mitSpecScore": "95", "pop_crispor_offtargetCount": "15", "pop_crispor_doench16_score": "55", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "2139", "strand": "+", "ref_spacer": "AGGGAAGTACGCCTACCTGC", "ref_pam": "TGG", "classification": "DISTAL_VARIANT", "pop_window": "GGGGAAGTACGCCTACCTGCTGG", "note": "variant at ref pos [2139]", "ref_crispor_mitSpecScore": "33", "ref_crispor_offtargetCount": "16", "ref_crispor_doench16_score": "51", "pop_crispor_mitSpecScore": "42", "pop_crispor_offtargetCount": "35", "pop_crispor_doench16_score": "51", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "2127", "strand": "-", "ref_spacer": "CGTACTTCCCTTTAGACTTG", "ref_pam": "CGG", "classification": "SEED_VARIANT", "pop_window": "CCGCAAGTCTAAGGGGAAGTACG", "note": "variant at ref pos [2139]", "ref_crispor_mitSpecScore": "97", "ref_crispor_offtargetCount": "16", "ref_crispor_doench16_score": "54", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "2118", "strand": "-", "ref_spacer": "CTTTAGACTTGCGGACTCTC", "ref_pam": "TGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [2139]", "ref_crispor_mitSpecScore": "98", "ref_crispor_offtargetCount": "12", "ref_crispor_doench16_score": "38", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "443", "strand": "-", "ref_spacer": "TCGATCGCTGTCATACAAAT", "ref_pam": "AGG", "classification": "SEED_VARIANT", "pop_window": "CCTATCTGTACGACAGCGATCGA", "note": "variant at ref pos [453]", "ref_crispor_mitSpecScore": "97", "ref_crispor_offtargetCount": "13", "ref_crispor_doench16_score": "47", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}, {"gene": "gria2b", "cds_pos_1based": "257", "strand": "-", "ref_spacer": "CTTATCATAAAACCCAAAGA", "ref_pam": "TGG", "classification": "SEED_VARIANT", "pop_window": "CCATCTTTGGATTTTATGATAAG", "note": "variant at ref pos [267]", "ref_crispor_mitSpecScore": "84", "ref_crispor_offtargetCount": "66", "ref_crispor_doench16_score": "53", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": "", "pop_crispor_doench16_score": "", "_in_last_exon": false}], "top_ko_candidates": [{"target_seq": "CCTCAGTGTGCCACTCGTATGGG", "spacer": "CCTCAGTGTGCCACTCGTAT", "pam": "GGG", "guide_id_crispor": "1692rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 3, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024340.1", "start": 2932372, "end": 2932394, "strand": "-", "mismatch_count": 4, "mit_score": 0.47635642605633804, "cfd_score": 0.2531249999746875}, {"chrom": "NC_024333.1", "start": 6921639, "end": 6921661, "strand": "+", "mismatch_count": 4, "mit_score": 0.08186666800000002, "cfd_score": 0.12698412704273507}, {"chrom": "NC_024338.1", "start": 11988955, "end": 11988977, "strand": "+", "mismatch_count": 4, "mit_score": 0.08004229918548386, "cfd_score": 0.0286478226948052}], "doench16_score": 54.0, "moreno_mateos_score": 48.0, "cds_pos_1based": 1692, "frac_cds": 0.629, "strand": "-", "in_last_exon": false}, {"target_seq": "CCCATACGAGTGGCACACTGAGG", "spacer": "CCCATACGAGTGGCACACTG", "pam": "AGG", "guide_id_crispor": "1712forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024346.1", "start": 28075663, "end": 28075685, "strand": "-", "mismatch_count": 4, "mit_score": 0.7829344879518072, "cfd_score": 0.23188405811594204}, {"chrom": "NC_024336.1", "start": 15592865, "end": 15592887, "strand": "+", "mismatch_count": 4, "mit_score": 0.14860204290393017, "cfd_score": 0.15732441460147156}, {"chrom": "NC_024346.1", "start": 13464415, "end": 13464437, "strand": "-", "mismatch_count": 4, "mit_score": 0.12197333467741933, "cfd_score": 0.043333333225}], "doench16_score": 72.0, "moreno_mateos_score": 58.0, "cds_pos_1based": 1692, "frac_cds": 0.629, "strand": "+", "in_last_exon": false}, {"target_seq": "TACGGGATCGCCACGCCGAAAGG", "spacer": "TACGGGATCGCCACGCCGAA", "pam": "AGG", "guide_id_crispor": "2262forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024343.1", "start": 13258215, "end": 13258237, "strand": "+", "mismatch_count": 3, "mit_score": 0.27161374603174604, "cfd_score": 0.5614973265985962}, {"chrom": "NC_024344.1", "start": 26228872, "end": 26228894, "strand": "-", "mismatch_count": 3, "mit_score": 0.24081575273865405, "cfd_score": 0.22918258211229947}, {"chrom": "NC_024344.1", "start": 17292928, "end": 17292950, "strand": "-", "mismatch_count": 4, "mit_score": 0.2675764192139739, "cfd_score": 0.52363636344}], "doench16_score": 50.0, "moreno_mateos_score": 53.0, "cds_pos_1based": 2242, "frac_cds": 0.833, "strand": "+", "in_last_exon": false}, {"target_seq": "GTGGACAACGAACGCTACGAGGG", "spacer": "GTGGACAACGAACGCTACGA", "pam": "GGG", "guide_id_crispor": "1317forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024345.1", "start": 2496645, "end": 2496667, "strand": "-", "mismatch_count": 3, "mit_score": 0.29780295358649794, "cfd_score": 0.16550925914004627}, {"chrom": "NC_024336.1", "start": 31158884, "end": 31158906, "strand": "+", "mismatch_count": 4, "mit_score": 0.5498915803463856, "cfd_score": 0.29131652639194344}, {"chrom": "NC_024331.1", "start": 33674373, "end": 33674395, "strand": "+", "mismatch_count": 4, "mit_score": 0.04661329518072291, "cfd_score": 0.03095975229449292}], "doench16_score": 70.0, "moreno_mateos_score": 58.0, "cds_pos_1based": 1297, "frac_cds": 0.482, "strand": "+", "in_last_exon": false}, {"target_seq": "TGTGGACAACGAACGCTACGAGG", "spacer": "TGTGGACAACGAACGCTACG", "pam": "AGG", "guide_id_crispor": "1316forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024344.1", "start": 12518018, "end": 12518040, "strand": "-", "mismatch_count": 4, "mit_score": 0.03216105005172414, "cfd_score": 0.3495798325697479}, {"chrom": "NC_024348.1", "start": 11520039, "end": 11520061, "strand": "+", "mismatch_count": 4, "mit_score": 0.19109394126037338, "cfd_score": 0.21608643472148864}, {"chrom": "NC_024345.1", "start": 13042621, "end": 13042643, "strand": "+", "mismatch_count": 4, "mit_score": 0.05821030572289158, "cfd_score": 0.16005291014916562}], "doench16_score": 67.0, "moreno_mateos_score": 25.0, "cds_pos_1based": 1296, "frac_cds": 0.482, "strand": "+", "in_last_exon": false}], "crispor_available": true, "crispri": {"total_guides": 38, "classification_counts": {"IDENTICAL": 38}, "variant_affected_guides": [], "top_candidates": [{"target_seq": "CCGAGAAGATCTCCGGCGCGCGG", "spacer": "CCGAGAAGATCTCCGGCGCG", "pam": "CGG", "guide_id_crispor": "109forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 1, "pop_offtarget_count": 1, "top_offtargets": [{"chrom": "NC_024341.1", "start": 5460912, "end": 5460934, "strand": "+", "mismatch_count": 4, "mit_score": 0.018551745694224686, "cfd_score": 0.0306250000525}], "tss_rel_start": 38, "tss_rel_end": 60, "strand_in_window": "+"}, {"target_seq": "CCGCGCGCCGGAGATCTTCTCGG", "spacer": "CCGCGCGCCGGAGATCTTCT", "pam": "CGG", "guide_id_crispor": "89rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024336.1", "start": 24988853, "end": 24988875, "strand": "-", "mismatch_count": 3, "mit_score": 0.21752941015089167, "cfd_score": 0.09427609407575756}, {"chrom": "NC_024349.1", "start": 1831248, "end": 1831270, "strand": "-", "mismatch_count": 4, "mit_score": 0.13684659810126584, "cfd_score": 0.10957792194521103}, {"chrom": "NC_024334.1", "start": 15827489, "end": 15827511, "strand": "-", "mismatch_count": 4, "mit_score": 0.07196260035211267, "cfd_score": 0.020414673031404956}], "tss_rel_start": 38, "tss_rel_end": 60, "strand_in_window": "-"}, {"target_seq": "AGTAGAGGAATGGTCGCCGGCGG", "spacer": "AGTAGAGGAATGGTCGCCGG", "pam": "CGG", "guide_id_crispor": "216rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 12, "pop_offtarget_count": 12, "top_offtargets": [{"chrom": "NC_024349.1", "start": 13324738, "end": 13324760, "strand": "-", "mismatch_count": 3, "mit_score": 0.018991924393358874, "cfd_score": 0.01989795918656462}, {"chrom": "NC_024343.1", "start": 5472730, "end": 5472752, "strand": "+", "mismatch_count": 4, "mit_score": 0.16406612733333337, "cfd_score": 0.3333333335}, {"chrom": "NC_024341.1", "start": 15815257, "end": 15815279, "strand": "-", "mismatch_count": 4, "mit_score": 0.02266121402714932, "cfd_score": 0.28125000006249995}], "tss_rel_start": 165, "tss_rel_end": 187, "strand_in_window": "-"}, {"target_seq": "AAGATCTCCGGCGCGCGGAGCGG", "spacer": "AAGATCTCCGGCGCGCGGAG", "pam": "CGG", "guide_id_crispor": "114forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 9, "pop_offtarget_count": 9, "top_offtargets": [{"chrom": "NC_024345.1", "start": 22551418, "end": 22551440, "strand": "+", "mismatch_count": 3, "mit_score": 0.23922354892205636, "cfd_score": 0.012464387464387461}, {"chrom": "NC_024337.1", "start": 15388895, "end": 15388917, "strand": "-", "mismatch_count": 4, "mit_score": 0.2896174892703862, "cfd_score": 0.4242424236787879}, {"chrom": "NC_024333.1", "start": 19993113, "end": 19993135, "strand": "-", "mismatch_count": 4, "mit_score": 0.4169213973799127, "cfd_score": 0.10880755613015347}], "tss_rel_start": 43, "tss_rel_end": 65, "strand_in_window": "+"}, {"target_seq": "CGCGGAGCGGAGACGCGCACCGG", "spacer": "CGCGGAGCGGAGACGCGCAC", "pam": "CGG", "guide_id_crispor": "127forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 13, "pop_offtarget_count": 13, "top_offtargets": [{"chrom": "NC_024351.1", "start": 15547770, "end": 15547792, "strand": "-", "mismatch_count": 4, "mit_score": 0.16940219657676348, "cfd_score": 0.19652406440663991}, {"chrom": "NC_024339.1", "start": 33360317, "end": 33360339, "strand": "+", "mismatch_count": 4, "mit_score": 0.32105293664883267, "cfd_score": 0.1591071428925}, {"chrom": "NC_024333.1", "start": 27575986, "end": 27576008, "strand": "-", "mismatch_count": 4, "mit_score": 0.17694700000000005, "cfd_score": 0.1442016807877941}], "tss_rel_start": 56, "tss_rel_end": 78, "strand_in_window": "+"}], "crispor_available": true}}, "nlgn1": {"transcript": "XM_017304370.1", "cds_len": 2649, "n_exons": 11, "strand": "+", "chrom": "NC_024334.1", "gene_span": "13466999-13845833", "classification_counts": {"IDENTICAL": 377, "DISTAL_VARIANT": 4, "EXON_JUNCTION_ARTIFACT": 37}, "total_guides": 418, "variant_affected_guides": [{"gene": "nlgn1", "cds_pos_1based": "35", "strand": "+", "ref_spacer": "GTGCTTTCGTTCAGACTGCC", "ref_pam": "AGG", "classification": "DISTAL_VARIANT", "pop_window": "GTGCTTTCTTTCAGACTGCCAGG", "note": "variant at ref pos [43]", "ref_crispor_mitSpecScore": "91", "ref_crispor_offtargetCount": "26", "ref_crispor_doench16_score": "49", "pop_crispor_mitSpecScore": "80", "pop_crispor_offtargetCount": "71", "pop_crispor_doench16_score": "47", "_in_last_exon": false}, {"gene": "nlgn1", "cds_pos_1based": "41", "strand": "+", "ref_spacer": "TCGTTCAGACTGCCAGGAAC", "ref_pam": "AGG", "classification": "DISTAL_VARIANT", "pop_window": "TCTTTCAGACTGCCAGGAACAGG", "note": "variant at ref pos [43]", "ref_crispor_mitSpecScore": "89", "ref_crispor_offtargetCount": "36", "ref_crispor_doench16_score": "36", "pop_crispor_mitSpecScore": "88", "pop_crispor_offtargetCount": "46", "pop_crispor_doench16_score": "34", "_in_last_exon": false}, {"gene": "nlgn1", "cds_pos_1based": "42", "strand": "+", "ref_spacer": "CGTTCAGACTGCCAGGAACA", "ref_pam": "GGG", "classification": "DISTAL_VARIANT", "pop_window": "CTTTCAGACTGCCAGGAACAGGG", "note": "variant at ref pos [43]", "ref_crispor_mitSpecScore": "90", "ref_crispor_offtargetCount": "38", "ref_crispor_doench16_score": "62", "pop_crispor_mitSpecScore": "89", "pop_crispor_offtargetCount": "45", "pop_crispor_doench16_score": "57", "_in_last_exon": false}, {"gene": "nlgn1", "cds_pos_1based": "43", "strand": "+", "ref_spacer": "GTTCAGACTGCCAGGAACAG", "ref_pam": "GGG", "classification": "DISTAL_VARIANT", "pop_window": "TTTCAGACTGCCAGGAACAGGGG", "note": "variant at ref pos [43]", "ref_crispor_mitSpecScore": "90", "ref_crispor_offtargetCount": "42", "ref_crispor_doench16_score": "68", "pop_crispor_mitSpecScore": "90", "pop_crispor_offtargetCount": "44", "pop_crispor_doench16_score": "67", "_in_last_exon": false}], "top_ko_candidates": [{"target_seq": "GGCCAACATCCGCGCATACTTGG", "spacer": "GGCCAACATCCGCGCATACT", "pam": "TGG", "guide_id_crispor": "1091rev", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 2, "pop_offtarget_count": 2, "top_offtargets": [{"chrom": "NC_024344.1", "start": 8307062, "end": 8307084, "strand": "-", "mismatch_count": 4, "mit_score": 0.1996153225590128, "cfd_score": 0.09199469259722835}, {"chrom": "NC_024338.1", "start": 26873889, "end": 26873911, "strand": "-", "mismatch_count": 4, "mit_score": 0.010684861572052408, "cfd_score": 0.0}], "doench16_score": 39.0, "moreno_mateos_score": 35.0, "cds_pos_1based": 1091, "frac_cds": 0.412, "strand": "-", "in_last_exon": false}, {"target_seq": "AACATCCGCGCATACTTGGCTGG", "spacer": "AACATCCGCGCATACTTGGC", "pam": "TGG", "guide_id_crispor": "1087rev", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 99.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024341.1", "start": 6046913, "end": 6046935, "strand": "-", "mismatch_count": 4, "mit_score": 0.09839595435684649, "cfd_score": 0.44166359912035336}, {"chrom": "NC_024332.1", "start": 14775083, "end": 14775105, "strand": "+", "mismatch_count": 4, "mit_score": 0.12694050603540774, "cfd_score": 0.18666666670222223}, {"chrom": "NC_024342.1", "start": 25912494, "end": 25912516, "strand": "-", "mismatch_count": 4, "mit_score": 0.13628730099489803, "cfd_score": 0.1317647055772549}], "doench16_score": 47.0, "moreno_mateos_score": 32.0, "cds_pos_1based": 1087, "frac_cds": 0.41, "strand": "-", "in_last_exon": false}, {"target_seq": "TCCGCGCATACTTGGCTGGCTGG", "spacer": "TCCGCGCATACTTGGCTGGC", "pam": "TGG", "guide_id_crispor": "1083rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 4, "pop_offtarget_count": 4, "top_offtargets": [{"chrom": "NC_024334.1", "start": 14737078, "end": 14737100, "strand": "+", "mismatch_count": 4, "mit_score": 0.02409595436225857, "cfd_score": 0.10989011001098903}, {"chrom": "NC_024352.1", "start": 20203207, "end": 20203229, "strand": "-", "mismatch_count": 4, "mit_score": 0.7691295637645914, "cfd_score": 0.10403439137506612}, {"chrom": "NC_024331.1", "start": 260428, "end": 260450, "strand": "+", "mismatch_count": 4, "mit_score": 0.027155668853838175, "cfd_score": 0.07407407426296296}], "doench16_score": 44.0, "moreno_mateos_score": 14.0, "cds_pos_1based": 1083, "frac_cds": 0.409, "strand": "-", "in_last_exon": false}, {"target_seq": "CCGGTGGTCACAACCGCCTACGG", "spacer": "CCGGTGGTCACAACCGCCTA", "pam": "CGG", "guide_id_crispor": "219forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024352.1", "start": 16776429, "end": 16776451, "strand": "+", "mismatch_count": 3, "mit_score": 0.3351145299145299, "cfd_score": 0.02121212122515152}, {"chrom": "NC_024340.1", "start": 32085986, "end": 32086008, "strand": "+", "mismatch_count": 4, "mit_score": 0.1327967334507042, "cfd_score": 0.05488319732212215}, {"chrom": "NC_024335.1", "start": 14828745, "end": 14828767, "strand": "-", "mismatch_count": 4, "mit_score": 0.060108499750000016, "cfd_score": 0.03151515147490908}], "doench16_score": 64.0, "moreno_mateos_score": 82.0, "cds_pos_1based": 199, "frac_cds": 0.075, "strand": "+", "in_last_exon": false}, {"target_seq": "CCTTATGCCACCCCGCCCACTGG", "spacer": "CCTTATGCCACCCCGCCCAC", "pam": "TGG", "guide_id_crispor": "312forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 5, "pop_offtarget_count": 5, "top_offtargets": [{"chrom": "NC_024350.1", "start": 8230651, "end": 8230673, "strand": "-", "mismatch_count": 4, "mit_score": 0.27298687775510205, "cfd_score": 0.12194570134162895}, {"chrom": "NC_024348.1", "start": 21213108, "end": 21213130, "strand": "-", "mismatch_count": 4, "mit_score": 0.26852066666666674, "cfd_score": 0.05733397045280186}, {"chrom": "NC_024346.1", "start": 29088884, "end": 29088906, "strand": "-", "mismatch_count": 4, "mit_score": 0.24269422721518988, "cfd_score": 0.01895043735422741}], "doench16_score": 54.0, "moreno_mateos_score": 36.0, "cds_pos_1based": 292, "frac_cds": 0.11, "strand": "+", "in_last_exon": false}], "crispor_available": true, "crispri": {"total_guides": 55, "classification_counts": {"IDENTICAL": 52, "PAM_BROKEN": 2, "SEED_VARIANT": 1}, "variant_affected_guides": [{"gene": "nlgn1", "tss_rel_start": "243", "tss_rel_end": "265", "strand_in_window": "+", "ref_spacer": "CGCACTTGTTCTGAACTAAA", "ref_pam": "AGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [315]", "ref_crispor_mitSpecScore": "93", "ref_crispor_offtargetCount": "17", "ref_crispor_doench16_score": "36", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": ""}, {"gene": "nlgn1", "tss_rel_start": "244", "tss_rel_end": "266", "strand_in_window": "+", "ref_spacer": "GCACTTGTTCTGAACTAAAA", "ref_pam": "GGG", "classification": "PAM_BROKEN", "pop_window": "", "note": "variant at ref pos [315]", "ref_crispor_mitSpecScore": "83", "ref_crispor_offtargetCount": "56", "ref_crispor_doench16_score": "32", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": ""}, {"gene": "nlgn1", "tss_rel_start": "245", "tss_rel_end": "267", "strand_in_window": "+", "ref_spacer": "CACTTGTTCTGAACTAAAAG", "ref_pam": "GGG", "classification": "SEED_VARIANT", "pop_window": "CACTTGTTCTGAACTAAAAGGGGG", "note": "variant at ref pos [315]", "ref_crispor_mitSpecScore": "88", "ref_crispor_offtargetCount": "71", "ref_crispor_doench16_score": "53", "pop_crispor_mitSpecScore": "", "pop_crispor_offtargetCount": ""}], "top_candidates": [{"target_seq": "AATCGTGAGGAGCGGACGATGGG", "spacer": "AATCGTGAGGAGCGGACGAT", "pam": "GGG", "guide_id_crispor": "137forw", "classification": "IDENTICAL", "mit_spec_score": 100.0, "cfd_spec_score": 100.0, "offtarget_count": 6, "pop_offtarget_count": 6, "top_offtargets": [{"chrom": "NC_024332.1", "start": 18472992, "end": 18473014, "strand": "+", "mismatch_count": 4, "mit_score": 0.07763857229277106, "cfd_score": 0.11029411756967786}, {"chrom": "NC_024340.1", "start": 32266227, "end": 32266249, "strand": "+", "mismatch_count": 4, "mit_score": 0.1663956666666667, "cfd_score": 0.09065934049322343}, {"chrom": "NC_024343.1", "start": 19615803, "end": 19615825, "strand": "+", "mismatch_count": 4, "mit_score": 0.026311278164556976, "cfd_score": 0.06940427975448236}], "tss_rel_start": 66, "tss_rel_end": 88, "strand_in_window": "+"}, {"target_seq": "TCGTCCGCTCCTCACGATTCAGG", "spacer": "TCGTCCGCTCCTCACGATTC", "pam": "AGG", "guide_id_crispor": "113rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 100.0, "offtarget_count": 9, "pop_offtarget_count": 9, "top_offtargets": [{"chrom": "NC_024344.1", "start": 18426031, "end": 18426053, "strand": "-", "mismatch_count": 4, "mit_score": 0.05459937375000001, "cfd_score": 0.07199999995499998}, {"chrom": "NC_024349.1", "start": 9417662, "end": 9417684, "strand": "+", "mismatch_count": 4, "mit_score": 0.14138013045851527, "cfd_score": 0.05442176872353045}, {"chrom": "NC_024340.1", "start": 32048155, "end": 32048177, "strand": "-", "mismatch_count": 4, "mit_score": 0.24324042851394845, "cfd_score": 0.05319940465345983}], "tss_rel_start": 62, "tss_rel_end": 84, "strand_in_window": "-"}, {"target_seq": "CCGGGTTTCTGGACGCGCACCGG", "spacer": "CCGGGTTTCTGGACGCGCAC", "pam": "CGG", "guide_id_crispor": "198rev", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 9, "pop_offtarget_count": 9, "top_offtargets": [{"chrom": "NC_024340.1", "start": 32804017, "end": 32804039, "strand": "+", "mismatch_count": 4, "mit_score": 0.8133254716981132, "cfd_score": 0.21044939713554986}, {"chrom": "NC_024342.1", "start": 3520373, "end": 3520395, "strand": "-", "mismatch_count": 4, "mit_score": 0.059905493964592285, "cfd_score": 0.2021249999278125}, {"chrom": "NC_024349.1", "start": 22317225, "end": 22317247, "strand": "-", "mismatch_count": 4, "mit_score": 0.2239715189873418, "cfd_score": 0.0678787878903581}], "tss_rel_start": 147, "tss_rel_end": 169, "strand_in_window": "-"}, {"target_seq": "GAATCGTGAGGAGCGGACGATGG", "spacer": "GAATCGTGAGGAGCGGACGA", "pam": "TGG", "guide_id_crispor": "136forw", "classification": "IDENTICAL", "mit_spec_score": 99.0, "cfd_spec_score": 99.0, "offtarget_count": 11, "pop_offtarget_count": 11, "top_offtargets": [{"chrom": "NC_024353.1", "start": 500898, "end": 500920, "strand": "-", "mismatch_count": 3, "mit_score": 0.4286979678632479, "cfd_score": 0.20192307695192308}, {"chrom": "NC_024339.1", "start": 28702627, "end": 28702649, "strand": "-", "mismatch_count": 4, "mit_score": 0.0850281870967742, "cfd_score": 0.3327731094027311}, {"chrom": "NC_024343.1", "start": 11617107, "end": 11617129, "strand": "+", "mismatch_count": 4, "mit_score": 0.031624321834061137, "cfd_score": 0.26595253490700893}], "tss_rel_start": 65, "tss_rel_end": 87, "strand_in_window": "+"}, {"target_seq": "CCGGTGCGCGTCCAGAAACCCGG", "spacer": "CCGGTGCGCGTCCAGAAACC", "pam": "CGG", "guide_id_crispor": "218forw", "classification": "IDENTICAL", "mit_spec_score": 98.0, "cfd_spec_score": 99.0, "offtarget_count": 9, "pop_offtarget_count": 10, "top_offtargets": [{"chrom": "NW_007615029.1", "start": 148613, "end": 148635, "strand": "-", "mismatch_count": 3, "mit_score": 0.8768345817727838, "cfd_score": 0.2579365080456349}, {"chrom": "NC_024351.1", "start": 23780848, "end": 23780870, "strand": "+", "mismatch_count": 3, "mit_score": 0.2748430508474577, "cfd_score": 0.07326892103089774}, {"chrom": "NC_024344.1", "start": 11081586, "end": 11081608, "strand": "-", "mismatch_count": 3, "mit_score": 0.20381954802259894, "cfd_score": 0.044365220747078625}], "tss_rel_start": 147, "tss_rel_end": 169, "strand_in_window": "+"}], "crispor_available": true}}};
+
+const GENE_ORDER = ["bdnf","agap3","grin1a","grin1b","gria1a","gria1b","gria2b","nlgn1"];
+const CLASS_ORDER = ["IDENTICAL","PAM_BROKEN","SEED_VARIANT","DISTAL_VARIANT","EXON_JUNCTION_ARTIFACT"];
+const CLASS_ORDER_CRISPRI = ["IDENTICAL","PAM_BROKEN","SEED_VARIANT","DISTAL_VARIANT"];
+const CLASS_LABEL = {
+  IDENTICAL: "Idéntica",
+  PAM_BROKEN: "PAM roto",
+  SEED_VARIANT: "Var. semilla",
+  DISTAL_VARIANT: "Var. distal",
+  EXON_JUNCTION_ARTIFACT: "Unión exón-exón",
+  NO_ALIGNMENT: "Sin alineamiento",
+};
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function colorSeq(seq){
+  return seq.split("").map(b => `<span class="base-${b}">${b}</span>`).join("");
+}
+function fmtNum(x, digits){
+  if (x === null || x === undefined) return "—";
+  return (digits !== undefined) ? Number(x).toFixed(digits) : String(x);
+}
+function fmtOfftargets(offtargets){
+  if (!offtargets || offtargets.length === 0) {
+    return '<span style="color:var(--ink-faint); font-style:italic;">sin datos de CRISPOR para esta guía (ver Métodos) — clasificación por escaneo manual únicamente</span>';
+  }
+  const items = offtargets.map(o =>
+    `<span class="ot-item mono">${esc(o.chrom)}:${o.start} (${o.strand}, ${o.mismatch_count}mm${o.cfd_score!=null ? ', CFD '+o.cfd_score.toFixed(2) : ''})</span>`
+  ).join(" · ");
+  return `<b style="color:var(--ink-faint); font-weight:600;">Off-targets reales (top 3):</b> ${items}`;
+}
+function guideIdTag(id){
+  return id ? `<div class="guide-id">CRISPOR #${esc(id)}</div>` : "";
+}
+
+// ---- executive summary ----
+const tbody = document.getElementById("summary-tbody");
+let totalGuides = 0;
+GENE_ORDER.forEach(gene => {
+  const g = DATA[gene];
+  totalGuides += g.total_guides;
+  const counts = g.classification_counts;
+  const affected = (counts.PAM_BROKEN||0) + (counts.SEED_VARIANT||0) + (counts.DISTAL_VARIANT||0);
+
+  const bar = CLASS_ORDER.map(cls => {
+    const n = counts[cls] || 0;
+    if (!n) return "";
+    const pct = (n / g.total_guides * 100).toFixed(2);
+    return `<span class="seg-${cls}" style="width:${pct}%" title="${CLASS_LABEL[cls]}: ${n}"></span>`;
+  }).join("");
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><a class="gene-link" href="#gene-${gene}"><i>${esc(gene)}</i></a></td>
+    <td class="num">${g.cds_len}pb</td>
+    <td class="num">${g.n_exons}</td>
+    <td class="num">${g.total_guides}</td>
+    <td><div class="bar">${bar}</div></td>
+    <td class="num">${affected}</td>
+    <td>${g.crispor_available ? '<span class="pill pill-ok">✓ scored</span>' : '<span class="pill pill-off">no disponible</span>'}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ---- CRISPRi executive summary ----
+const tbodyI = document.getElementById("summary-tbody-crispri");
+GENE_ORDER.forEach(gene => {
+  const g = DATA[gene];
+  const ci = g.crispri;
+  const counts = ci.classification_counts;
+  const affected = (counts.PAM_BROKEN||0) + (counts.SEED_VARIANT||0) + (counts.DISTAL_VARIANT||0);
+
+  const bar = CLASS_ORDER_CRISPRI.map(cls => {
+    const n = counts[cls] || 0;
+    if (!n) return "";
+    const pct = (n / ci.total_guides * 100).toFixed(2);
+    return `<span class="seg-${cls}" style="width:${pct}%" title="${CLASS_LABEL[cls]}: ${n}"></span>`;
+  }).join("");
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><a class="gene-link" href="#gene-${gene}"><i>${esc(gene)}</i></a></td>
+    <td class="num">TSS ${g.strand==='+' ? '&minus;50/+300' : '+300/&minus;50'}</td>
+    <td class="num">${ci.total_guides}</td>
+    <td><div class="bar">${bar}</div></td>
+    <td class="num">${affected}</td>
+    <td>${ci.crispor_available ? '<span class="pill pill-ok">✓ scored</span>' : '<span class="pill pill-off">no disponible</span>'}</td>
+  `;
+  tbodyI.appendChild(tr);
+});
+
+// ---- per-gene cards ----
+const container = document.getElementById("gene-cards");
+GENE_ORDER.forEach(gene => {
+  const g = DATA[gene];
+  const counts = g.classification_counts;
+  const affected = (counts.PAM_BROKEN||0) + (counts.SEED_VARIANT||0) + (counts.DISTAL_VARIANT||0);
+
+  const card = document.createElement("div");
+  card.className = "gene-card";
+  card.id = `gene-${gene}`;
+
+  const pillRow = CLASS_ORDER.filter(c => counts[c]).map(c =>
+    `<span class="pill pill-${c}">${CLASS_LABEL[c]} · ${counts[c]}</span>`
+  ).join(" ");
+
+  let html = `
+    <div class="gene-head">
+      <div>
+        <h3><i>${esc(gene)}</i></h3>
+        <div class="gene-meta">
+          <span><b>${esc(g.chrom)}</b>:${esc(g.gene_span)} (${g.strand})</span>
+          <span>transcrito <b>${esc(g.transcript)}</b></span>
+          <span>${g.n_exons} exones</span>
+        </div>
+      </div>
+      <div class="gene-stats">
+        <div class="stat"><div class="stat-value">${g.total_guides}</div><div class="stat-label">guías totales</div></div>
+        <div class="stat"><div class="stat-value">${affected}</div><div class="stat-label">afectadas</div></div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px;">${pillRow}</div>
+  `;
+
+  if (!g.crispor_available) {
+    html += `<div class="note-crispor-off">⚠ Sin puntajes de CRISPOR para este gen (código IUPAC de ambigüedad en la referencia — ver Métodos). Ranking abajo por posición únicamente. Se repetirá con el genoma de referencia v2 (macho) cuando esté disponible.</div>`;
+  }
+
+  html += `<div class="subhead">Mejores candidatos CRISPRko — guías predichas por CRISPOR (${g.crispor_available ? "rankeadas por especificidad + eficiencia" : "sin datos de CRISPOR, por posición"})</div>`;
+
+  if (g.top_ko_candidates.length === 0) {
+    html += `<div class="empty-note">Sin candidatos IDENTICAL disponibles.</div>`;
+  } else {
+    html += `<div class="table-scroll"><table class="data"><thead><tr>
+      <th>Guía CRISPOR</th><th>Pos. CDS</th><th>Exón</th>
+      <th class="num">MIT</th><th class="num">CFD</th><th class="num">Off-t.</th>
+      <th class="num">Doench'16</th><th class="num">M-Mateos</th>
+    </tr></thead><tbody>`;
+    g.top_ko_candidates.forEach(c => {
+      html += `<tr class="main-guide-row">
+        <td class="seq">${colorSeq(c.spacer)}<span class="pam-wrap">${colorSeq(c.pam)}</span>${guideIdTag(c.guide_id_crispor)}</td>
+        <td class="num">${c.cds_pos_1based} <span style="color:var(--ink-faint)">(${(c.frac_cds*100).toFixed(0)}%)</span></td>
+        <td>${c.in_last_exon ? '<span class="pill pill-DISTAL_VARIANT">último</span>' : '<span class="pill pill-IDENTICAL">interno</span>'}</td>
+        <td class="num">${fmtNum(c.mit_spec_score,0)}</td>
+        <td class="num">${fmtNum(c.cfd_spec_score,0)}</td>
+        <td class="num">${fmtNum(c.offtarget_count)}</td>
+        <td class="num">${fmtNum(c.doench16_score,0)}</td>
+        <td class="num">${fmtNum(c.moreno_mateos_score,0)}</td>
+      </tr>
+      <tr class="offtarget-row"><td colspan="8">${fmtOfftargets(c.top_offtargets)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if (g.variant_affected_guides.length > 0) {
+    html += `<div class="subhead">Guías a evitar (afectadas por variantes poblacionales)</div>`;
+    html += `<div class="table-scroll"><table class="data"><thead><tr>
+      <th>Espaciador + PAM (ref.)</th><th>Pos. CDS</th><th>Hebra</th><th>Clasificación</th><th>Nota</th>
+    </tr></thead><tbody>`;
+    g.variant_affected_guides.forEach(r => {
+      html += `<tr>
+        <td class="seq">${colorSeq(r.ref_spacer)}<span class="pam-wrap">${colorSeq(r.ref_pam)}</span></td>
+        <td class="num">${r.cds_pos_1based}</td>
+        <td class="num">${r.strand}</td>
+        <td><span class="pill pill-${r.classification}">${CLASS_LABEL[r.classification]}</span></td>
+        <td style="color:var(--ink-soft); font-size:12.5px;">${esc(r.note)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  // ---- CRISPRi ----
+  const ci = g.crispri;
+  html += `<div class="subhead" style="margin-top:26px; border-top:1px dashed var(--border-strong); padding-top:18px;">Mejores candidatos CRISPRi — ventana TSS, guías predichas por CRISPOR ${ci.crispor_available ? "(rankeadas por especificidad + cercanía al TSS)" : "(sin datos de CRISPOR, por cercanía al TSS)"}</div>`;
+
+  if (ci.top_candidates.length === 0) {
+    html += `<div class="empty-note">Sin candidatos IDENTICAL disponibles en la ventana TSS.</div>`;
+  } else {
+    html += `<div class="table-scroll"><table class="data"><thead><tr>
+      <th>Guía CRISPOR</th><th>Pos. vs TSS</th><th>Hebra (ventana)</th>
+      <th class="num">MIT</th><th class="num">CFD</th><th class="num">Off-t.</th>
+    </tr></thead><tbody>`;
+    ci.top_candidates.forEach(c => {
+      const posLabel = `${c.tss_rel_start >= 0 ? '+' : ''}${c.tss_rel_start} … ${c.tss_rel_end >= 0 ? '+' : ''}${c.tss_rel_end}`;
+      html += `<tr class="main-guide-row">
+        <td class="seq">${colorSeq(c.spacer)}<span class="pam-wrap">${colorSeq(c.pam)}</span>${guideIdTag(c.guide_id_crispor)}</td>
+        <td class="num">${posLabel}</td>
+        <td class="num">${c.strand_in_window}</td>
+        <td class="num">${fmtNum(c.mit_spec_score,0)}</td>
+        <td class="num">${fmtNum(c.cfd_spec_score,0)}</td>
+        <td class="num">${fmtNum(c.offtarget_count)}</td>
+      </tr>
+      <tr class="offtarget-row"><td colspan="6">${fmtOfftargets(c.top_offtargets)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if (ci.variant_affected_guides.length > 0) {
+    html += `<div class="subhead">Guías CRISPRi a evitar (afectadas por variantes poblacionales)</div>`;
+    html += `<div class="table-scroll"><table class="data"><thead><tr>
+      <th>Espaciador + PAM (ref.)</th><th>Pos. vs TSS</th><th>Hebra</th><th>Clasificación</th><th>Nota</th>
+    </tr></thead><tbody>`;
+    ci.variant_affected_guides.forEach(r => {
+      const s = parseInt(r.tss_rel_start), e = parseInt(r.tss_rel_end);
+      const posLabel = `${s >= 0 ? '+' : ''}${s} … ${e >= 0 ? '+' : ''}${e}`;
+      html += `<tr>
+        <td class="seq">${colorSeq(r.ref_spacer)}<span class="pam-wrap">${colorSeq(r.ref_pam)}</span></td>
+        <td class="num">${posLabel}</td>
+        <td class="num">${r.strand_in_window}</td>
+        <td><span class="pill pill-${r.classification}">${CLASS_LABEL[r.classification]}</span></td>
+        <td style="color:var(--ink-soft); font-size:12.5px;">${esc(r.note)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  card.innerHTML = html;
+  container.appendChild(card);
+});
+</script>
+
+</body></html>
