@@ -90,12 +90,24 @@
   table.data td.num{text-align:right;}
   footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
   footer p{max-width:70ch;}
+  .rtqpcr-table{border-collapse:collapse;width:100%;min-width:820px;}
+  .rtqpcr-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap;}
+  .rtqpcr-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
+  .rtqpcr-table tbody tr:last-child td{border-bottom:none;}
+  .seq-compare{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.9;}
+  .seq-compare .base-diff{background:var(--danger-soft);color:var(--danger);border-radius:3px;padding:0 2px;font-weight:700;}
+  .finding-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .finding-card.warn{border-color:color-mix(in srgb, var(--mod) 45%, var(--border));}
+  .finding-card.danger{border-color:color-mix(in srgb, var(--danger) 45%, var(--border));}
+  .finding-card h3{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px;}
+  .diff-grid{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:12px 0;align-items:baseline;}
+  .diff-grid .diff-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;}
 </style>
 
 <header class="top">
   <div class="topbar-inner">
     <span class="brand">Primer Design Report</span>
-    <nav class="jump"><a href="#summary">Resumen</a><a href="#sites">Sitios</a><a href="#methods">Métodos</a></nav>
+    <nav class="jump"><a href="#summary">Resumen</a><a href="#sites">Sitios</a><a href="#rtqpcr">RT-qPCR</a><a href="#methods">Métodos</a></nav>
   </div>
 </header>
 
@@ -128,8 +140,53 @@
     <div id="site-cards"></div>
   </section>
 
+  <section id="rtqpcr" class="divider-top">
+    <h2>Verificación de primers RT-qPCR existentes</h2>
+    <p class="section-sub">Consulta puntual (2026-09-08), fuera del pipeline automático de diseño: 4 pares de primers de RT-qPCR <b>ya en uso en el laboratorio</b> (no diseñados por este proyecto) — bdnf y 3 genes de referencia/housekeeping (miosina, beta-actina, rpl13a) — verificados contra el genoma v1 (genoma de diseño original), el genoma v2, y el pseudogenoma colombiano, para investigar resultados de RT-qPCR inconsistentes.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">pares con sitio confirmado en v1</div></div>
+      <div class="kpi"><div class="kpi-value">3/4</div><div class="kpi-label">genes correctamente identificados</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">SNP colombiano encontrado (rpl_13a_F)</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">par sin sitio localizable (miosina)</div></div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="rtqpcr-table">
+        <thead><tr><th>Primer</th><th>Gen confirmado</th><th>¿Cruza unión exón-exón?</th><th>v1 (diseño)</th><th>v2 (macho)</th><th>Pseudogenoma colombiano</th></tr></thead>
+        <tbody>
+          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code>)</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(no actb1)</span></td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Sí (exón 5/6)</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">rpl_13a_F</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-danger">1 SNP</span></td></tr>
+          <tr><td class="seq">rpl_13a_R</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">miosina_guppy_F</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable — ver hallazgo abajo</td></tr>
+          <tr><td class="seq">miosina_guppy_R</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable — ver hallazgo abajo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding-card danger" style="margin-top:22px;">
+      <h3>⚠ SNP colombiano real en rpl_13a_F (posición 6/20, extremo 5')</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Confirmado por reconstrucción del ARNm empalmado (el primer cruza la unión exón1/exón2 de rpl13a) + liftover exacto contra el pseudogenoma colombiano. El mismo alelo del primer (A) está presente en <b>ambos</b> genomas de referencia públicos (v1 hembra Trinidad y v2 macho PacBio+Hi-C, dos individuos y ensamblajes independientes) — lo que hace más probable que la variante sea genuinamente específica de la población colombiana, no un artefacto de un solo ensamblaje.</p>
+      <div class="diff-grid seq-compare">
+        <div class="diff-label">Primer / v1 / v2</div><div>CCGCC<b>A</b>TACGACAAGAGGAA</div>
+        <div class="diff-label">Pseudogenoma colombiano</div><div>CCGCC<span class="base-diff">C</span>TACGACAAGAGGAA</div>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;">La posición 6 está en la región 5' del primer (no en las últimas bases 3', las más críticas para la extensión por la polimerasa) — probablemente reduce eficiencia/Tm en vez de abolir la amplificación por completo, consistente con Ct inconsistentes en vez de fallo total.</p>
+    </div>
+
+    <div class="finding-card danger">
+      <h3>⚠ miosina_guppy_F/R: sin sitio de unión identificable en el genoma de guppy</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Búsqueda exhaustiva en v1: 0 coincidencias exactas en todo el genoma; 0 coincidencias con hasta 2 mismatches contra los <b>58 genes</b> de la familia miosina (<code>myh*</code>/<code>myo*</code>/<code>myl*</code>, 156 transcritos, ARNm empalmado completo). No es un problema de variantes poblacionales — sugiere que estos primers se diseñaron contra la secuencia de otra especie o un modelo de transcrito que ya no coincide con este ensamblaje. Si el RT-qPCR falla de forma sistemática con este par, este es el motivo más probable, independiente de la población de origen de las muestras.</p>
+    </div>
+
+    <p class="section-sub" style="margin-top:18px;">Metodología: localización por búsqueda de subcadena exacta (+ complemento reverso) contra el genoma completo; para primers sin coincidencia genómica contigua, reconstrucción del ARNm empalmado (exones concatenados según la anotación) para confirmar que cruzan una unión exón-exón real y ubicar el punto de corte; verificación poblacional por liftover exacto (<code>.chain</code>) de cada segmento genómico hacia el pseudogenoma colombiano y comparación directa de secuencia. Detalle completo de la sesión en <code>CLAUDE.md</code> ("RT-qPCR primer verification").</p>
+  </section>
+
   <section id="methods" class="divider-top">
-    <h2>Métodos</h2>
+    <h2>Métodos (diseño de primers on-/off-target)</h2>
     <p class="section-sub">
       <code>eprimer3</code> (EMBOSS 6.6.0 + <code>primer3_core</code> 1.1.4) sobre una ventana de ±500pb alrededor del sitio de corte estimado, excluyendo ±75pb inmediatos al corte. Parámetros: Tm 58-62°C (óptimo 60), GC 40-60%, tamaño 200-400pb, hasta 5 candidatos por sitio. Especificidad verificada con <code>primersearch</code> contra el genoma completo (10% mismatch tolerado) — <span class="pill pill-safe">SPECIFIC</span> = un solo amplicón; <span class="pill pill-mod">WARN_MULTI_HIT</span> = el primer amplificaría también en otra(s) región(es) del genoma (posiciones listadas). Variantes poblacionales: liftover exacto vía archivo <code>.chain</code> + <code>minimap2 --cs</code> contra el pseudogenoma colombiano, marcando si alguna variante cae dentro del footprint genómico del primer forward o reverse.
     </p>

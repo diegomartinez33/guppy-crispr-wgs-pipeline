@@ -1525,6 +1525,74 @@ cases found — this confirms off_target_7/v1 remains the only actual
 point of contact between this issue and the already-reported WGS
 results, for everything currently on disk.
 
+### RT-qPCR Primer Verification (2026-09-08)
+
+User was troubleshooting inconsistent RT-qPCR results and asked whether 4
+existing lab primer pairs (bdnf + 3 reference/housekeeping genes: myosin,
+beta-actin, rpl13a - NOT designed by this project, already in use in the
+lab) could have issues from Colombian-population variants, since they
+were designed against the v1 female reference. Ad-hoc analysis (no new
+script committed - see method below), results also added to the
+"Verificación de primers RT-qPCR existentes" section of
+`analysis/reports/primer_design_report.html`.
+
+Method: (1) exact substring search (+ reverse complement) of each primer
+against the whole v1 genome to find a contiguous genomic match; (2) for
+primers with no contiguous match, reconstructed the spliced mRNA
+(exons concatenated per the GFF, revcomp'd for `-`-strand genes) for the
+candidate gene and searched there - a primer that matches the spliced
+mRNA exactly but not raw genomic DNA confirms it spans a real exon-exon
+junction (deliberate qPCR design practice), and the match position maps
+back to exact genomic sub-segments via the same exon coordinates; (3)
+each genomic segment lifted to pseudogenome coordinates via the existing
+`.chain` file + CrossMap (same method as `design_offtarget_primers.py`),
+then direct sequence comparison at the exact lifted coordinates.
+
+Findings:
+- **BDNF_F/BDNF_R**: exact single-locus match in v1 (`NC_024333.1`,
+  within the gene body, upstream of the sgRNA cut site), 100% identical
+  in the pseudogenome. No issue.
+- **Beta_actin_F/Beta_actin_R**: target is **actb2** (`NC_024338.1`), NOT
+  actb1 (a different, unrelated actin paralog at `NC_024331.1`) -
+  confirmed via the GFF's `gene_synonym=actb,beta-actin` tag on actb2.
+  Beta_actin_R spans the exon5/exon6 junction (confirmed via spliced
+  mRNA - a raw genomic substring search alone found a misleading 16bp
+  partial match 2bp past the true exon boundary, coincidental). Both
+  100% identical in the pseudogenome.
+- **rpl_13a_R**: target is rpl13a (`NC_024352.1` in v1, `NC_088851.1` in
+  v2, same GeneID 103458827 in both RefSeq annotations), spans the
+  exon1/exon2 junction, 100% identical in the pseudogenome.
+- **rpl_13a_F** (also spans the rpl13a exon1/exon2 junction): **found a
+  real SNP** in the Colombian pseudogenome at primer position 6/20 (5'
+  region, not the 3'-terminal bases that matter most for polymerase
+  extension) - primer/v1 has `A`, pseudogenome has `C`
+  (`CCGCC[A/C]TACGACAAGAGGAA`). Cross-checked against the v2 (male,
+  PacBio+Hi-C) reference genome: v2 also has `A` (100% exact match to the
+  original primer, both F and R) - i.e. two independent reference
+  assemblies (different individuals, different sequencing technologies)
+  agree with the original primer design, which strengthens the case that
+  the `C` allele is a genuine Colombian-population-specific variant
+  rather than a v1-assembly-specific artifact. Likely explanation for
+  Ct inconsistency with this housekeeping gene (reduced binding
+  efficiency, not necessarily complete amplification failure given the
+  mismatch position is 5', not 3'-terminal).
+- **miosina_guppy_F/miosina_guppy_R**: **no binding site found anywhere**
+  in the v1 genome - zero exact matches genome-wide, and zero matches
+  within 2 mismatches against the spliced mRNA of all 58 `myh*`/`myo*`/
+  `myl*`-family genes (156 transcripts) in the v1 GFF. This is NOT a
+  population-variant issue - most likely these primers were designed
+  against a different species' sequence or a transcript model this
+  RefSeq build doesn't share; flagged as the probable real root cause if
+  RT-qPCR fails specifically with this pair, independent of sample
+  population. Recommended the user verify the primers' original source
+  and, if needed, redesign against a real *P. reticulata* myosin gene
+  using the existing primer-design pipeline (#9 above).
+
+No v2 pseudogenome exists yet (see item #8's migration status), so the
+population-variant check itself could only be run against v1; the v2
+cross-check was reference-vs-reference only (no Colombian variants
+factored in for v2).
+
 ---
 
 ## Pending Analyses

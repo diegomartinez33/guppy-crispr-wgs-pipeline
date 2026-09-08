@@ -441,3 +441,13 @@ pseudogenoma antes de buscar variantes con `minimap2 --cs`.
 ambiguos en el diseño de primers (`off_target_1`, `off_target_7` en v1) — confirmado que **no**
 afecta los resultados ya reportados de GATK/CRISPResso2 (sus ventanas de análisis reales, mucho
 más angostas que la ventana de diseño de primers, están limpias). Ver detalle en `CLAUDE.md`.
+
+**Verificación de primers externos (RT-qPCR):** además del diseño automático de arriba, este
+proyecto también se ha usado para verificar primers de RT-qPCR ya existentes en el laboratorio
+(no generados por este pipeline) contra el pseudogenoma colombiano — localizando el sitio de
+unión exacto (incluyendo primers que cruzan una unión exón-exón, vía reconstrucción del ARNm
+empalmado desde la anotación) y comparando contra la referencia mediante el mismo liftover por
+`.chain`. Es una consulta ad-hoc, no un script parametrizado todavía. Resultado real (2026-09-08):
+un SNP colombiano confirmado en un primer de `rpl13a` — ver la sección "RT-qPCR" de
+[`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) y
+`CLAUDE.md` ("RT-qPCR Primer Verification") para el detalle completo.

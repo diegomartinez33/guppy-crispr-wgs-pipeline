@@ -79,6 +79,15 @@ Detalle en [PIPELINE.md §8](PIPELINE.md#8-diseño-de-guías-crispr-ko--crispri-
 nlgn1) y la versión v2 — el script ya está listo y parametrizado (`--gene`/`--ref-version`), solo
 falta correrlo (ver [TUTORIAL.md §3](TUTORIAL.md#3-diseño-de-primers-para-un-gen-nuevo)).
 
+**Verificación de primers RT-qPCR existentes (2026-09-08)** — consulta puntual, no parte del
+pipeline automático: 4 pares de primers ya usados en el laboratorio (bdnf + housekeeping
+miosina/beta-actina/rpl13a) verificados contra v1, v2 y el pseudogenoma colombiano. Hallazgo
+principal: **SNP colombiano real en `rpl_13a_F`** (confirmado también contra v2, que coincide con
+el alelo original del primer) y **`miosina_guppy_F/R` sin sitio de unión identificable** en el
+genoma de guppy (posible primer diseñado para otra especie). Detalle completo en la sección
+"RT-qPCR" del [reporte de primers](../analysis/reports/primer_design_report.html) y en
+`CLAUDE.md` ("RT-qPCR Primer Verification").
+
 ## 7. Migración al genoma de referencia v2 — 🔄 en progreso
 
 | Etapa | Estado |
