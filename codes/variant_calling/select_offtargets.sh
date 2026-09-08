@@ -10,10 +10,10 @@
 #SBATCH --mail-type=ALL
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-INPUT_VCF=${PROJECT_DIR}/gatk/trimmomatic/vcf/all_samples.vcf.gz
-OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/vcf_offtargets
-OFFTARGET_INTERVALS=${PROJECT_DIR}/crispresso/offtargets/combined/offtargets_intervals.list
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+INPUT_VCF=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf/all_samples.vcf.gz
+OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf_offtargets
+OFFTARGET_INTERVALS=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/offtargets/combined/offtargets_intervals.list
 
 mkdir -p "$OUTPUT_DIR" logs/
 

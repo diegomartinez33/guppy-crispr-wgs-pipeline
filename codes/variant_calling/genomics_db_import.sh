@@ -11,11 +11,11 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic/gvcf
-OUTPUT_DB=${PROJECT_DIR}/gatk/trimmomatic/genomicsdb
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf
+OUTPUT_DB=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/genomicsdb
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INTERVALS_FILE=${PROJECT_DIR}/reference/intervals.list
+INTERVALS_FILE=${INTERVALS}
 
 mkdir -p "$OUTPUT_DB" logs/
 

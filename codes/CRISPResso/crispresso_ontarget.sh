@@ -12,10 +12,20 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic
-REGION="NC_024333.1:15922000-15922100"
+INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/ontarget/trimmomatic
+# See extract_amplicon_sgRNA.sh for how the v2 coordinate was relocated
+# (minimap2 --cs alignment of the v1 window against the new bdnf gene span
+# - 100% identity, NM:i:0).
+if [ "$REF_VERSION" = "v1" ]; then
+    REGION="NC_024333.1:15922000-15922100"
+    AMPLICON_SUFFIX=""
+elif [ "$REF_VERSION" = "v2" ]; then
+    REGION="NC_088832.1:15849655-15849755"
+    AMPLICON_SUFFIX="_v2"
+fi
 
 mkdir -p "$OUTPUT_DIR" logs/
 
@@ -32,9 +42,9 @@ echo "Using samtools: $SAMTOOLS"
 SGRNA="TGAGAGACGCCCCGGGCATG"
 # Leer el amplicon RC directamente del archivo
 AMPLICON_FWD=$(grep -v "^>" \
-  ${PROJECT_DIR}/reference/amplicon_bdnf_100bp.fa | tr -d '\n')
+  "${PROJECT_DIR}/reference/amplicon_bdnf_100bp${AMPLICON_SUFFIX}.fa" | tr -d '\n')
 AMPLICON_RC=$(grep -v "^>" \
-  ${PROJECT_DIR}/reference/amplicon_bdnf_100bp_rc.fa | tr -d '\n')
+  "${PROJECT_DIR}/reference/amplicon_bdnf_100bp${AMPLICON_SUFFIX}_rc.fa" | tr -d '\n')
 # ── Muestra para esta tarea ───────────────────────────────────────────────────
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$SAMPLE_LIST")
 BAM="${INPUT_DIR}/${SAMPLE}.markdup.bam"

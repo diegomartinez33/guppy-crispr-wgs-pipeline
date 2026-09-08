@@ -12,11 +12,11 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-BAM_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/wgs/trimmomatic
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
-REGION_FILE=${PROJECT_DIR}/crispresso/offtargets/combined/offtargets_crispresso_wgs.bed
+BAM_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/wgs/trimmomatic
+REGION_FILE=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/offtargets/combined/offtargets_crispresso_wgs.bed
 
 mkdir -p "$OUTPUT_DIR" logs/
 

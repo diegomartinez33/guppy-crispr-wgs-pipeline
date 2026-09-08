@@ -12,9 +12,17 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-MERGE_DIR=${PROJECT_DIR}/mapping/trimmomatic/merged
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic/merged
-REGION="NC_024333.1:15922000-15922100"
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+MERGE_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}/merged
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/ontarget/trimmomatic/merged
+# See extract_amplicon_sgRNA.sh for how the v2 coordinate was relocated.
+if [ "$REF_VERSION" = "v1" ]; then
+    REGION="NC_024333.1:15922000-15922100"
+    AMPLICON_SUFFIX=""
+elif [ "$REF_VERSION" = "v2" ]; then
+    REGION="NC_088832.1:15849655-15849755"
+    AMPLICON_SUFFIX="_v2"
+fi
 
 mkdir -p "$OUTPUT_DIR" logs/
 
@@ -23,8 +31,8 @@ source /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/etc/profile.d/c
 conda activate crispresso2_env
 
 SAMTOOLS=$(which samtools)
-AMPLICON_FWD=$(grep -v "^>" "${PROJECT_DIR}/reference/amplicon_bdnf_100bp.fa" | tr -d '\n')
-AMPLICON_RC=$(grep -v "^>" "${PROJECT_DIR}/reference/amplicon_bdnf_100bp_rc.fa" | tr -d '\n')
+AMPLICON_FWD=$(grep -v "^>" "${PROJECT_DIR}/reference/amplicon_bdnf_100bp${AMPLICON_SUFFIX}.fa" | tr -d '\n')
+AMPLICON_RC=$(grep -v "^>" "${PROJECT_DIR}/reference/amplicon_bdnf_100bp${AMPLICON_SUFFIX}_rc.fa" | tr -d '\n')
 SGRNA="TGAGAGACGCCCCGGGCATG"
 
 echo "Amplicon FWD length: ${#AMPLICON_FWD}bp"

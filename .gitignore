@@ -1,14 +1,18 @@
 # Large data directories — skip traversal entirely (1.6 TB total)
+# Trailing * catches version-suffixed sibling dirs too (e.g. crispresso_v2/,
+# gatk_v2/) - the REF_VERSION migration (see codes/genome_versions.sh)
+# creates these as siblings for some stages, not nested subdirectories, so
+# an exact directory name here would silently miss them.
 raw_fastq/
 trimmed_fastp/
 trimmed_trimmomatic/
-reference/
-gatk/
-crispresso/
-mapping/
+reference*/
+gatk*/
+crispresso*/
+mapping*/
 multiqc_report/
 6KAD5R5/
-/assembly/
+/assembly*/
 intermediate_files/
 
 # GenomicsDB workspace — thousands of TileDB binary segment files
@@ -20,6 +24,17 @@ codes/assembly/intermediate_files/
 codes/assembly/logs/
 codes/assembly/busco_downloads/
 codes/assembly/*.log.info
+codes/assembly/done_step*_tag
+
+# CRISPOR Singularity container + registered genomes - large downloaded/derived
+# binaries, regenerable via crispor_add_genomes.sh / crispor_add_genome_v2.sh
+# (scripts themselves stay tracked). A 2.4GB .sif + three .2bit genomes ended
+# up committed here once (2026-09) and blew up .git to 64GB, causing
+# `git push` to die with "pack-objects died of signal 9" (OOM on login node).
+codes/analysis/crispor_singularity/*.sif
+codes/analysis/crispor_singularity/genomes/
+*.sif
+*.2bit
 
 # IGV files — track BED features but not large binary GFF3/indices
 igv_files/*.gz
@@ -46,7 +61,7 @@ codes/CRISPResso/test_200.sorted.bam.bai
 *.fa
 *.fai
 *.dict
-*.amd
+*.amb
 *.ann
 *.bwt
 *.pac

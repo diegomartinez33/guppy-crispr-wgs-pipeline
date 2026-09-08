@@ -12,10 +12,11 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INPUT_DIR=${PROJECT_DIR}/mapping/trimmomatic        # cambiar a /mapping/trimmomatic para ese script
-OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup  # cambiar a /gatk/trimmomatic/markdup
-METRICS_DIR=${PROJECT_DIR}/gatk/trimmomatic/metrics
+INPUT_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}
+OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+METRICS_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/metrics
 
 mkdir -p "$OUTPUT_DIR" "$METRICS_DIR" logs/
 

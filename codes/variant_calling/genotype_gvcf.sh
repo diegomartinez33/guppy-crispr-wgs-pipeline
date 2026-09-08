@@ -11,9 +11,9 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-INPUT_DB=${PROJECT_DIR}/gatk/trimmomatic/genomicsdb
-OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/vcf
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+INPUT_DB=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/genomicsdb
+OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf
 
 mkdir -p "$OUTPUT_DIR" logs/
 
@@ -39,7 +39,7 @@ gatk GenotypeGVCFs \
 
 # ── create indexes ───────────────────────────────────────────────────────────
 
-GVCF_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/gatk/trimmomatic/gvcf
+GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf
 
 find "${GVCF_DIR}" -name "*.g.vcf.gz" | wc -l
 find "${GVCF_DIR}" -name "*.g.vcf.gz.tbi" | wc -l

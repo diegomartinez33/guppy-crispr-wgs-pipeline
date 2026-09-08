@@ -10,13 +10,18 @@
 #SBATCH --mail-type=ALL
 
 # ── Activar ambiente ──────────────────────────────────────────────────────────
+# CONDA_BASE was referenced here before being defined (real bug, fixed
+# 2026-09 while porting this script to REF_VERSION - see crispresso_wgs.sh
+# for the correct pattern this now matches).
+CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
+export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/offtargets
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/offtargets
 
 mkdir -p "$OUTPUT_DIR" logs/
 

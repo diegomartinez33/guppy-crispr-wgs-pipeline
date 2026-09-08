@@ -13,11 +13,31 @@ module load samtools/1.16.1
 module load bcftools/1.15.1
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
-PSEUDO=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.fna
-GFF=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.gff3
-CHAIN=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.chain
-VCF=${PROJECT_DIR}/gatk/trimmomatic/vcf_filtered/snps_filtered.vcf.gz
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+PSEUDO=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.fna
+# GFF was pointing at the CrossMap output (.gff3, superseded - 64% broken
+# parent/child hierarchy, see reference/pseudogenome/README.md) instead of
+# the primary Liftoff annotation (.liftoff.gff3, 99.5% transfer, 0 orphans)
+# - fixed here while porting this script to REF_VERSION.
+GFF=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.liftoff.gff3
+CHAIN=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.chain
+VCF=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf_filtered/snps_filtered.vcf.gz
+
+# bdnf coordinates are genome-specific. v2 values were relocated by
+# aligning the v1 sgRNA window against the new bdnf gene span (minimap2
+# --cs, 100% identity) - see extract_amplicon_sgRNA.sh and CLAUDE.md,
+# "Migration to GCF_904066995.2 (v2)".
+if [ "$REF_VERSION" = "v1" ]; then
+    BDNF_CHROM_EXPECTED="NC_024333.1"
+    BDNF_START_LO=15800000
+    BDNF_START_HI=16100000
+    SGRNA_SITE="NC_024333.1:15922039-15922058"
+elif [ "$REF_VERSION" = "v2" ]; then
+    BDNF_CHROM_EXPECTED="NC_088832.1"
+    BDNF_START_LO=15800000
+    BDNF_START_HI=15900000
+    SGRNA_SITE="NC_088832.1:15849694-15849713"
+fi
 
 PASS=0; FAIL=0
 check() {
@@ -112,9 +132,9 @@ if [ -n "$BDNF_LINE" ]; then
     BDNF_END=$(echo "$BDNF_LINE" | awk '{print $5}')
     BDNF_STRAND=$(echo "$BDNF_LINE" | awk '{print $7}')
     echo "  bdnf location: ${BDNF_CHR}:${BDNF_START}-${BDNF_END} (${BDNF_STRAND} strand)"
-    check "bdnf on chromosome NC_024333.1" "$BDNF_CHR" "NC_024333.1"
+    check "bdnf on chromosome ${BDNF_CHROM_EXPECTED}" "$BDNF_CHR" "$BDNF_CHROM_EXPECTED"
     check "bdnf on negative strand" "$BDNF_STRAND" "-"
-    check_range "bdnf start reasonable (near 15.9 Mb)" "$BDNF_START" 15800000 16100000
+    check_range "bdnf start reasonable" "$BDNF_START" "$BDNF_START_LO" "$BDNF_START_HI"
 fi
 
 BDNF_EXONS=$(grep -v "^#" "$GFF" | awk '$3=="exon"' | grep "gene=bdnf" | wc -l)
@@ -123,11 +143,11 @@ echo "  bdnf exons: $BDNF_EXONS"
 
 # ── 4. SGRNA CUT SITE REGION ─────────────────────────────────
 echo ""
-echo "[ 4. sgRNA CUT SITE REGION (NC_024333.1:15922039-15922058) ]"
+echo "[ 4. sgRNA CUT SITE REGION (${SGRNA_SITE}) ]"
 
 # Extract 20bp sgRNA region from pseudogenome and reference
-PSEUDO_SEQ=$(samtools faidx "$PSEUDO" "NC_024333.1:15922039-15922058" 2>/dev/null | grep -v "^>")
-REF_SEQ=$(samtools faidx "$REF"    "NC_024333.1:15922039-15922058" 2>/dev/null | grep -v "^>")
+PSEUDO_SEQ=$(samtools faidx "$PSEUDO" "$SGRNA_SITE" 2>/dev/null | grep -v "^>")
+REF_SEQ=$(samtools faidx "$REF"    "$SGRNA_SITE" 2>/dev/null | grep -v "^>")
 echo "  Reference sgRNA site:   $REF_SEQ"
 echo "  Pseudogenome sgRNA site: $PSEUDO_SEQ"
 if [ "$PSEUDO_SEQ" = "$REF_SEQ" ]; then
@@ -142,10 +162,10 @@ fi
 echo ""
 echo "[ 5. VARIANT APPLICATION SPOT CHECK ]"
 
-# Pick first 3 PASS Control SNPs on NC_024333.1 and verify they were applied
-echo "  Checking 3 random Control SNPs on NC_024333.1..."
+# Pick first 3 PASS Control SNPs on the bdnf chromosome and verify they were applied
+echo "  Checking 3 random Control SNPs on ${BDNF_CHROM_EXPECTED}..."
 bcftools view -f PASS -s "Control_MNP_I_S54_L002,Control_MNP_II_S55_L002,Control_MNP_III_S56_L002" \
-    "$VCF" "NC_024333.1" 2>/dev/null | \
+    "$VCF" "$BDNF_CHROM_EXPECTED" 2>/dev/null | \
     bcftools view -g ^miss 2>/dev/null | \
     grep -v "^#" | head -3 | \
     while read -r line; do

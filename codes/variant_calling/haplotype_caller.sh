@@ -11,11 +11,11 @@
 #SBATCH --mail-type=ALL
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INTERVALS_FILE=${PROJECT_DIR}/reference/intervals.list
-INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup
-OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/gvcf
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+INTERVALS_FILE=${INTERVALS}
+INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+OUTPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf
 
 mkdir -p "$OUTPUT_DIR" logs/
 

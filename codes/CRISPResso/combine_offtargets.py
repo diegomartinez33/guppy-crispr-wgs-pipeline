@@ -9,9 +9,22 @@ import os
 
 # ── Configuración ─────────────────────────────────────────────────────────────
 PROJECT_DIR  = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
-CASOFF_FILE  = os.path.join(PROJECT_DIR, "crispresso/offtargets/offtargets.txt")
-CRISPOR_FILE = os.path.join(PROJECT_DIR, "data/offtargets/crispor/crispor_326forw_casoffinder_format.txt")
-OUTPUT_DIR   = os.path.join(PROJECT_DIR, "crispresso/offtargets/combined")
+REF_VERSION  = os.environ.get("REF_VERSION", "v1")
+OUT_SUFFIX   = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
+CASOFF_FILE  = os.path.join(PROJECT_DIR, f"crispresso{OUT_SUFFIX}/offtargets/offtargets.txt")
+# CRISPOR_FILE: for v1, the legacy .xls-derived file is still used by
+# default (data/offtargets/crispor/crispor_326forw_casoffinder_format.txt);
+# for v2 (and any v1 rerun with the modernized flow), use the file produced
+# by the crispor.py container run - see convert_crispor_offtargets.py and
+# CLAUDE.md, "Migration to GCF_904066995.2 (v2)". Both have identical
+# columns (Chromosome/Position/Strand/Sequence/Mismatches/MIT_Score/
+# CFD_Score/Locus), so no logic below needs to change.
+CRISPOR_FILE = os.path.join(
+    PROJECT_DIR,
+    "data/offtargets/crispor/crispor_326forw_casoffinder_format.txt" if REF_VERSION == "v1"
+    else f"crispresso{OUT_SUFFIX}/offtargets/crispor/crispor_bdnf_casoffinder_format.txt",
+)
+OUTPUT_DIR   = os.path.join(PROJECT_DIR, f"crispresso{OUT_SUFFIX}/offtargets/combined")
 SGRNA        = "TGAGAGACGCCCCGGGCATG"
 TOLERANCE    = 2
 
@@ -151,7 +164,8 @@ print(f"Only in CRISPOR:           {only_crispor}")
 print(f"Found by both:             {both}")
 
 # ── Excluir on-target ─────────────────────────────────────────────────────────
-ontarget_mask   = ((combined_dedup["chromosome"] == "NC_024333.1") &
+BDNF_CHROM = "NC_024333.1" if REF_VERSION == "v1" else "NC_088832.1"
+ontarget_mask   = ((combined_dedup["chromosome"] == BDNF_CHROM) &
                    (combined_dedup["mismatches"]  == 0))
 offtargets_only = combined_dedup[~ontarget_mask].copy()
 print(f"\nOn-target excluded → Off-targets for WGS: {len(offtargets_only)}")

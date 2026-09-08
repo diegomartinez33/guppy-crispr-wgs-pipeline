@@ -13,6 +13,7 @@ or Z > 4.0 as fallback), merges adjacent windows, and produces:
 
 Usage (after hotspot_windows.sh completes; requires module load bcftools bedtools):
     python codes/analysis/hotspot_analysis.py
+    REF_VERSION=v2 python codes/analysis/hotspot_analysis.py   # new reference
 """
 
 import re
@@ -26,26 +27,38 @@ import matplotlib.pyplot as plt
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
-VCF_DIR     = os.path.join(PROJECT_DIR, "gatk/trimmomatic/vcf_filtered")
-HOT_DIR     = os.path.join(PROJECT_DIR, "gatk/trimmomatic/hotspots")
+REF_VERSION = os.environ.get("REF_VERSION", "v1")
+OUT_SUFFIX = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
+VCF_DIR     = os.path.join(PROJECT_DIR, f"gatk/trimmomatic{OUT_SUFFIX}/vcf_filtered")
+HOT_DIR     = os.path.join(PROJECT_DIR, f"gatk/trimmomatic{OUT_SUFFIX}/hotspots")
 PLOT_DIR    = os.path.join(HOT_DIR, "hotspot_plots")
 os.makedirs(PLOT_DIR, exist_ok=True)
 
 WINDOW_TSV = os.path.join(HOT_DIR, "window_counts.tsv")
 Z_THRESH   = 4.0
 
-# ── Chromosome colors: alternating blue/amber across all 24 contigs ────────────
+# ── Chromosome -> linkage group naming: genome-specific accession ranges,
+# NOT a formula that generalizes across assemblies (v1's NC_024331-024353
+# and v2's NC_088830-088852 both map 1:1 to LG1-23, but the accession
+# numbers themselves are assembly-specific - confirmed via NCBI
+# sequence_reports for each accession, see CLAUDE.md, "Migration to
+# GCF_904066995.2 (v2)"). A chromosome outside the known range for the
+# active REF_VERSION is reported as unplaced ("Un").
+CHROM_TO_LG = {
+    "v1": {f"NC_0243{31 + i:02d}.1": f"LG{i + 1}" for i in range(23)},
+    "v2": {f"NC_0888{30 + i:02d}.1": f"LG{i + 1}" for i in range(23)},
+}[REF_VERSION]
+
+# ── Chromosome colors: alternating blue/amber across all chromosomes ───────────
 _PALETTE = ["#4C8EBF", "#E8A838"]
-CHROM_COLORS = {}
-for _i in range(23):
-    CHROM_COLORS[f"NC_0243{31 + _i:02d}.1"] = _PALETTE[_i % 2]
-CHROM_COLORS["NW_007615013.1"] = _PALETTE[23 % 2]
+CHROM_COLORS = {chrom: _PALETTE[i % 2] for i, chrom in enumerate(CHROM_TO_LG)}
+if REF_VERSION == "v1":
+    CHROM_COLORS["NW_007615013.1"] = _PALETTE[23 % 2]
 
 
 def chrom_label(chrom):
-    """NC_024331.1 → LG1;  NW_007615013.1 → Un."""
-    m = re.match(r"NC_024(3\d{2})\.1", chrom)
-    return f"LG{int(m.group(1)) - 330}" if m else "Un"
+    """NC_024331.1 -> LG1 (v1) / NC_088830.1 -> LG1 (v2); unplaced -> Un."""
+    return CHROM_TO_LG.get(chrom, "Un")
 
 
 def get_contig_lengths(vcf_path):

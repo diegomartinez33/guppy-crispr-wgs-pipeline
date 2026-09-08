@@ -3,7 +3,7 @@ module load samtools/1.16.1
 module load gatk4/4.4.0.0
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 
 # 1. Crear .fai (samtools — segundos)
 samtools faidx "$REF"

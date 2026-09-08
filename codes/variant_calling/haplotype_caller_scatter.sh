@@ -1,6 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=haplo_scatter
 #SBATCH --array=1-360%40
+# v1: 15 samples x 24 lines in intervals.list (23 chroms + 1 legacy
+# unplaced scaffold, see genome_versions.sh) = 360.
+# v2: 15 samples x 23 lines in intervals_v2.list = 345 - override at
+# submission time: `sbatch --array=1-345%40 --export=ALL,REF_VERSION=v2 ...`
+# (N_CHROMS below is derived from the actual interval file, not hardcoded,
+# so only the #SBATCH array bound needs the manual override).
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=20:00:00
@@ -11,13 +17,13 @@
 #SBATCH --mail-type=FAIL,ARRAY_TASKS
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INTERVALS_FILE=${PROJECT_DIR}/reference/intervals.list
-INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup
-OUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/gvcf_scatter
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+INTERVALS_FILE=${INTERVALS}
+INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+OUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf_scatter
 
-N_CHROMS=24
+N_CHROMS=$(wc -l < "$INTERVALS_FILE")
 
 SAMPLE_IDX=$(( (SLURM_ARRAY_TASK_ID - 1) / N_CHROMS + 1 ))
 CHROM_IDX=$(( (SLURM_ARRAY_TASK_ID - 1) % N_CHROMS + 1 ))

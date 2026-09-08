@@ -13,8 +13,9 @@ module load bcftools/1.15.1
 module load bedtools/2.30.0
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-VCF_DIR=${PROJECT_DIR}/gatk/trimmomatic/vcf_filtered
-OUT_DIR=${PROJECT_DIR}/gatk/trimmomatic/hotspots
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+VCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf_filtered
+OUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/hotspots
 
 mkdir -p "$OUT_DIR"
 

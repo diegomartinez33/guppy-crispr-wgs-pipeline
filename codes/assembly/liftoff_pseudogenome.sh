@@ -14,10 +14,10 @@ source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate liftoff_env
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
-TRINIDAD_GFF=${PROJECT_DIR}/reference/GCF_000633615.1_annotation.gff
-PSEUDO=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.fna
-OUT_GFF=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.liftoff.gff3
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+TRINIDAD_GFF=${REF_GFF}
+PSEUDO=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.fna
+OUT_GFF=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.liftoff.gff3
 
 echo "Start: $(date)"
 echo "Target:     $PSEUDO"

@@ -503,8 +503,26 @@ Phase 5 - NextPolish short-read polishing (codes/assembly/nextpolish_genome.sh):
   medium partition) per this project's established pattern of avoiding
   first-attempt under-provisioning.
   Status: job 692710 failed after ~1h (N-content rejection, see "NextPolish
-  — N-content Rejection" Known Issue) — fixed with -N in sgs_options,
-  resubmitted as job 692760, 2026-08-06 — result pending.
+  — N-content Rejection" Known Issue) — fixed with -N in sgs_options.
+  job 692760 (resubmit) failed after ~2h44m at the polish_genome step
+  (forkserver/fork multiprocessing bug in NextPolish 1.4.1 itself, see
+  "NextPolish — forkserver vs fork Multiprocessing" Known Issue) — fixed by
+  patching nextpolish1.py/nextpolish2.py in the conda env directly, fix
+  verified against the exact failed command before resubmitting. Third
+  submission (job 699678) COMPLETED 2026-08-10, ~9h, produced
+  genome.nextpolish.fasta (2064 seqs, 691,921,577bp — Chr0 renamed
+  Chr0_RagTag_np1212, NextPolish appends the task sequence to every
+  sequence name).
+
+  QC comparison (job 700892 QUAST, job 700893 BUSCO, both 2026-08-11) —
+  RESULT: NO MEANINGFUL IMPROVEMENT, several structural metrics slightly
+  WORSE. Polished genome NOT adopted; colombian_scaffolded.fna remains
+  authoritative. See "NextPolish — No Improvement" Known Issue below and
+  reference/colombian_scaffolded_genome/README.md's "Polishing experiment"
+  section for the full comparison table and explanation (short-read
+  polishing has a low ceiling when using the exact same reads that built
+  the assembly — nothing to correct where the assembly already matches
+  what those reads say, even if it differs from the BUSCO ortholog set).
 
 Driver: codes/assembly/run_assembly_pipeline.sh
   Chain: SPAdes → RagTag → {QUAST, BUSCO, Liftoff} (all three fan out from
@@ -1060,6 +1078,349 @@ pipeline for a different, unrelated purpose (quality-score-based trimming,
 not N-content filtering).
 ```
 
+### NextPolish — `forkserver` vs `fork` Multiprocessing (Real Package Bug)
+```
+Job 692760 (nextpolish_genome.sh, with the -N fix applied) got much further
+- past db_split, through alignment, ~2h44m in - then failed at the actual
+polish_genome step, all 4 parallel workers:
+  NameError: name 'FUN' is not defined
+  File ".../nextpolish-1.4.1/lib/nextpolish1.py", line 182, in worker
+    c_seq = FUN(seed_name, CFG)
+
+Root cause: a genuine bug in NextPolish 1.4.1 itself (not our config/data),
+triggered by a Python version mismatch. nextpolish1.py's main() sets `global
+CFG, FUN` right before creating a `Pool(...)` (nextpolish1.py:218-223),
+relying on true `fork` semantics - worker processes inheriting a
+copy-on-write snapshot of the live parent process's globals at the moment
+Pool() runs. Confirmed via
+`/hpcfs/.../nextpolish_env/bin/python -c "import multiprocessing;
+print(multiprocessing.get_start_method())"` → this Python 3.14 build
+defaults to `forkserver`, not `fork`. Under forkserver, worker processes
+fork from a long-lived server process whose module state predates main()'s
+later `FUN = {...}[args.task]` assignment - so workers never see it. This
+is a compatibility gap between NextPolish 1.4.1's code (written assuming
+fork-everywhere, true of most Python versions historically on Linux) and
+whatever changed this specific build's default start method.
+nextpolish2.py has the identical `global ... ; Pool(...)` pattern
+(confirmed via grep) and would hit the same bug if a later task reaches it
+- patched defensively even though only nextpolish1.py was actually
+exercised so far.
+
+Fix: patched both vendored files directly (NOT a config change - there's
+no run.cfg option for this) -
+/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/nextpolish_env/share/nextpolish-1.4.1/lib/{nextpolish1,nextpolish2}.py
+- added `import multiprocessing` +
+`multiprocessing.set_start_method('fork', force=True)` under
+`if __name__ == '__main__':`, right after the existing imports. Verified
+by re-running the exact failed command
+(`python nextpolish1.py -p 8 -g ... -t 1 -s sgs.sort.bam -l lgs.sort.bam -o
+/tmp/test_polish_out.fasta`) directly - produced 28MB+ of real polished
+sequence within 2 minutes with no error, vs. instant NameError before the
+patch. Full job resubmitted (workdir wiped first, rewrite=yes in our
+config means no partial-state resume anyway) - job 692760's ~2h44m of
+alignment work had to be redone from scratch.
+
+Lesson: a third-party tool's parallelism can silently break across Python
+version upgrades if it relies on implicit fork-inherited global state -
+this class of bug won't show up in the tool's own test suite unless tested
+against the same Python version/build users actually run it with. When a
+NameError points at a variable that IS assigned earlier in the same
+function, suspect a multiprocessing start-method mismatch, not a typo -
+check `multiprocessing.get_start_method()` before assuming the vendored
+code is simply broken.
+```
+
+### NextPolish — No Improvement (Both Bugs Fixed, Result Still Negative)
+```
+After both NextPolish bugs above were fixed, job 699678 completed cleanly
+(2026-08-10, ~9h) and produced genome.nextpolish.fasta. QC comparison (job
+700892 QUAST, job 700893 BUSCO, both 2026-08-11) against the pre-polish
+baseline:
+
+Metric                    Original      Polished      Change
+N50                       28.31 Mb      28.30 Mb      ~same
+Genome fraction           82.807%       82.038%       WORSE (-0.77pp)
+Duplication ratio         1.078         1.087         WORSE
+# misassemblies           7,589         8,043         WORSE (+6%)
+NA50 (aligned N50)        198,159       193,546       WORSE
+Mismatches/100kbp         567.95        557.72        better (~1.8%)
+Indels/100kbp             137.54        136.60        better (~0.7%)
+BUSCO Complete            87.1% (3169)  87.1% (3173)  ~same
+BUSCO w/ internal stops   220           221           ~same (no fix)
+
+Decision: polished genome NOT adopted. colombian_scaffolded.fna (original)
+remains authoritative. No file replacement, no re-run of Liftoff.
+
+Why polishing didn't help: NextPolish corrects disagreements between the
+assembly and aligned reads - but polishing used the SAME reads already
+used to build the assembly with SPAdes. Wherever the assembly already
+matched what those reads say, there was nothing to correct, even where
+that sequence differs from the BUSCO ortholog gene models. The small
+increase in misassemblies suggests polishing even introduced a few new
+small-scale artifacts (plausibly from indel edits shifting local alignment
+behavior against the already-fragmented reference). This reframes the 220
+internal-stop-codon BUSCO genes as more likely genuine population
+divergence or gene-prediction quirks than assembly errors.
+
+Lesson: short-read polishing has a low ceiling when polishing with the
+exact same reads that built the assembly - there's no new information for
+the polisher to act on. Meaningful further improvement needs genuinely new
+data (long reads) or a different assembly strategy (e.g. per-individual
+assembly to avoid cross-individual heterozygosity), not reprocessing the
+same short reads through a different tool. See "Genome Assembly — Further
+Improvement Options" in Pending Analyses for what's next.
+```
+
+### TGS-GapCloser — Multi-stream Gzip Crashes the FASTQ Reader
+```
+Job 705937 (tgsgapcloser_genome.sh, roadmap option 2) "completed" in
+2m50s - too fast to be real (compare: QUAST/BUSCO alignment steps on this
+genome take minutes-to-hours). Checked the log rather than trusting the
+COMPLETED status (same lesson as the CRISPRessoAggregate "0 folders"
+Known Issue): the actual TGSGapCandidate binary aborted -
+
+  tgsgapcandidate: ../biocommon/fasta/fasta.cpp:63: void
+  BGIQD::FASTA::Id_Desc_Head::Init(const string&): Assertion
+  'line.size() > 1' failed.
+  Aborted (core dumped)
+
+- while "LoadONTReads", producing a 0-byte .ont.fasta.
+
+Root cause: the combined Nanopore reads file was built with
+`cat run1/*.fastq.gz run2/*.fastq.gz > combined.fastq.gz` - valid gzip,
+but a MULTI-STREAM file (~490 concatenated gzip members, one per source
+fastq_pass file). TGS-GapCloser's internal FASTA/FASTQ reader (BGIQD
+library, hand-rolled C++) doesn't handle multi-stream gzip boundaries
+correctly - it almost certainly hit a blank/malformed line right at a
+stream transition and its own internal assertion caught it (crashed
+instead of silently producing wrong output, which is at least honest).
+
+Fix: build the combined file via `zcat run1/*.fastq.gz run2/*.fastq.gz |
+gzip > combined.fastq.gz` instead - zcat correctly decompresses
+multi-member gzip (standard, robust), and re-piping through a fresh
+`gzip` produces a single-member output stream that naive downstream
+parsers can't misread. Also added a line-count sanity check
+(divisible-by-4, >=1M reads) right after combining, so a similar problem
+would fail loudly and immediately next time instead of silently producing
+a small/malformed file that only surfaces as a confusing crash deep
+inside a third-party binary later.
+
+Lesson: `cat file1.gz file2.gz > combined.gz` is technically valid gzip
+but is a known landmine for naive/custom decompression code (common in
+older bioinformatics C/C++ tools that hand-roll their own gzip reading
+rather than using zlib's stream-aware APIs correctly). Prefer
+`zcat ... | gzip > combined.gz` whenever concatenating compressed FASTQ/FASTA
+for a tool whose gzip-handling robustness is unknown - the cost is
+negligible (one extra decompress/recompress pass) and it eliminates this
+entire class of failure. Also: a fast "COMPLETED" SLURM status is not
+proof of success - check the tool's own log for what actually happened,
+especially for tools with multi-step internal pipelines where later steps
+can fail invisibly to SLURM's own exit-code tracking if error propagation
+is imperfect.
+
+CORRECTION (2026-08-20): this fix was necessary but NOT sufficient. Job
+710309, run with the clean single-stream gzip fix above, hit the EXACT
+SAME assertion crash again - proving multi-stream gzip was not the (whole)
+root cause. See next Known Issue for what it actually was. Keeping the
+zcat|gzip rebuild anyway since it's still correct practice and does no
+harm, but it alone did not fix this.
+```
+
+### TGS-GapCloser — Wrapper Always Uses `--ont_reads_a` (Wants FASTA, Not FASTQ)
+```
+After the multi-stream gzip fix (previous Known Issue) still didn't
+resolve the crash, and after also fixing a second, unrelated bug (job
+707123 silently resumed from a PREVIOUS failed run's leftover
+done_step1_tag/done_step2.1_tag marker files - TGS-GapCloser writes these
+into the CURRENT WORKING DIRECTORY, not under --output, completely
+undocumented; fixed with `rm -f done_step*_tag` at the top of the script),
+job 710309 still hit the identical assertion crash with a CORRECTLY BUILT
+single-stream gzip FASTQ file and fresh (non-resumed) state. This ruled
+out both prior hypotheses and pointed at the actual root cause:
+
+The tgsgapcloser wrapper script unconditionally invokes its internal
+binaries with `--ont_reads_a` (the FASTA-format flag) - confirmed via
+`grep -n "ont_reads_a\|ont_reads_q" .../bin/tgsgapcloser`: `--ont_reads_a`
+appears 3 times, `--ont_reads_q` appears ZERO times anywhere in the
+wrapper. The internal tgsgapcandidate binary's own --help (run directly:
+`.../tgsgapcloserbin/tgsgapcandidate` with no args) reveals two separate,
+mutually exclusive flags: `--ont_reads_q "the ont reads in fastq format"`
+vs `--ont_reads_a "the ont reads in fasta format"` - but the wrapper only
+ever uses the FASTA one, regardless of what format the user's `--reads`
+file actually is. The top-level `tgsgapcloser --help` never mentions this
+requirement ("--reads <tgs_reads_file> input TGS read file" - no format
+specified), so feeding it raw Nanopore FASTQ (the only format ONT
+basecalling produces) silently sets up a crash: the FASTA-mode parser
+chokes on '@'/'+' FASTQ header lines it isn't expecting.
+
+Fix: convert reads to FASTA before calling tgsgapcloser -
+  zcat combined.fastq.gz | awk 'NR%4==1 {print ">"substr($0,2)}
+  NR%4==2 {print}' | gzip > combined.fasta.gz
+Added a sanity check (FASTA sequence count via `grep -c "^>"` must equal
+the original FASTQ read count) to catch a bad conversion immediately
+rather than downstream. Verified the fix directly against the actual
+failing binary before resubmitting the full pipeline: reused the
+already-computed (and valid - produced by minimap2, which handles FASTQ
+input fine) .sub.filter.paf and .orignial_scaff_infos from the failed
+run, ran tgsgapcandidate directly against the new FASTA reads - no
+assertion crash within 5 minutes (vs. an almost-instant crash before),
+strong evidence the fix works even though the direct test itself timed
+out before finishing (large file, no rush to complete it - SLURM has no
+such timeout).
+
+Lesson: a tool's top-level CLI help can describe an input flag generically
+("input TGS read file") while the wrapper's actual invocation of internal
+binaries hardcodes a specific, undocumented format requirement - when a
+parser crashes on what looks like valid, well-formed input in an
+apparently-supported format, check what the wrapper script ACTUALLY passes
+to its internal binaries (grep the wrapper itself), not just what the
+top-level --help claims to accept. This is the third distinct real bug
+found in third-party genome-improvement tools this month (NextPolish had
+two - N-content rejection needing user awareness, and a genuine
+forkserver/fork multiprocessing incompatibility) - treat "the tool crashed
+on our real data" as a signal to read the tool's source/wrapper, not
+necessarily a sign our data or config is wrong.
+```
+
+### TGS-GapCloser — Result: Genuine Gap-Filling Success (Third Attempt)
+```
+Job 710348 (all three fixes applied: zcat|gzip rebuild, stale-tag cleanup,
+FASTQ->FASTA conversion) ran 42m51s and printed "ALL DONE !!!" - the first
+of three attempts to actually complete the real pipeline (attempts 1 and 2
+crashed within minutes each).
+
+Output: assembly/tgsgapcloser_output/colombian_gapfilled.scaff_seqs (copied
+to colombian_gapfilled.fasta for downstream tools - TGS-GapCloser's native
+output extension isn't a standard FASTA suffix). 2064 sequences (matches
+original), 694MB (vs 692MB original - grew, consistent with real sequence
+replacing some N gaps). Chr0 still present, still named "Chr0_RagTag" -
+unlike NextPolish, TGS-GapCloser does NOT rename sequences.
+
+Gap-fill rate (from colombian_gapfilled.gap_fill_detail, type field F=filled
+vs N=still-a-gap): 179,359 / 318,572 gap regions filled = 56.3%. A real,
+substantial result given the shallow ~3.2x Nanopore depth - most gaps that
+got filled likely had at least one spanning read; the 43.7% that didn't
+likely had zero reads crossing them, consistent with Poisson coverage
+gaps at 3.2x mean depth.
+
+QC comparison (jobs 714184 QUAST, 714185 BUSCO, 2026-08-20) submitted
+against the ORIGINAL baseline (not the rejected NextPolish version).
+
+RESULT (2026-08-31, job 714184 completed after 18h58m — job 714185 BUSCO
+completed earlier in 3m31s): a genuine trade-off, not a clean win.
+
+Metric                    Original      Gap-filled    Change
+N50                       28.31 Mb      29.43 Mb      better (+4%)
+Genome fraction           82.807%       92.088%       MUCH better (+9.3pp)
+Duplication ratio         1.078         1.042         better
+N's per 100kbp            7,145         1,564         much better (-78%)
+# misassemblies           7,589         23,532        MUCH worse (+210%)
+NA50 (aligned N50)        198,159       115,382       worse (-42%)
+Mismatches/100kbp         567.95        700.33        worse
+Indels/100kbp             137.54        210.08        worse
+BUSCO Complete            87.1% (3169)  95.4% (3476)  MUCH better
+BUSCO Missing             6.7% (245)    2.1% (73)     MUCH better
+BUSCO Fragmented          6.2% (226)    2.5% (91)     MUCH better
+
+Interpretation: filling a gap replaces an N placeholder with real sequence
+derived from Nanopore reads, corrected only with racon (long-read
+consensus) - never reconciled against the high-precision Illumina reads.
+That new sequence is where essentially all the completeness gain comes
+from (genome fraction, BUSOC completeness) - but also where the new
+mismatches/indels and most new misassemblies almost certainly concentrate:
+a previously-invisible N gap can't register as "misassembled", but once
+it's real (imperfect) sequence, QUAST can now detect local disagreement
+there against the fragmented reference.
+
+Decision (2026-08-31): NOT adopted as-is. colombian_scaffolded.fna
+(unfilled) remains authoritative pending the targeted post-gap-fill
+polishing follow-up - see "Targeted Post-Gap-Fill Polishing" Known Issue
+below. Documented in full in
+reference/colombian_scaffolded_genome/README.md ("Gap-filling experiment"
+section).
+
+Lesson: a QC comparison against a single baseline can show a real,
+substantial improvement on one axis (completeness) simultaneously with a
+real regression on another (structural precision) - report both rather
+than picking whichever framing looks better, and let the actual downstream
+use case (here: does the 8.4x-worse misassembly count actually matter for
+what this genome is used for, vs. does the +9.3pp genome fraction matter
+more) drive the adoption decision instead of a single composite "better/
+worse" verdict.
+```
+
+### Targeted Post-Gap-Fill Polishing
+```
+Rationale: the gap-filling trade-off above (huge completeness gain, real
+structural/precision cost) is explained by the newly-filled sequence never
+having been reconciled against the high-precision Illumina reads (it came
+from Nanopore + racon only). The original whole-genome NextPolish
+experiment (see "NextPolish — No Improvement" Known Issue) found nothing
+to correct because it reprocessed reads the assembly was ALREADY built
+from - but the newly-filled regions are different: they were never built
+from or compared against Illumina reads at all, so genuine, correctable
+disagreements should exist there this time.
+
+Method: re-ran nextpolish_genome.sh (identical tool/config/2-rounds recipe
+as the original polishing experiment - see codes/assembly/nextpolish_genome.sh,
+no code changes needed) pointed at colombian_gapfilled.fasta instead of
+colombian_scaffolded.fna. This is technically a whole-genome NextPolish
+run, not literally restricted to the filled coordinates - but the expected
+effect is a de facto targeted correction: regions already consistent with
+Illumina reads (everything that was already in the pre-gap-fill genome)
+should see little-to-no change (exactly as observed in the original
+polishing experiment), while the Nanopore-derived filled regions - never
+previously reconciled with Illumina data - are where real corrections
+should land. Simpler and lower-risk than surgically extracting/patching
+just the filled coordinates (which would need careful re-anchoring if
+NextPolish's own indel corrections shift local coordinates).
+
+Output dir: assembly/nextpolish_output_gapfilled/ (kept separate from the
+original assembly/nextpolish_output/ run).
+
+Status: job 716452 COMPLETED 2026-09-06 (10h04m, started once the
+medium-partition node backlog cleared) -> assembly/nextpolish_output_gapfilled/
+genome.nextpolish.fasta (2064 sequences). QC added this same session
+(quast_qc_gapfilled_polished.sh, busco_qc_gapfilled_polished.sh - new
+scripts, same pattern as the prior QUAST/BUSCO stages; Chr0 excluded for
+QUAST via genome.nextpolish.noChr0.fasta, renamed Chr0_RagTag_np1212 by
+NextPolish same as the original polishing run).
+
+BUSCO result - genuine, real improvement, exactly the kind hoped for:
+| | Pre-polish gap-filled | Post-polish (this run) |
+|---|---|---|
+| Complete | 95.4% (3476) | 95.5% (3479) |
+| **Internal stop codons** | **184** | **136** |
+| Fragmented | 91 | 87 |
+| Missing | 73 | 74 |
+
+Completeness barely moved (as expected - gap-filling, not polishing, is
+what fixes Missing/Fragmented), but internal stop codons - the artifact
+this whole experiment targeted (Nanopore-derived indel errors causing
+frameshifts) - dropped by 48 genes (184->136, -26%). This is Illumina
+short-read correction doing exactly its job on sequence that was
+genuinely never checked against it before.
+
+QUAST result (2026-09-07) - structurally flat, exactly as expected for a
+short-read polish (it fixes point-like indel errors, not large-scale
+placement):
+| | Pre-polish gap-filled | Post-polish (this run) |
+|---|---|---|
+| Genome fraction | 92.088% | 92.209% |
+| Misassemblies | 23,532 | 23,914 |
+| Duplication ratio | 1.042 | 1.042 |
+
+Net verdict for the whole gap-fill+polish experiment: the polish is a
+clean, low-risk addition on top of gap-filling - it recovers 48 genes'
+worth of internal-stop-codon artifacts (real correctness win, see BUSCO
+above) at essentially zero structural cost (misassembly count within
+noise, genome fraction and duplication ratio unchanged). It does NOT
+address the structural precision lost during gap-filling itself (the
+23,532 vs. 7,589 misassemblies gap against the original pre-gap-fill
+assembly remains) - that trade-off (completeness for structural risk) is
+inherent to TGS-GapCloser's long-read gap-filling and was already the
+known, accepted cost documented in "TGS-GapCloser - Result" above.
+
 ### Off-Target Deduplication — CasOFFinder vs CRISPOR Priority
 ```python
 # When CasOFFinder and CRISPOR find the same off-target site within ±2bp,
@@ -1153,14 +1514,16 @@ Core pipeline (Phases 1-4) complete. Final outputs:
   colombian_scaffolded.liftoff.gff3 + README.md for external sharing) and
   assembly/qc_results/ (QUAST + BUSCO reports).
 
-Phase 5 in progress (2026-08-06, job 692710 — see "Assembly Pipeline"
-  above for full parameter details): NextPolish short-read polishing.
-  → Once complete: re-run QUAST + BUSCO on genome.nextpolish.fasta to
-    measure improvement, update reference/colombian_scaffolded_genome/README.md
-    changelog with results. If genome.nextpolish.fasta shows a real
-    improvement, it should replace colombian_scaffolded.fna as the primary
-    deliverable (re-run Liftoff on the polished genome too, since
-    coordinates shift slightly after indel correction).
+Phase 5 DONE (2026-08-11, jobs 699678/700892/700893 — see "Assembly
+  Pipeline" above for full parameter details, "NextPolish — No
+  Improvement" Known Issue for the full result): NextPolish short-read
+  polishing tested, QC compared against baseline.
+  ✅ Result: no meaningful improvement, several structural metrics
+     slightly worse (genome fraction, duplication ratio, misassemblies,
+     NA50). colombian_scaffolded.fna (original) remains authoritative -
+     genome NOT replaced, Liftoff NOT re-run.
+  → Next: see "Genome Assembly — Further Improvement Options" below for
+    what's left to try (options 2-5; option 1, polishing, is now closed).
 ```
 
 ### 4. Coverage Plots — DONE (confirmed 2026-08-06, originally run ~May 6)
@@ -1193,18 +1556,21 @@ externally.
 
 Ranked roughly by cost/effort vs. expected payoff:
 
-1. Short-read polishing (NextPolish) — IN PROGRESS, see Phase 5 above.
-   Cheapest option, no new data needed, directly targets the ~6.9% of
-   "complete" BUSCO genes with internal stop codons.
+1. Short-read polishing (NextPolish) — DONE 2026-08-11, CLOSED. No
+   meaningful improvement (see Phase 5 above / "NextPolish — No
+   Improvement" Known Issue). Confirmed this option's low ceiling: reusing
+   the same reads that built the assembly leaves nothing new to correct
+   with. Do not retry this option without genuinely new short-read data.
 
-2. Gap-filling with existing Nanopore data — cheap, no new sequencing.
-   ~2.4Gbp Nanopore reads already on disk (pooled telencephalon, 10 fish,
-   same population, ~3.2x depth — see [[nanopore_epigenome_data]] memory).
-   Too shallow for a full hybrid reassembly (ruled out 2026-07-10, see
-   "SPAdes — mmap ENOMEM" Known Issue), but a good fit for a targeted
-   long-read gap-filler (e.g. TGS-GapCloser) run AFTER Phase 5 — could close
-   some of the ~7% N-gap content RagTag introduced, using data that's
-   already available.
+2. Gap-filling with existing Nanopore data — IN PROGRESS, 2026-08-20.
+   TGS-GapCloser v1.2.1 (tgsgapcloser_env), 3 attempts before it actually
+   worked (multi-stream gzip, stale resume tags, and a wrapper-always-uses-
+   FASTA bug — all three real, see the three "TGS-GapCloser" Known Issues
+   above for the debugging history). Job 710348: "ALL DONE !!!",
+   colombian_gapfilled.fasta produced, 56.3% of gap regions filled
+   (179,359/318,572) — a real, substantial result despite the shallow
+   ~3.2x Nanopore depth. QC comparison (QUAST job 714184, BUSCO job
+   714185) submitted, result pending.
 
 3. Assemble each of the 3 Control individuals separately, then compare —
    moderate effort, no new data needed. Root cause of SPAdes's fragmentation
@@ -1229,6 +1595,472 @@ Ranked roughly by cost/effort vs. expected payoff:
    repetitive regions, specific chromosomes, or near regions relevant to
    the CRISPR work (bdnf locus, the 8 off-target sites)? Would clarify
    whether targeted effort beats a genome-wide fix.
+```
+
+### 6. Population-Specific Knockout Guide Comparison — DONE 2026-08-31
+```
+New need (not from the original pipeline): compare CRISPR knockout guide
+candidates (SpCas9, NGG PAM) designed against the NCBI Trinidad reference
+vs. the Colombian population genome, per gene - i.e. would a guide designed
+from the reference actually work (same PAM, same seed sequence) in the
+real Colombian fish, or does a population variant break/weaken it? Genes
+requested: bdnf, agap3, grin1, gria1, gria2 (grin1/gria1/gria2 each have
+teleost-specific "a"/"b" paralogs in this genome - both processed where
+both exist; gria2a is not annotated in this assembly, only gria2b).
+
+Scripts (parameterized, gene list configurable at the top - as requested):
+  codes/analysis/run_ko_guide_scan.sh - bash wrapper, GENES=(...) array at
+    the top is the thing to edit to analyze different genes; also selects
+    which Colombian genome to compare against (POPULATION=pseudogenome by
+    default - see rationale in the script's own header comment: preserves
+    exon/intron structure almost exactly since it's reference + SNP/indel
+    substitution, so gene-by-gene comparison is reliable; the alternative
+    "scaffolded" de novo genome carries assembly-artifact risk, e.g. the
+    internal-stop-codon BUSCO genes documented in its own README).
+  codes/analysis/ko_guide_scan.py - does the actual work, one gene per
+    invocation (--gene NAME --population pseudogenome|scaffolded).
+
+No pysam/biopython dependency - crispresso2_env's samtools is broken
+(missing libcrypto.so.1.0.0, pre-existing, not something this session
+caused) and the script only needs Python stdlib, so it uses samtools
+(module) + minimap2 (module) via subprocess instead. IMPORTANT module
+load order: `module load minimap2` THEN `module load samtools/1.16.1` -
+loading minimap2 second reloads an older anaconda base that shadows
+samtools/1.16.1's own libs and silently swaps in the broken conda
+samtools. Also: shell state does not persist between separate Bash tool
+calls in this environment - module loads and the python3 invocation must
+happen in the SAME call.
+
+Pipeline per gene:
+  1. Look up the gene in both GFF3s by `gene=NAME;` (Liftoff preserves the
+     reference's gene naming).
+  2. Extract the full gene span (both genomes), align with minimap2 --cs,
+     report all variants across the gene body (includes introns).
+  3. Pick a transcript ID present in BOTH genomes (longest ref CDS as the
+     representative-isoform proxy) - CRITICAL: Liftoff preserves transcript
+     IDs but NOT their listing order in the GFF, so naively taking "the
+     first mRNA listed" in each file independently silently compares TWO
+     DIFFERENT ISOFORMS between reference and population (caught during
+     testing: bdnf's first-listed reference transcript was XM_008405157.2,
+     but the pseudogenome's first-listed was XM_008405147.2 - same gene,
+     wrong comparison, would have produced meaningless CDS-length mismatches
+     and zero real variant detection). Fixed by matching on transcript ID
+     (stripping the "rna-" ID prefix, which IS shared) rather than file
+     order. Verified the fix by re-running bdnf: CDS length now matches
+     exactly (885bp/2 exons) between reference and pseudogenome.
+  4. Align CDS-to-CDS (minimap2 --cs) for base-precise coordinate mapping.
+  5. Enumerate every NGG-PAM candidate (20bp spacer + NGG, both strands) in
+     the reference CDS, classify each via the CDS alignment: IDENTICAL /
+     PAM_BROKEN (variant in the 3bp PAM) / SEED_VARIANT (variant in the
+     10bp proximal to PAM - most critical for Cas9 binding) /
+     DISTAL_VARIANT (variant in the distal 10bp of the spacer) /
+     NO_ALIGNMENT (window not covered by the CDS alignment).
+  6. Also report population-only novel PAM sites (a population variant
+     creating a new NGG absent from the reference) - invisible if you only
+     ever design against the reference.
+Sanity-checked before trusting the "0 CDS variants" result for
+bdnf/agap3/grin1a/grin1b (biologically plausible - purifying selection on
+coding sequence): cross-referenced agap3's 85 gene-body variants against
+its 18 CDS exon coordinates directly - confirmed all 85 fall in
+introns/UTRs, zero in CDS. Not a bug; real biology.
+
+Results (pseudogenome, 2026-08-31):
+| Gene | CDS len | Gene-body variants | CDS variants | Guides affected / total |
+|---|---|---|---|---|
+| bdnf | 885bp | 6 | 0 | 0/150 |
+| agap3 | 3966bp | 85 | 0 | 0/557 |
+| grin1a | 2919bp | 60 | 0 | 0/441 |
+| grin1b | 2817bp | 0 | 0 | 0/484 |
+| gria1a | 2451bp | 51 | 1 | 1/333 (1 PAM_BROKEN) |
+| gria1b | 2877bp | 49 | 2 | 0/392 (variants missed all guide windows) |
+| gria2b | 2691bp | 118 | 5 | 8/341 (3 PAM_BROKEN, 4 SEED_VARIANT, 1 DISTAL_VARIANT) |
+| nlgn1 | 2649bp | 241 | 1 | 4/418 (4 DISTAL_VARIANT) |
+
+nlgn1 (neuroligin-1) added 2026-09-06, no a/b paralog for this gene (unlike
+nlgn2/nlgn3/nlgn4x, which do) - single unambiguous `gene=nlgn1` symbol in
+both GFFs. Large gene (NC_024334.1:13466999-13845833, ~379kb) with a lot of
+intronic variation (241 gene-body variants) but only 1 landing in the CDS,
+affecting 4 overlapping NGG windows, all DISTAL_VARIANT (none PAM_BROKEN or
+SEED_VARIANT) - lowest-severity category in this project's classification,
+consistent with a reference-designed guide there likely still working in
+the Colombian population.
+
+**Correction 2026-09-06** (prompted by a user question about CRISPOR guide
+design that generalizes to this tool too): find_ngg_candidates() scans the
+spliced/concatenated CDS, so a 23bp window straddling an exon-exon junction
+in that concatenated string isn't a real contiguous stretch of genomic DNA
+- Cas9 can't actually target it. Audited all 7 genes' already-reported
+candidates (codes/analysis/check_exon_junction_candidates.py): 353/2699
+candidates crossed a junction, but 352 were already classified IDENTICAL
+(harmless to the conclusions either way) - the ONE exception was a real
+false positive, one of gria2b's two reported DISTAL_VARIANT calls (originally
+9 affected guides, corrected to 8 above). Fixed going forward: ko_guide_scan.py
+now classifies any junction-crossing candidate as EXON_JUNCTION_ARTIFACT
+(both for the reference-CDS scan and the population-only novel-site scan)
+instead of whatever it would otherwise have been classified as.
+
+gria2b is the standout finding: a cluster of variants around CDS position
+~2139 breaks or weakens candidate guides across both strands (single
+variant, multiple overlapping NGG windows affected) - a reference-designed
+guide there would likely fail or behave unpredictably in the real
+Colombian population. Most other genes show no CDS-level difference,
+consistent with strong functional conservation in these
+signaling/receptor genes.
+
+Output: analysis/ko_guide_scan/<gene>_<population>_guide_comparison.csv
+(every candidate + classification) and
+analysis/ko_guide_scan/<gene>_<population>_gene_body_variants.csv (full
+variant list, includes introns).
+
+Next steps (not yet done): (a) for gria2b and gria1a's flagged guides,
+consider running the surviving/IDENTICAL candidates through
+casoffinder.sh's existing pattern for an off-target check against both
+genomes before final guide selection; (b) if more genes are needed, edit
+the GENES=(...) array in run_ko_guide_scan.sh - no code changes needed.
+
+**nlgn1 added 2026-09-06** (no a/b paralog, unambiguous `gene=nlgn1` in
+both GFFs) - see results table above.
+
+**Consolidated report - DONE 2026-09-06**: codes/analysis/build_guide_report.py
+reuses ko_guide_scan.py's own functions (find_gene_features,
+exon_junction_boundaries) to build a ranked-candidate JSON
+(analysis/ko_guide_scan/report_data.json) across all 8 genes - top 5
+CRISPRko candidates per gene (IDENTICAL classification, ranked: not in
+last exon > CRISPOR mitSpecScore > offtargetCount > Doench'16, with a
+position-only fallback rank for agap3/grin1a/gria1a, which lack CRISPOR
+scores - see Methods below) plus the full list of variant-affected guides
+to avoid. Published as an HTML artifact ("Guppy CRISPR Atlas") with the
+CRISPRko vs CRISPRi guide-selection criteria the user asked about:
+CRISPRko wants an early/constitutive exon (NOT simply "anywhere in the
+CDS" - the last exon is specifically a bad target, since a premature stop
+there often escapes NMD and yields a partially-functional truncated
+protein instead of a true null), no population variant in PAM/seed, high
+CRISPOR specificity, decent Doench'16 efficiency (weakest of the four
+signals). CRISPRi (dCas9-KRAB) wants a narrow window around the TSS
+(-50/+300bp per Gilbert 2014/Horlbeck 2016 - not "the promoter" loosely,
+and strand matters less than proximity to the TSS), and essentially never
+inside the CDS.
+
+**CRISPRi TSS-window scan - DONE 2026-09-07** (user asked to add it right
+after reading the criteria above): new script codes/analysis/crispri_tss_scan.py,
+reuses ko_guide_scan.py's alignment/classification functions directly
+(find_gene_features, faidx_seq, align_cs, parse_cs_variants,
+find_ngg_candidates, classify_candidate, run_crispor) rather than
+reimplementing them - only the window definition and coordinate math are
+new. TSS = the representative transcript's mRNA start (not CDS start,
+which is downstream of any 5'UTR) - for a "-" strand gene this is the
+mRNA's END coordinate (GFF stores start<end regardless of strand). Window
+extracted in genomic (+strand) coordinates then reverse-complemented for
+"-" strand genes so it reads 5'->3' in the gene's own transcriptional
+direction, with position 0 = TSS-50 and the last position = TSS+300 for
+BOTH strands after this correction - i.e. tss_relative_position =
+-50 + local_0based_index uniformly. No exon-junction check needed here
+(genomic DNA is always contiguous, unlike the spliced CDS). Classified
+against the pseudogenome exactly like the CDS scan (IDENTICAL/PAM_BROKEN/
+SEED_VARIANT/DISTAL_VARIANT/NO_ALIGNMENT) and CRISPOR-scored the same way,
+except Doench'16 is deliberately NOT surfaced for CRISPRi candidates in
+the report - it's trained to predict cutting/indel efficiency, not
+dCas9-KRAB silencing, so it isn't a valid signal there; ranking uses only
+specificity (mitSpecScore/offtargetCount) then proximity to the TSS.
+
+Run for all 8 genes (pseudogenome population): 36-71 NGG candidates per
+gene in the 351bp window (much smaller n than the CDS scan, as expected).
+Only **agap3** hit the IUPAC-ambiguity-code CRISPOR crash here (see #7) -
+grin1a and gria1a, which DO hit it in their CDS, turned out clean in their
+(much smaller, different genomic location) TSS windows, confirming the
+ambiguity codes are scattered through the reference assembly rather than
+gene-wide. **gria2b** has a real population variant in its TSS window (2
+PAM_BROKEN + 1 SEED_VARIANT) - the only gene with a CRISPRi-relevant
+finding; all other genes are fully IDENTICAL in this window. Wired into
+build_guide_report.py (report[gene]["crispri"]: total_guides,
+classification_counts, variant_affected_guides, top_candidates,
+crispor_available) and the "Guppy CRISPR Atlas" artifact - each gene card
+now shows CRISPRko and CRISPRi candidate tables side by side, plus a
+second executive-summary table for CRISPRi. Output CSVs:
+analysis/ko_guide_scan/<gene>_pseudogenome_crispri_candidates.csv.
+
+**Guide source switched to CRISPOR's own predictions - DONE 2026-09-08**
+(user request: show CRISPOR-predicted guides instead of the manual NGG
+scan's own ranking, with their real metrics and real off-targets).
+build_guide_report.py rewritten: the candidate list and its displayed
+metrics/off-targets now come directly from CRISPOR's own guide/offtarget
+TSVs (`<gene>_reference_crispor_guides.tsv` / `_crispor_offs.tsv` for KO,
+`_crispri_crispor_guides.tsv` / `_crispri_crispor_offs.tsv` for CRISPRi -
+these were already being written to disk by run_crispor(), just never
+read back beyond 3 scalar fields before). The manual scan's CSVs
+(guide_comparison.csv / crispri_candidates.csv) are still required and
+still used - but now only as the join key for population-safety
+classification and gene-structure position (CDS%/last-exon or TSS
+offset), since CRISPOR's own guide list has no concept of exon structure
+or the pseudogenome at all. Join key: exact 23bp targetSeq (spacer+PAM) -
+both scans use the same NGG/20bp rule on the same input, confirmed to
+match essentially 1:1 in practice.
+
+Now surfaced per guide: CRISPOR's own guideId, mitSpecScore, cfdSpecScore
+(not used before), offtargetCount, Doench'16 + Moreno-Mateos (KO only -
+Moreno-Mateos/CRISPRscan is specifically the model recommended for guides
+made by in-vitro T7 transcription, per crisporWebsite's own README, which
+is how this project's guides are actually made for embryo microinjection -
+worth weighting alongside Doench'16, not just as a footnote), and the top
+3 REAL off-targets (genomic position, strand, mismatch count, CFD score)
+parsed from the offtarget TSV and sorted mismatches-ascending/CFD-
+descending (worst-case-first). Fallback (agap3 both contexts; grin1a/
+gria1a KO context only - the known IUPAC-ambiguity CRISPOR crash, see #7)
+still shows manual-scan candidates ranked by position only, clearly
+labeled per-row ("sin datos de CRISPOR para esta guía").
+
+### 7. CRISPOR Integration into ko_guide_scan.py — DONE 2026-09-05
+```
+Goal: complement (not replace) the manual PAM-scan/variant-classification
+pipeline above with real efficiency (Doench'16/Rule Set 2) and specificity
+(MIT score, real BWA-based off-target count) scoring from CRISPOR, per the
+user's explicit instruction to keep the manual scan as the primary tool.
+
+Docker vs Singularity: Docker needs the `docker` group (root-equivalent
+daemon access) - confirmed unusable for this user (`docker ps` -> permission
+denied). Singularity (module singularity/3.7.1, already on this cluster)
+pulls the same Docker Hub image directly (`singularity pull docker://...`)
+without needing Docker or root - the correct path here.
+
+Docker Hub multi-arch bug: the `maximilianh/crispor` "latest" tag (pushed
+2026-03-01) is ARM64-ONLY (broken build, likely pushed from Apple Silicon) -
+`singularity exec ... uname -m` on this cluster returned "the image's
+architecture (arm64) could not run on the host's (amd64)". Confirmed via
+`curl https://hub.docker.com/v2/repositories/maximilianh/crispor/tags` that
+`v5.2`/`v5.2c` (pushed 2026-01-21, earlier but correctly multi-arch) have
+both amd64/arm64. Used v5.2c. Image kept at
+codes/analysis/crispor_singularity/crispor_v5.2c_amd64.sif.
+
+Custom genomes registered via crisporAddGenome (see crispor_add_genomes.sh,
+crispor_add_genome_v2.sh), bind-mounted at
+codes/analysis/crispor_singularity/genomes/ -> /data/genomes inside the
+container (the container's own genome dirs are empty/read-only, and a
+Singularity container is otherwise ephemeral, so this bind mount is what
+makes registered genomes persist across invocations). Registered IDs:
+guppyRefTrinidad, guppyColPseudogenome, guppyRefMaleV2 (v2 reference; v2
+pseudogenome pending, see #8 below).
+
+ko_guide_scan.py's run_crispor() feeds each gene's already-extracted CDS to
+`crispor.py <genomeId> <cds.fa> <guides.tsv> -o <offs.tsv>` and matches
+CRISPOR's guides back to the manual scan's own candidates by EXACT 23bp
+spacer+PAM sequence (both use the same NGG/20bp definition, reported 5'->3'
+on the guide's own strand) - confirmed via `crispor.py noGenome` test that
+this container version's actual TSV header includes targetSeq,
+mitSpecScore, offtargetCount, "Doench '16-Score" (all consumed here), even
+though it otherwise differs from the older sample TSVs bundled in the
+crisporWebsite repo docs.
+```
+
+### 8. Migration to GCF_904066995.2 (v2) — IN PROGRESS 2026-09-05
+```
+Why: GCF_000633615.1 (Trinidad/Guanapo, female, short-read, 2014 - the
+reference this whole project has used) is now marked "suppressed" by NCBI
+(confirmed via the NCBI datasets API `assembly_info.assembly_status`).
+GCF_904066995.2 (P_reticulata-male-v2, University of Exeter, PacBio+Hi-C,
+released 2025-08-03) is the current RefSeq "reference genome" for the
+species, with drastically better contiguity/completeness: contig N50
+41.9kb -> 7.94Mb, scaffold N50 5.27Mb -> 32.9Mb, BUSCO complete 96.84% ->
+98.69% (cyprinodontiformes_odb10, both via the NCBI API, not re-run here).
+
+Of the 7 knockout-guide genes (#6 above): grin1b sits on an UNPLACED
+scaffold in the old assembly (NW_007615041.1, confirmed via grep of both
+GFFs) - the new assembly may finally anchor it to a real chromosome.
+grin1a sits on LG12 (NC_024342.1 in v1; confirmed via NCBI
+`sequence_reports` that LG12 is the guppy XY sex chromosome) - since every
+experiment in this project uses only females (XX, no Y), any off-target or
+Y-specific sequence CRISPOR/GATK finds there against the v2 (male) genome
+needs an interpretation caveat: it may not exist in the real animals. The
+other 5 genes are autosomal - a clean improvement, no caveat needed.
+
+User explicitly asked for a PARALLEL replica: same scripts, parametrized by
+genome version, writing to sibling paths, WITHOUT touching any v1 path or
+output. Implementation: a single new file, codes/genome_versions.sh, is
+`source`d by every reference-dependent script; it sets REF/REF_GFF/
+INTERVALS/OUT_SUFFIX based on `REF_VERSION` (env var, defaults to "v1" =
+byte-identical to pre-migration paths). Scripts append `${OUT_SUFFIX}` to
+their output directory names (e.g. `gatk/trimmomatic${OUT_SUFFIX}/...`,
+`crispresso${OUT_SUFFIX}/...`). Full architecture/plan document:
+/hpcfs/home/ing_civil/da.martinez33/.claude/plans/hi-claude-while-i-fluttering-graham.md
+
+Setup done so far:
+  - reference/GCF_904066995.2_annotation.gff downloaded + md5-verified
+    (adapted codes/assembly/00_download_gff_v2.sh from the v1 version).
+  - reference/intervals_v2.list: 23 real chromosome accessions (NC_088830.1
+    - NC_088852.1) from NCBI `sequence_reports`, NOT the fragile
+    `grep '>' REF | head -24` fallback in genomics_db_import.sh (which
+    v1's own intervals.list quietly depends on being pre-built anyway - the
+    NW_007615013.1 entry in v1's list is just whatever sequence happened to
+    be 24th in file order, NOT the mitochondrion; confirmed the real MT
+    accession NC_024238.1/NC_024238.1 is absent from v1's intervals.list
+    and is intentionally excluded here too for v2).
+  - reference/GCF_904066995.2_P_reticulata-male-v2_genomic.fna indexed:
+    samtools faidx, gatk CreateSequenceDictionary, bwa index (~11.5 min).
+  - Parametrized with genome_versions.sh (source + ${OUT_SUFFIX} renames):
+    codes/mapping/{bwa_index.sh,bwa_trimmomatic_array.sh},
+    codes/variant_calling/{index_dict_reference.sh,mark_duplicates.sh,
+    haplotype_caller_scatter.sh,merge_sample_gvcfs.sh,reindex_gvcf.sh,
+    genomics_db_import.sh,genotype_gvcf.sh,variant_filtration.sh,
+    select_offtargets.sh}, codes/CRISPResso/{casoffinder.sh,
+    extract_amplicon_sgRNA.sh,crispresso_ontarget.sh,
+    crispresso_ontarget_merged.sh,crispresso_wgs.sh},
+    codes/analysis/{make_pseudogenome.sh,hotspot_windows.sh,
+    hotspot_analysis.py,plot_hotspot_summary.py},
+    codes/assembly/{liftoff_pseudogenome.sh,verify_pseudogenome.sh}.
+    haplotype_caller_scatter.sh's `#SBATCH --array=1-360` is v1-specific
+    (15 samples x 24 intervals.list lines); v2 needs `sbatch
+    --array=1-345%40 --export=ALL,REF_VERSION=v2 ...` (15 x 23) since
+    SBATCH directives can't read the interval file at parse time.
+
+  - Bug fixes found/applied while porting (not new bugs introduced by the
+    migration itself - pre-existing issues this work surfaced):
+    - crispor_add_genomes.sh: looked COMPLETED (exit 0) on its first real
+      run but was a SILENT FAILURE - crisporAddGenome stages everything
+      under /tmp/<genomeId>/ and only copies the finished result into
+      --baseDir at the very end; the GFF->gene-locus conversion step
+      crashed (container's bundled UCSC binaries bedSort/bedToExons/
+      genePredToBed are missing libpng12.so.0, a stale Ubuntu base-image
+      dependency) with an AssertionError, so nothing was ever copied out -
+      but the outer script had no `set -e`, so it still printed its final
+      echo/find lines and exited 0. Fixed: (1) register genomes fasta-only
+      (no --gff) - ko_guide_scan.py's run_crispor() never reads
+      targetGenomeGeneLocus anyway, so this loses nothing it needs; (2)
+      added `set -euo pipefail` so a real failure now actually shows as
+      SLURM state FAILED; (3) added a post-run check that .2bit/.fa.bwt
+      actually exist before declaring success. Also found and fixed: /tmp
+      is NODE-LOCAL and persists across job submissions on the same node
+      (confirmed via `sacct --format=NodeList` - three consecutive
+      submissions all landed on nodea-1), so a crashed run's orphaned /tmp
+      staging dir survives and blocks the next attempt regardless of
+      cleanup done from the login node; fixed by having the script
+      unconditionally `rm -rf` its own known staging dirs at the very
+      start (idempotent regardless of which node picks it up).
+    - codes/CRISPResso/casoffinder.sh: referenced `${CONDA_BASE}` before
+      defining it (real pre-existing bug, harmless only because the
+      cluster happened to have a stale CONDA_BASE in the environment
+      already) - fixed to match the correct pattern already used in
+      crispresso_wgs.sh (define CONDA_BASE explicitly before sourcing its
+      conda.sh).
+    - codes/assembly/verify_pseudogenome.sh: was checking against
+      `colombian_pseudogenome.gff3` (the CrossMap output, superseded - see
+      #pseudogenome README, 64% broken parent/child hierarchy) instead of
+      `.liftoff.gff3` (the primary annotation, 99.5% transfer, 0 orphans) -
+      fixed while parametrizing.
+
+  - On-target site relocation (bdnf sgRNA, guide TGAGAGACGCCCCGGGCATG+NGG):
+    the CRISPResso2 on-target scripts use a hardcoded coordinate window
+    (not a sequence search), so it must be relocated by hand per genome.
+    Method: minimap2 --cs (-x sr preset) aligning the v1 window sequence
+    against the new bdnf gene span (NC_088832.1:15848607-15863146, from
+    the newly-downloaded v2 GFF). Both the 61bp and 101bp windows aligned
+    with 100% identity (NM:i:0) - the sgRNA/cut-site region is fully
+    conserved between assemblies. Relocated coordinates:
+      v1 60bp window  NC_024333.1:15922011-15922071 -> v2 NC_088832.1:15849666-15849726
+      v1 100bp window NC_024333.1:15922000-15922100 -> v2 NC_088832.1:15849655-15849755
+      v1 20bp cut site NC_024333.1:15922039-15922058 -> v2 NC_088832.1:15849694-15849713
+    New FASTAs written: reference/amplicon_bdnf_{60,100}bp_v2{_rc,}.fa.
+    Cas-OFFinder itself needed NO relocation (it searches the new genome's
+    whole sequence directly for the same guide+PAM string - reference-
+    agnostic by construction); only the coordinate-based CRISPResso2
+    on-target scripts needed this treatment.
+
+  - Off-target discovery redesign: the existing pipeline's "CRISPOR side"
+    of off-target discovery (convert_crispor_offtargets.py) reads a
+    `data/crispor_offtargets.xls` that was manually downloaded from the
+    crispor.org website for the OLD genome one time - there is no
+    equivalent file for v2 and none can be "pointed at" a new path, it has
+    to be regenerated. Decision (user-approved): use the crispor.py
+    container set up in #7 instead of the website - run it against
+    guppyRefMaleV2 with the bdnf amplicon sequence, then adapt
+    convert_crispor_offtargets.py to parse crispor.py's own offtarget TSV
+    (columns already characterized in #7) instead of the .xls, matching by
+    guideSeq instead of the old CRISPOR-website guideId ("326forw", which
+    won't exist in a fresh container run). DONE 2026-09-06.
+
+Off-target discovery for v2 - DONE 2026-09-06 and cross-validated:
+Cas-OFFinder (genome-only, no mapping/GATK needed) found 9 sites for the
+bdnf guide against the new genome (8 off-target + the on-target itself, 0
+mismatches, at NC_088832.1:15849690 - exactly where relocation predicted).
+crispor_offtarget_scan.sh (new script) ran crispor.py in the container
+against guppyRefMaleV2 with the 100bp genomic amplicon window as input
+(NOT a spliced transcript - see below) and independently found the same 8
+off-targets with MIT/CFD scores. combine_offtargets.py (parametrized,
+REF_VERSION-aware BDNF_CHROM for the on-target-exclusion check) merged
+both sources: all 8 CRISPOR off-targets matched a Cas-OFFinder hit
+(found_by_both=8), confirming both tools agree completely for this guide
+on the new genome. Outputs at crispresso_v2/offtargets/combined/.
+NOTE: guppyRefMaleV2/guppyColPseudogenome were registered fasta-only (see
+#7's libpng12 bug), so crispor.py's offtarget TSV "guideSeq" column holds
+the full 23bp spacer+PAM on-target sequence (not just the 20bp spacer) -
+convert_crispor_offtargets.py filters on that full sequence, not guideId.
+
+User question 2026-09-06, investigated before running any of this: does
+the bdnf transcript re-annotation between genomes (RefSeq's Gnomon pipeline
+relabeled XM_008405147 from "variant X1" to "variant X2" because a brand
+new isoform, XM_081605136.1, was predicted from the better assembly and
+took the X1 slot) affect the previously-selected guide's validity, and
+what should be fed to CRISPOR (full gene / exons / one exon)? Findings:
+all 8 pre-existing bdnf transcripts persist unchanged (same root accession,
+version bump only, same exon count) in v2, just renumbered by one; ALL 9
+v2 transcripts (old lineage + the new X1) share the IDENTICAL terminal exon
+NC_088832.1:15848607-15849795, and the guide site sits safely inside it
+(899bp/82bp from either boundary) - so the guide is isoform-independent,
+not affected by the relabeling. Read crispor.py's source
+(extendAndGetSeq/getExtSeq): efficiency scores are computed from genomic
+flanking sequence re-fetched via the aligned position (twoBitToFa), NOT
+from the input file's own sequence - so the input should always be
+genomic DNA (gene body or exon-of-interest + generous real flanking
+sequence), never a spliced transcript/isoform sequence, which risks
+placing a candidate PAM across an exon-exon junction (not real, contiguous
+genomic DNA - see the ko_guide_scan.py finding immediately below, which is
+the same risk in a different tool).
+
+**ko_guide_scan.py correctness fix, same root cause, found while answering
+the question above:** find_ngg_candidates() scans the CONCATENATED CDS
+(exons spliced together) - a candidate window straddling an exon-exon
+junction there isn't real contiguous genomic DNA either, so it's not an
+actually editable Cas9 target no matter how it gets classified. Audited
+all 7 previously-reported genes (codes/analysis/check_exon_junction_candidates.py):
+353/2699 candidates crossed a junction; 352 were already classified
+IDENTICAL (harmless), but ONE was a genuine false positive - one of
+gria2b's two DISTAL_VARIANT calls (originally reported as 9 affected
+guides, corrected to 8: 3 PAM_BROKEN + 4 SEED_VARIANT + 1 DISTAL_VARIANT -
+see #6's results table, now corrected). Fixed: ko_guide_scan.py now has
+exon_junction_boundaries()/crosses_exon_junction() and classifies any
+junction-crossing candidate as EXON_JUNCTION_ARTIFACT (both the reference
+scan and the population-only novel-site scan) instead of whatever it
+would otherwise have been classified as. All 7 genes re-run against v1
+pseudogenome with the fix - CSVs on disk now reflect the correction.
+Separately noticed while re-running with CRISPOR scoring: the pseudogenome
+consensus (bcftools consensus -H A) leaves IUPAC ambiguity codes at some
+sites (e.g. 114 R/Y/S/W/K/M codes in gria1a's CDS region) - CRISPOR's
+Azimuth efficiency model crashes on non-ACGT characters (soft-fails per
+guide, already handled gracefully by run_crispor()'s existing try/except -
+not a blocker, just a known gap in efficiency scoring for guides
+overlapping an ambiguous site).
+
+Registered/done as of this entry (check `sacct -j <id>` for current state
+before relying on any SLURM job below):
+  - guppyRefMaleV2 CRISPOR genome: registered (crispor_add_genome_v2.sh).
+  - Cas-OFFinder + CRISPOR off-target discovery for the bdnf guide vs v2:
+    done and cross-validated (see above).
+  - Mapping+GATK v2 chain SUBMITTED (dependency-chained, not yet complete -
+    this is the multi-day bottleneck, historically the longest part of
+    this whole project): bwa_trimmomatic_array.sh -> mark_duplicates.sh ->
+    haplotype_caller.sh -> genomics_db_import.sh -> genotype_gvcf.sh ->
+    variant_filtration.sh, all with REF_VERSION=v2 exported through the
+    chain (run_variant_calling.sh itself also now accepts REF_VERSION).
+
+Still pending: pseudogenome v2 (make_pseudogenome.sh needs the v2 filtered
+VCF from the GATK chain above, once it completes); ko_guide_scan.py's
+"pseudogenome_v2" GENOME_CHOICES entry is already wired in (fasta/gff
+paths + CRISPOR genome ids) but the pseudogenome files don't exist yet;
+gatk_offtarget_genotypes.py/plot_editing_comparison.py's 8 hardcoded
+OT-site coordinates need updating to the new v2 off-target list (now
+available: crispresso_v2/offtargets/combined/combined_offtargets.csv, 8
+sites); Phase 2 (RagTag re-scaffolding of the ALREADY
+polished/gap-filled Colombian contigs against the new reference - SPAdes/
+NextPolish/TGS-GapCloser do NOT need to be re-run) deliberately deferred
+until Phase 1 is done, per the user-approved plan.
 ```
 
 ---

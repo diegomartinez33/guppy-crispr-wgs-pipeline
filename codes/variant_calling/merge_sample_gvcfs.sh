@@ -11,11 +11,11 @@
 #SBATCH --mail-type=FAIL,ARRAY_TASKS
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-INTERVALS_FILE=${PROJECT_DIR}/reference/intervals.list
-SCATTER_DIR=${PROJECT_DIR}/gatk/trimmomatic/gvcf_scatter
-GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic/gvcf
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+INTERVALS_FILE=${INTERVALS}
+SCATTER_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf_scatter
+GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf
 
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$SAMPLE_LIST")
 mkdir -p "$GVCF_DIR" logs/
@@ -30,7 +30,7 @@ module load gatk4/4.4.0.0
 echo "Merging GVCFs for: $SAMPLE"
 echo "Start: $(date)"
 
-# Verify all 24 per-chromosome GVCFs exist
+# Verify all per-chromosome GVCFs (per $INTERVALS_FILE) exist
 MISSING=0
 while IFS= read -r CHROM; do
     F="${SCATTER_DIR}/${SAMPLE}/${CHROM}.g.vcf.gz"
