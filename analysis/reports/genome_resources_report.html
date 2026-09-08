@@ -1,0 +1,212 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Colombian Genome Resources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F4F2; --surface:#FFFFFF; --surface-alt:#E7EDE9;
+    --ink:#182420; --ink-soft:#51605A; --ink-faint:#8A968F;
+    --border:#D4DDD7; --border-strong:#B7C4BC;
+    --accent:#0E7A69; --accent-ink:#083F37; --accent-soft:#DFF0EC;
+    --safe:#2F7A4F; --safe-soft:#E4F2E8;
+    --danger:#AC3A2E; --danger-soft:#F7E5E2;
+    --high:#B4590F; --high-soft:#F5E7D8;
+    --mod:#9C7A0A; --mod-soft:#F3EED3;
+    --pseudo:#2A5DAB; --pseudo-soft:#E2EAF7;
+    --denovo:#8B5A2B; --denovo-soft:#F2E7D8;
+    --shadow: 0 1px 2px rgba(20,30,26,0.06), 0 6px 20px -8px rgba(20,30,26,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131A17; --surface:#1B2420; --surface-alt:#22302A;
+      --ink:#E7EEEA; --ink-soft:#AEBCB4; --ink-faint:#71827A;
+      --border:#2E3C35; --border-strong:#3E4E45;
+      --accent:#4FC3AA; --accent-ink:#B9EDE0; --accent-soft:#1E3833;
+      --safe:#6FBE8B; --safe-soft:#1D3327;
+      --danger:#E08A7C; --danger-soft:#3A241F;
+      --high:#E3A868; --high-soft:#3B2E1B;
+      --mod:#D8C468; --mod-soft:#37311A;
+      --pseudo:#8FB4E6; --pseudo-soft:#1C2A3E;
+      --denovo:#D9A868; --denovo-soft:#3A2E1C;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131A17; --surface:#1B2420; --surface-alt:#22302A;
+    --ink:#E7EEEA; --ink-soft:#AEBCB4; --ink-faint:#71827A;
+    --border:#2E3C35; --border-strong:#3E4E45;
+    --accent:#4FC3AA; --accent-ink:#B9EDE0; --accent-soft:#1E3833;
+    --safe:#6FBE8B; --safe-soft:#1D3327;
+    --danger:#E08A7C; --danger-soft:#3A241F;
+    --high:#E3A868; --high-soft:#3B2E1B;
+    --mod:#D8C468; --mod-soft:#37311A;
+    --pseudo:#8FB4E6; --pseudo-soft:#1C2A3E;
+    --denovo:#D9A868; --denovo-soft:#3A2E1C;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;font-size:15.5px;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px 96px;}
+  h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif;text-wrap:balance;color:var(--ink);font-weight:600;line-height:1.2;}
+  code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  a{color:var(--accent-ink);}
+  .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:11.5px;font-weight:600;color:var(--accent-ink);}
+  header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:980px;margin:0 auto;padding:12px 24px;display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .topbar-inner .brand{font-family:"IBM Plex Serif",serif;font-weight:600;font-size:15px;}
+  nav.jump{display:flex;gap:18px;flex-wrap:wrap;}
+  nav.jump a{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);text-decoration:none;font-weight:500;}
+  nav.jump a:hover{color:var(--accent-ink);}
+  .masthead{padding:56px 0 36px;border-bottom:1px solid var(--border);}
+  .masthead h1{font-size:clamp(28px,4.2vw,40px);margin:10px 0 14px;}
+  .masthead p.lede{max-width:66ch;color:var(--ink-soft);font-size:16.5px;margin:0 0 20px;}
+  .scope-strip{display:flex;gap:28px;flex-wrap:wrap;padding-top:18px;border-top:1px dashed var(--border-strong);}
+  .scope-item .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);}
+  .scope-item .value{font-family:"IBM Plex Mono",monospace;font-size:14.5px;margin-top:2px;}
+  section{padding:44px 0;}
+  section.divider-top{border-top:1px solid var(--border);}
+  section>h2{font-size:22px;margin:0 0 6px;}
+  section>.section-sub{color:var(--ink-soft);max-width:68ch;margin:0 0 26px;font-size:14.5px;}
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);}
+  table.data{border-collapse:collapse;width:100%;min-width:560px;}
+  table.data th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:600;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap;}
+  table.data td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle;}
+  table.data tbody tr:last-child td{border-bottom:none;}
+  table.data tbody tr:hover{background:var(--surface-alt);}
+  table.data td.num{text-align:right;font-family:"IBM Plex Mono",monospace;}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap;}
+  .pill-pseudo{background:var(--pseudo-soft);color:var(--pseudo);}
+  .pill-denovo{background:var(--denovo-soft);color:var(--denovo);}
+  .pill-safe{background:var(--safe-soft);color:var(--safe);}
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:720px){.compare-grid{grid-template-columns:1fr;}}
+  .res-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 26px;box-shadow:var(--shadow);}
+  .res-card h3{font-size:18px;margin:0 0 4px;}
+  .res-card .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;display:inline-block;margin-bottom:10px;}
+  .res-card.pseudo .tag{background:var(--pseudo-soft);color:var(--pseudo);}
+  .res-card.denovo .tag{background:var(--denovo-soft);color:var(--denovo);}
+  .res-card dl{margin:14px 0 0;display:flex;flex-direction:column;gap:9px;}
+  .res-card dl>div{display:flex;justify-content:space-between;gap:10px;font-size:13px;border-top:1px solid var(--border);padding-top:9px;}
+  .res-card dl>div:first-child{border-top:none;padding-top:0;}
+  .res-card dt{color:var(--ink-faint);}
+  .res-card dd{margin:0;text-align:right;font-weight:500;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);}
+  .kpi .kpi-value{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;color:var(--accent-ink);}
+  .kpi .kpi-label{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+  .stage-track{display:flex;gap:8px;margin:20px 0 6px;}
+  .stage-pip{flex:1;text-align:center;padding:10px 6px;border-radius:8px;background:var(--surface-alt);font-size:11.5px;color:var(--ink-soft);border:1px solid var(--border);}
+  .stage-pip.final{background:var(--accent-soft);color:var(--accent-ink);border-color:color-mix(in srgb,var(--accent) 40%,transparent);font-weight:600;}
+  footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
+  footer p{max-width:70ch;}
+</style>
+
+<header class="top">
+  <div class="topbar-inner">
+    <span class="brand">Colombian Genome Resources</span>
+    <nav class="jump">
+      <a href="#compare">Comparación</a>
+      <a href="#assembly-qc">QC del ensamblaje</a>
+      <a href="#pseudogenome">Pseudogenoma</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="masthead">
+    <span class="eyebrow">Poecilia reticulata · población colombiana</span>
+    <h1>Dos genomas de referencia poblacionales colombianos</h1>
+    <p class="lede">Recursos complementarios — no intercambiables — construidos a partir de las 3 réplicas del grupo Control, para que cualquier análisis futuro sobre esta población parta de una línea base que ya refleja sus variantes reales, en vez de la referencia de Trinidad/Guanapo.</p>
+    <div class="scope-strip">
+      <div class="scope-item"><div class="label">Muestras base</div><div class="value">3 réplicas Control</div></div>
+      <div class="scope-item"><div class="label">Referencia guía</div><div class="value">GCF_000633615.1 (v1)</div></div>
+      <div class="scope-item"><div class="label">Anotación</div><div class="value">Liftoff v1.5.1</div></div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <h2>Comparación de método</h2>
+    <div class="compare-grid">
+      <div class="res-card pseudo">
+        <span class="tag">A · Pseudogenoma</span>
+        <h3>bcftools consensus</h3>
+        <dl>
+          <div><dt>Método</dt><dd>Sustitución de variantes de alta confianza (AF≥0.667) sobre la referencia</dd></div>
+          <div><dt>Variantes estructurales</dt><dd>No — solo SNPs/indeles cortos</dd></div>
+          <div><dt>Coordenadas</dt><dd>Casi idénticas a la referencia</dd></div>
+          <div><dt>Precisión base</dt><dd>Muy alta — derivada matemáticamente</dd></div>
+          <div><dt>Anotación (Liftoff)</dt><dd>99.5% transferida, 26,264 genes, 0 huérfanos</dd></div>
+          <div><dt>Recomendado para</dt><dd>Mapeo, variant calling, CRISPResso2, IGV</dd></div>
+          <div><dt>Estado</dt><dd><span class="pill pill-safe">Producción</span></dd></div>
+        </dl>
+      </div>
+      <div class="res-card denovo">
+        <span class="tag">B · Ensamblaje de novo</span>
+        <h3>SPAdes → RagTag → gap-filling → pulido</h3>
+        <dl>
+          <div><dt>Método</dt><dd>Co-ensamblaje de novo + scaffolding guiado por referencia</dd></div>
+          <div><dt>Variantes estructurales</dt><dd>Sí, en principio</dd></div>
+          <div><dt>Coordenadas</dt><dd>Propias (sufijo <code>_RagTag</code>)</dd></div>
+          <div><dt>Precisión base</dt><dd>Calidad borrador — errores de ensamblaje posibles</dd></div>
+          <div><dt>Anotación (Liftoff)</dt><dd>bdnf: coverage=0.945, sequence_ID=0.923</dd></div>
+          <div><dt>Recomendado para</dt><dd>Análisis estructural, secuencia novedosa</dd></div>
+          <div><dt>Estado</dt><dd><span class="pill pill-denovo">Borrador</span></dd></div>
+        </dl>
+      </div>
+    </div>
+    <p class="section-sub" style="margin-top:20px;">Detalle completo de cada uno (método paso a paso, QC completo, limitaciones): <a href="../../reference/pseudogenome/README.md">reference/pseudogenome/README.md</a> · <a href="../../reference/colombian_scaffolded_genome/README.md">reference/colombian_scaffolded_genome/README.md</a>.</p>
+  </section>
+
+  <section id="assembly-qc" class="divider-top">
+    <h2>Progreso de QC del ensamblaje de novo (4 etapas)</h2>
+    <p class="section-sub">El gap-filling con lecturas Nanopore (~3.2x, ver <code>[[nanopore_epigenome_data]]</code>) fue la mejora real de completitud; el pulido posterior con Illumina corrige errores puntuales sin cambiar la estructura.</p>
+    <div class="stage-track">
+      <div class="stage-pip">1 · raw scaffold</div>
+      <div class="stage-pip">2 · pulido (Illumina)</div>
+      <div class="stage-pip">3 · gap-filled (Nanopore)</div>
+      <div class="stage-pip final">4 · gap-filled + pulido</div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data" id="qc-table">
+        <thead><tr><th>Etapa</th><th class="num">BUSCO completo</th><th class="num">Fragmentado</th><th class="num">Ausente</th><th class="num">Fracción genoma</th><th class="num">N50</th><th class="num">Misassemblies</th></tr></thead>
+        <tbody id="qc-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="pseudogenome" class="divider-top">
+    <h2>Pseudogenoma — resumen de construcción</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">99.5%</div><div class="kpi-label">anotación transferida (Liftoff)</div></div>
+      <div class="kpi"><div class="kpi-value">26,264</div><div class="kpi-label">genes</div></div>
+      <div class="kpi"><div class="kpi-value">0</div><div class="kpi-label">registros huérfanos</div></div>
+      <div class="kpi"><div class="kpi-value">AF≥0.667</div><div class="kpi-label">umbral de inclusión de variante</div></div>
+    </div>
+    <p class="section-sub">Construido con <code>bcftools consensus -H A</code> sobre las variantes PASS de los 3 Control con frecuencia ≥66.7% entre ellos (mayoría 2/3), aplicadas a la referencia Guanapo/Trinidad. Incluye un archivo <code>.chain</code> para liftover exacto de coordenadas — necesario porque el corrimiento acumulado por indeles no es despreciable (hasta ~2,800pb en el locus de bdnf, ~5,300pb en todo el cromosoma).</p>
+  </section>
+
+  <footer>
+    <p>Colombian Genome Resources Report · generado a partir de assembly/qc_results/{busco,quast}_*/ y los README de reference/pseudogenome/ y reference/colombian_scaffolded_genome/ · off-target_data project.</p>
+  </footer>
+</div>
+
+<script>
+const QC_STAGES = [
+  {stage:"1 · Raw scaffold", complete:87.1, frag:6.2, missing:6.7, gf:82.807, n50:28305693, mis:7589},
+  {stage:"2 · Pulido (Illumina)", complete:87.1, frag:6.1, missing:6.8, gf:82.038, n50:28304008, mis:8043},
+  {stage:"3 · Gap-filled (Nanopore)", complete:95.4, frag:2.5, missing:2.1, gf:92.088, n50:29425112, mis:23532},
+  {stage:"4 · Gap-filled + pulido", complete:95.5, frag:2.4, missing:2.1, gf:92.209, n50:29409873, mis:23914},
+];
+document.getElementById("qc-tbody").innerHTML = QC_STAGES.map((s,i)=>`
+  <tr style="${i===3?'background:var(--accent-soft);':''}">
+  <td>${s.stage}</td>
+  <td class="num">${s.complete.toFixed(1)}%</td>
+  <td class="num">${s.frag.toFixed(1)}%</td>
+  <td class="num">${s.missing.toFixed(1)}%</td>
+  <td class="num">${s.gf.toFixed(3)}%</td>
+  <td class="num">${(s.n50/1e6).toFixed(1)}Mb</td>
+  <td class="num">${s.mis.toLocaleString()}</td>
+  </tr>`).join("");
+</script>
+</body></html>

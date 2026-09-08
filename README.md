@@ -1,199 +1,202 @@
 # Guppy CRISPR-Cas9 WGS Analysis Pipeline
 
-Bioinformatics pipeline for whole-genome sequencing (WGS) analysis of
-CRISPR-Cas9 editing efficiency and off-target effects in *Poecilia reticulata*
-(guppy fish) from a Colombian population.
+Pipeline bioinformático para el análisis de secuenciación de genoma completo (WGS) de edición
+génica CRISPR-Cas9 y sus efectos off-target en *Poecilia reticulata* (guppy) de una población
+colombiana, con recursos genómicos poblacionales propios y herramientas reutilizables para el
+diseño de guías CRISPR y primers PCR en genes futuros.
 
 ## Overview
 
-This repository contains all scripts and code used to analyze Illumina NovaSeq X
-whole-genome sequencing data from guppy fish subjected to CRISPR-Cas9 editing of
-the **bdnf** (brain-derived neurotrophic factor) gene. The pipeline spans read
-trimming and quality control, genome alignment, variant calling, CRISPR editing
-quantification, off-target analysis, population genomics, and construction of
-two population-specific reference genomes for the Colombian guppy population.
+Este repositorio contiene todo el código usado para analizar datos de secuenciación Illumina
+NovaSeq X de peces guppy editados con CRISPR-Cas9 en el gen **bdnf** (brain-derived neurotrophic
+factor). El pipeline cubre: recorte y QC de lecturas, alineamiento genómico, llamado de
+variantes, cuantificación de edición CRISPR, análisis de off-targets, genómica poblacional,
+construcción de dos genomas de referencia específicos para la población colombiana, y dos
+herramientas reutilizables (diseño de guías CRISPR y diseño de primers PCR) parametrizadas para
+aplicarse a cualquier gen futuro.
 
-The experimental fish are from a **Colombian population** of *P. reticulata*,
-sequenced and analyzed against the publicly available **Guanapo (Trinidad)
-reference genome** (GCF_000633615.1). A key component of this work is addressing
-the genomic divergence between these two populations in the context of CRISPR
-specificity assessment.
+Los peces experimentales son de una **población colombiana** de *P. reticulata*, secuenciados y
+analizados contra dos genomas de referencia públicos:
 
-## Experimental Design
+- **v1 — Guanapo (Trinidad)**, hembra, short-read (GCF_000633615.1, 2014) — el genoma usado en
+  todos los resultados históricos de este proyecto. Marcado como *suppressed* por NCBI en 2026.
+- **v2 — macho, PacBio+Hi-C** (GCF_904066995.2, 2025) — el genoma RefSeq actual de la especie,
+  con contigüidad muy superior. Migración en progreso (ver [docs/RESULTS.md](docs/RESULTS.md#7-migración-al-genoma-de-referencia-v2--en-progreso)).
 
-| Group | Description | n |
+Un componente central de este trabajo es abordar la divergencia genómica entre la población
+colombiana y estas referencias en el contexto de la especificidad de CRISPR — de ahí los dos
+genomas poblacionales propios (pseudogenoma + ensamblaje de novo, ver punto 7 del pipeline).
+
+## Diseño experimental
+
+| Grupo | Descripción | n |
 |---|---|---|
-| Control | No CRISPR components delivered | 3 |
-| Only_MNP | Nanoparticles only, no Cas9 | 4 |
-| Plasmid_Ko | Cas9 delivered via plasmid | 4 |
-| RNP_Cas | Cas9 delivered as ribonucleoprotein | 4 |
+| Control | Sin componentes CRISPR | 3 |
+| Only_MNP | Solo nanopartículas, sin Cas9 | 4 |
+| Plasmid_Ko | Cas9 entregado vía plásmido | 4 |
+| RNP_Cas | Cas9 entregado como ribonucleoproteína | 4 |
 
-- **Target gene:** bdnf (NC_024333.1, LG3)
-- **sgRNA:** TGAGAGACGCCCCGGGCATG (negative strand)
-- **Cut site:** ~NC_024333.1:15922041
+- **Gen objetivo:** bdnf (v1: `NC_024333.1`; v2: `NC_088832.1`)
+- **sgRNA:** `TGAGAGACGCCCCGGGCATG` (hebra negativa)
 - **Cas9:** SpCas9 NLS (NEB)
-- **Sequencing:** Illumina NovaSeq X, 25B flowcell, 2×150bp paired-end
-- **Library prep:** Illumina DNA Prep (Nextera tagmentation)
+- **Secuenciación:** Illumina NovaSeq X, celda 25B, 2×150pb pareado
+- **Preparación de librería:** Illumina DNA Prep (tagmentación Nextera)
 
-## Pipeline Steps
+## Documentación
 
-### 1. Read quality control and trimming (`codes/filtering/`)
-- FastQC for raw read quality assessment
-- fastp and Trimmomatic for adapter trimming and quality filtering
-- MultiQC for aggregated QC reports
+| Documento | Contenido |
+|---|---|
+| **[docs/PIPELINE.md](docs/PIPELINE.md)** | Cada etapa del pipeline en detalle: objetivo, scripts, parámetros exactos de cada herramienta, diagramas de flujo |
+| **[docs/TUTORIAL.md](docs/TUTORIAL.md)** | Cómo correr el diseño de guías CRISPR y el diseño de primers para un gen nuevo (colegas) |
+| **[docs/RESULTS.md](docs/RESULTS.md)** | Dónde está cada resultado ya generado, por objetivo, con estado (completo/en progreso/pendiente) |
+| **[docs/CLUSTER_ACCESS.md](docs/CLUSTER_ACCESS.md)** | Cuenta compartida del clúster + qué archivos pesados se copiaron y dónde |
+| [reference/pseudogenome/README.md](reference/pseudogenome/README.md) | Pseudogenoma colombiano: método, QC, limitaciones |
+| [reference/colombian_scaffolded_genome/README.md](reference/colombian_scaffolded_genome/README.md) | Ensamblaje de novo colombiano: método, QC, limitaciones |
 
-### 2. Genome alignment (`codes/mapping/`)
-- BWA-MEM alignment to GCF_000633615.1
-- samtools for sorting, indexing, and statistics
-- Group-level BAM merging (4 merged BAMs by experimental group)
+**Reportes visuales de resultados** (Artifacts + HTML descargable, ver
+[docs/RESULTS.md](docs/RESULTS.md#reportes-visuales--resumen) para la lista completa): Guppy
+CRISPR Atlas (diseño de guías), y reportes de off-targets WGS, hotspots, genomas poblacionales,
+y diseño de primers en `analysis/reports/`.
 
-### 3. Coverage analysis (`codes/analysis/`)
-- samtools depth over ±600bp around sgRNA site
-- Zone-based coverage: upstream 500bp, upstream 100bp, sgRNA site, downstream 100bp/500bp
+## Quick start
 
-### 4. Variant calling — GATK best practices (`codes/variant_calling/`)
-- MarkDuplicates — PCR duplicate flagging (--REMOVE_DUPLICATES false)
-- HaplotypeCaller — per-sample GVCF (-ERC GVCF, -ploidy 2, medium partition 7-day limit)
-- GenomicsDBImport — joint sample database across 24 chromosomes
-- GenotypeGVCFs — joint genotyping across all 15 samples
-- VariantFiltration — hard filtering (SNPs: QD<2/FS>60/MQ<40; INDELs: QD<2/FS>200)
-- Hotspot analysis — sliding window variant density, BH-corrected FDR < 0.05
+```bash
+# 1. Clonar y ubicarse en el repo
+git clone <remote> off-target_data && cd off-target_data
 
-### 5. CRISPR on-target analysis (`codes/CRISPResso/`)
-- CRISPResso2 — per-sample editing quantification (60bp amplicon, both strands)
-- CRISPResso2 — per-group analysis on merged BAMs (200bp amplicon)
-- CRISPRessoCompare — 6 pairwise group comparisons
-- CRISPRessoAggregate — multi-sample summary reports
+# 2. Los genomas base (reference/) y el contenedor CRISPOR NO están en git (son pesados) —
+#    ver docs/CLUSTER_ACCESS.md para dónde obtenerlos (cuenta compartida del clúster).
 
-### 6. Off-target analysis (`codes/CRISPResso/`)
-- Cas-OFFinder — genome-wide off-target prediction (≤4 mismatches, 9 sites)
-- CRISPOR — MIT/CFD scores and locus annotation (8 sites, guide ID: 326forw)
-- Deduplication — combined 8 unique off-target sites (±2bp tolerance, CRISPOR priority)
-- CRISPRessoWGS — editing quantification at 8 predicted off-target sites per sample
+# 3. Elegir versión de referencia (v1 por defecto, o v2) con REF_VERSION — ver docs/TUTORIAL.md
+REF_VERSION=v1 sbatch codes/mapping/bwa_index.sh
 
-### 7. Population-specific genomes (`codes/assembly/`)
+# 4. Diseñar guías CRISPR para un gen nuevo (no requiere BAMs/VCFs de ninguna muestra):
+module load minimap2 samtools/1.16.1 singularity/3.7.1
+python3 codes/analysis/ko_guide_scan.py --gene mi_gen --population pseudogenome
 
-Two complementary Colombian-population reference genomes were built:
+# 5. Diseñar primers PCR para los off-targets de un gen (requiere su combined_offtargets.csv):
+bash codes/analysis/setup_primer3.sh   # una sola vez
+sbatch --export=ALL,GENE=mi_gen,SITES_CSV=<ruta>,REF_VERSION=v1 \
+  codes/analysis/run_offtarget_primer_design.sh
+```
+Guía completa con todos los parámetros: [docs/TUTORIAL.md](docs/TUTORIAL.md).
 
-**A) Pseudogenome** (bcftools consensus):
-- Applies Control-group variants (AF ≥ 0.667) to the Trinidad reference
-- Near-identical coordinate system to reference (use chain file for exact liftover)
-- Annotated with Liftoff v1.5.1: 99.5% transfer rate, 26,264 genes, 0 orphaned records
-- See `reference/pseudogenome/README.md` for full details
-
-**B) De novo scaffolded genome** (SPAdes + RagTag):
-- True de novo co-assembly of 3 Control replicates → reference-guided scaffolding
-- N50 = 28.3 Mb, BUSCO completeness 87.1%, genome fraction 82.8%
-- Annotated with Liftoff v1.5.1: bdnf coverage=0.945, sequence_ID=0.923
-- See `reference/colombian_scaffolded_genome/README.md` for full details
-
-### 8. Visualization (`codes/assembly/`, `igv_files/`)
-- IGV-ready files: pseudogenome FASTA + sorted/indexed Liftoff GFF3 + merged BAMs
-- BED track with key CRISPR features: bdnf gene, sgRNA site, cut site, 8 off-target sites
-
-## Repository Structure
+## Estructura del repositorio
 
 ```
 codes/
-├── filtering/          → trimming + FastQC scripts (fastp, trimmomatic, multiqc)
-├── mapping/            → BWA-MEM alignment + BAM merging scripts
-├── variant_calling/    → GATK pipeline (markdup → HaplotypeCaller → GenomicsDB
-│                         → GenotypeGVCFs → VariantFiltration + hotspot analysis)
-├── CRISPResso/         → CRISPResso2 on-target, off-target, WGS, compare scripts
-│                         + Cas-OFFinder + CRISPOR conversion + combine_offtargets.py
-├── analysis/           → coverage computation + hotspot density plots
-└── assembly/           → Colombian genome pipeline:
-                          pseudogenome (bcftools consensus + CrossMap + Liftoff)
-                          de novo (SPAdes → RagTag → QUAST/BUSCO → Liftoff)
-                          indexing (samtools, BWA, GATK, BLAST)
-                          IGV preparation
+├── filtering/          → recorte + FastQC (fastp, trimmomatic, multiqc)
+├── mapping/             → alineamiento BWA-MEM + fusión de BAMs por grupo
+├── variant_calling/     → pipeline GATK (markdup → HaplotypeCaller → GenomicsDB
+│                          → GenotypeGVCFs → VariantFiltration)
+├── CRISPResso/          → CRISPResso2 on-target/off-target/WGS/compare + descubrimiento
+│                          de off-targets (Cas-OFFinder + CRISPOR)
+├── analysis/             → hotspots, guías CRISPR KO/CRISPRi (ko_guide_scan.py,
+│                          crispri_tss_scan.py), diseño de primers, reportes consolidados
+├── assembly/             → pseudogenoma (bcftools consensus + CrossMap + Liftoff) +
+│                          ensamblaje de novo (SPAdes → RagTag → gap-filling/pulido → Liftoff)
+└── genome_versions.sh    → config compartida v1/v2 (REF_VERSION)
 
-igv_files/
-├── features_of_interest.bed   → CRISPR features BED (bdnf, sgRNA, cut site, 8 OTs)
-└── [genome + annotation]      → FASTA + Liftoff GFF3 (download separately — large files)
+docs/                     → documentación detallada (ver tabla arriba)
+
+analysis/
+├── ko_guide_scan/        → resultados de diseño de guías (8 genes) + report/ (Atlas HTML)
+├── offtarget_primers/    → resultados de diseño de primers
+└── reports/              → reportes visuales de las demás sub-pipelines
 
 reference/
-├── pseudogenome/              → Colombian pseudogenome + all indices + Liftoff annotation
-│   └── README.md              → build method, QC, limitations, quick-start
-└── colombian_scaffolded_genome/ → de novo scaffolded genome + all indices + annotation
-    └── README.md              → build method, QC, limitations, quick-start
+├── pseudogenome/          → genoma pseudogenoma colombiano + README propio
+└── colombian_scaffolded_genome/ → ensamblaje de novo colombiano + README propio
+
+igv_files/                → paquete listo para IGV Desktop (v1)
 ```
+Ver [docs/PIPELINE.md](docs/PIPELINE.md) para el detalle completo de cada etapa, y
+[docs/CLUSTER_ACCESS.md](docs/CLUSTER_ACCESS.md) para qué directorios pesados existen fuera de
+git y dónde encontrarlos.
 
-## Dependencies
+## Dependencias
 
-| Tool | Version | Use |
+| Herramienta | Versión | Uso |
 |---|---|---|
-| FastQC | 0.11.x | Read QC |
-| fastp | 0.23.x | Trimming |
-| Trimmomatic | 0.39 | Trimming |
-| MultiQC | 1.x | QC aggregation |
-| BWA | 0.7.17 | Alignment |
-| samtools | 1.16.1 | BAM/FASTA processing |
-| GATK | 4.4.0.0 | Variant calling |
-| bedtools | 2.x | Interval operations |
-| CRISPResso2 | 2.x | CRISPR editing analysis |
-| Cas-OFFinder | 2.4 | Off-target prediction |
-| bcftools | 1.15.1 | VCF processing + consensus |
-| CrossMap | 0.7.3 | Coordinate liftover (chain file) |
-| Liftoff | 1.5.1 | GFF3 annotation transfer |
-| SPAdes | 4.0.0 | De novo genome assembly |
-| RagTag | 2.1.0 | Reference-guided scaffolding |
-| QUAST | 5.0.2 | Assembly QC |
-| BUSCO | 5.7.1 | Assembly completeness (odb10) |
-| BLAST | 2.14.1 | Local sequence search |
-| Python | 3.9+ | Data processing |
-| pandas / matplotlib / scipy | — | Analysis and visualization |
+| FastQC | 0.11.x | QC de lecturas |
+| fastp | 0.23.x | Recorte (comparación) |
+| Trimmomatic | 0.39 | Recorte (principal) |
+| MultiQC | 1.x | Agregación de QC |
+| BWA | 0.7.17 | Alineamiento |
+| samtools | 1.16.1 | Procesamiento BAM/FASTA |
+| GATK | 4.4.0.0 | Llamado de variantes |
+| bedtools | 2.30.0 | Operaciones de intervalos (hotspots) |
+| CRISPResso2 | 2.x | Cuantificación de edición CRISPR |
+| Cas-OFFinder | 2.4 | Predicción de off-targets |
+| CRISPOR (Singularity) | v5.2c | Puntajes MIT/CFD/Doench'16, off-targets reales |
+| EMBOSS (`eprimer3`/`primersearch`) | 6.6.0 | Diseño y validación de primers |
+| primer3_core | 1.1.4 (legado boulder-IO) | Motor requerido por `eprimer3` |
+| bcftools | 1.15.1 | Procesamiento VCF + consenso |
+| CrossMap | 0.7.3 | Liftover de coordenadas (chain file) |
+| Liftoff | 1.5.1 | Transferencia de anotación GFF3 |
+| minimap2 | 2.24 | Alineamiento CDS/ventanas para clasificación de variantes |
+| SPAdes | 4.0.0 | Ensamblaje de novo |
+| RagTag | 2.1.0 | Scaffolding guiado por referencia |
+| TGS-GapCloser | 1.2.1 | Relleno de gaps con lecturas Nanopore |
+| NextPolish | 1.4.1 | Pulido con lecturas Illumina |
+| QUAST | 5.0.2 | QC estructural de ensamblaje |
+| BUSCO | 5.7.1 | Completitud de ensamblaje (`actinopterygii_odb10`) |
+| BLAST | 2.14.1 | Búsqueda de secuencias local |
+| Python | 3.9+ | Procesamiento de datos |
+| pandas / matplotlib / scipy | — | Análisis y visualización |
 
-### Conda Environments
+### Entornos conda
 
 ```bash
-# System conda — trimming, QC, plotting
+# Conda del sistema — recorte, QC, gráficas
 conda activate fastp_env        # fastp, multiqc, pandas, matplotlib
 
-# Personal conda (miniconda3_crispresso)
+# Conda personal (miniconda3_crispresso)
 conda activate crispresso2_env  # CRISPResso2, cas-offinder, pandas
 conda activate liftoff_env      # Liftoff v1.5.1
 conda activate crossmap_env     # CrossMap v0.7.3
+conda activate primer3_env      # primer3_core v1.1.4 (para eprimer3)
+conda activate nextpolish_env   # NextPolish v1.4.1
+conda activate tgsgapcloser_env # TGS-GapCloser v1.2.1
 ```
 
-## Reference Data
+## Datos de referencia
 
-- **Reference genome:** GCF_000633615.1 (*Poecilia reticulata* Guanapo female 1.0 + MT)
-- **NCBI:** https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000633615.1/
-- **sgRNA target:** NC_024333.1 (LG3), position 15922039–15922058, negative strand
-- **bdnf locus (pseudogenome):** NC_024333.1:15923726–15938393 (−)
+- **v1:** GCF_000633615.1 — https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000633615.1/
+- **v2:** GCF_904066995.2 — https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_904066995.2/
+- **Sitio de la sgRNA (v1):** `NC_024333.1:15922039-15922058`, hebra negativa
+- **Locus bdnf (pseudogenoma v1):** `NC_024333.1:15923726-15938393` (−)
 
-## Key Genomic Landmarks (pseudogenome coordinates)
+## Clúster
 
-| Feature | Chromosome | Start | End | Strand |
-|---|---|---|---|---|
-| bdnf gene | NC_024333.1 | 15,923,726 | 15,938,393 | − |
-| sgRNA target site | NC_024333.1 | 15,922,039 | 15,922,058 | − |
-| Cas9 cut site | NC_024333.1 | ~15,922,041 | — | − |
-| NLGN3-like (LOC103471143) | NC_024340.1 | 10,168,263 | 10,248,649 | − |
+Scheduler SLURM en el clúster **hypatia** (Universidad de los Andes). Los scripts usan
+`--partition=short` (2 días), `--partition=medium` (7 días) o `--partition=bigmem` según el
+requerimiento — GATK HaplotypeCaller necesita medium, SPAdes co-assembly necesita bigmem. Ver
+[docs/CLUSTER_ACCESS.md](docs/CLUSTER_ACCESS.md) para la cuenta compartida disponible para
+colegas.
 
-## Cluster
+## Resultados clave
 
-SLURM scheduler on the **hypatia** cluster (Universidad de los Andes).
-Scripts use `--partition=short` (2 days) or `--partition=medium` (7 days)
-depending on runtime requirements. GATK HaplotypeCaller requires medium partition.
+- ~1.4M SNPs y ~370K INDELs por muestra genoma completo, reflejando divergencia sustancial entre
+  la población colombiana y la referencia Guanapo
+- Ningún indel inducido por CRISPR detectado en ninguno de los 8 sitios off-target predichos por
+  GATK; el único sitio con variantes es polimorfismo preexistente en el grupo Control
+- 403 regiones hotspot de densidad elevada de variantes (FDR<0.05)
+- Pseudogenoma colombiano: 99.5% de transferencia de anotación (Liftoff)
+- Ensamblaje de novo colombiano: BUSCO 95.5% completo tras gap-filling + pulido
+- Diseño de guías CRISPR completado para 8 genes candidatos (bdnf, agap3, grin1a/b, gria1a/b,
+  gria2b, nlgn1) — ver [Guppy CRISPR Atlas](analysis/ko_guide_scan/report/guppy_crispr_atlas.html)
+- Primers PCR diseñados y validados in-silico para bdnf (9 sitios on-/off-target)
 
-## Key Results
+Ver [docs/RESULTS.md](docs/RESULTS.md) para el mapa completo con rutas exactas.
 
-- ~1.4M SNPs and ~370K INDELs per sample genome-wide, reflecting substantial
-  divergence between the Colombian population and the Guanapo reference
-- Consistent Ti/Tv ratio of 1.37 across all groups, confirming high-quality variant calls
-- 403 merged hotspot regions of elevated variant density (FDR < 0.05, 1,780 windows)
-- No CRISPR-induced INDELs detected at any of the 8 predicted off-target sites by GATK
-- Colombian pseudogenome: 99.5% annotation transfer (Liftoff), bdnf confirmed present
-- De novo scaffolded genome: N50 28.3 Mb, BUSCO 87.1% complete
+## Citación
 
-## Citation
-
-If you use this pipeline, please cite the relevant tools:
+Si usas este pipeline, por favor cita las herramientas relevantes:
 
 - **GATK:** Van der Auwera & O'Connor (2020). *Genomics in the Cloud*. O'Reilly.
 - **CRISPResso2:** Clement et al. (2019). *Nature Biotechnology*.
+- **CRISPOR:** Haeussler et al. (2016). *Genome Biology*.
 - **Cas-OFFinder:** Bae et al. (2014). *Bioinformatics*.
 - **BWA:** Li & Durbin (2009). *Bioinformatics*.
 - **samtools:** Danecek et al. (2021). *GigaScience*.
@@ -201,13 +204,13 @@ If you use this pipeline, please cite the relevant tools:
 - **RagTag:** Alonge et al. (2022). *Genome Biology*.
 - **Liftoff:** Shumate & Salzberg (2021). *Bioinformatics*.
 
-## Author
+## Autor
 
 Diego Andrés Martínez
-Biomedical Engineer and Biologist
+Ingeniero Biomédico y Biólogo
 Universidad de los Andes, Colombia
 da.martinez33@uniandes.edu.co | diegoandres3322@gmail.com
 
-## License
+## Licencia
 
-MIT License — see LICENSE file for details.
+MIT License — ver archivo LICENSE.
