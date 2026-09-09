@@ -280,10 +280,10 @@
   <div class="topbar-inner">
     <span class="brand">Guppy CRISPR Atlas</span>
     <nav class="jump">
-      <a href="#summary">Resumen</a>
-      <a href="#criteria">Criterios</a>
+      <a href="#summary">Summary</a>
+      <a href="#criteria">Criteria</a>
       <a href="#genes">Genes</a>
-      <a href="#methods">Métodos</a>
+      <a href="#methods">Methods</a>
     </nav>
   </div>
 </header>
@@ -291,33 +291,33 @@
 <div class="wrap">
 
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · Población colombiana</span>
-    <h1>Variantes poblacionales y guías candidatas para 8 genes de interés</h1>
-    <p class="lede">Comparación gen por gen entre la referencia de Trinidad (GCF_000633615.1) y el pseudogenoma colombiano (bcftools consensus + Liftoff), con guías SpCas9 candidatas rankeadas para <b>CRISPRko</b> (dentro del CDS) y <b>CRISPRi</b> (ventana −50/+300pb del TSS), y los criterios para elegir guía según el sistema a usar.</p>
+    <span class="eyebrow">Poecilia reticulata · Colombian population</span>
+    <h1>Population Variants and Candidate Guides for 8 Genes of Interest</h1>
+    <p class="lede">Gene-by-gene comparison between the Trinidad reference (GCF_000633615.1) and the Colombian pseudogenome (bcftools consensus + Liftoff), with candidate SpCas9 guides ranked for <b>CRISPRko</b> (within the CDS) and <b>CRISPRi</b> (−50/+300bp TSS window), plus the criteria for choosing a guide depending on the system used.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Genes analizados</div><div class="value">8</div></div>
-      <div class="scope-item"><div class="label">Guías CRISPRko</div><div class="value">3116</div></div>
-      <div class="scope-item"><div class="label">Guías CRISPRi</div><div class="value">377</div></div>
-      <div class="scope-item"><div class="label">Población</div><div class="value">pseudogenome (v1)</div></div>
-      <div class="scope-item"><div class="label">Motor de PAM</div><div class="value">SpCas9 · NGG</div></div>
-      <div class="scope-item"><div class="label">Actualizado</div><div class="value">2026-09-07</div></div>
+      <div class="scope-item"><div class="label">Genes analyzed</div><div class="value">8</div></div>
+      <div class="scope-item"><div class="label">CRISPRko guides</div><div class="value">3116</div></div>
+      <div class="scope-item"><div class="label">CRISPRi guides</div><div class="value">377</div></div>
+      <div class="scope-item"><div class="label">Population</div><div class="value">pseudogenome (v1)</div></div>
+      <div class="scope-item"><div class="label">PAM engine</div><div class="value">SpCas9 · NGG</div></div>
+      <div class="scope-item"><div class="label">Updated</div><div class="value">2026-09-07</div></div>
     </div>
   </section>
 
   <section id="summary">
-    <h2>Resumen ejecutivo</h2>
-    <p class="section-sub">Clasificación de cada guía candidata en el CDS de referencia frente a su ventana equivalente en el pseudogenoma. <span class="pill pill-IDENTICAL">IDENTICAL</span> = guía intacta en la población; las demás categorías son grados de afectación por variantes; <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> son candidatos descartados por cruzar una unión exón-exón (no son ADN genómico real).</p>
+    <h2>Executive Summary</h2>
+    <p class="section-sub">Classification of each candidate guide in the reference CDS against its equivalent window in the pseudogenome. <span class="pill pill-IDENTICAL">IDENTICAL</span> = guide intact in the population; the other categories are degrees of impact from variants; <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> are candidates discarded for crossing an exon-exon junction (not real genomic DNA).</p>
 
     <div class="table-scroll">
       <table class="data" id="summary-table">
         <thead>
           <tr>
-            <th>Gen</th>
+            <th>Gene</th>
             <th>CDS</th>
-            <th>Exones</th>
-            <th class="num">Guías</th>
-            <th>Composición</th>
-            <th class="num">Afectadas</th>
+            <th>Exons</th>
+            <th class="num">Guides</th>
+            <th>Composition</th>
+            <th class="num">Affected</th>
             <th>CRISPOR</th>
           </tr>
         </thead>
@@ -325,16 +325,16 @@
       </table>
     </div>
 
-    <p class="section-sub" style="margin-top:30px;">Lo mismo para <b>CRISPRi</b>: candidatos en la ventana −50/+300pb alrededor del TSS de cada transcrito representativo (no hay <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> aquí — es ADN genómico contiguo, no CDS empalmado).</p>
+    <p class="section-sub" style="margin-top:30px;">Same for <b>CRISPRi</b>: candidates in the −50/+300bp window around the TSS of each representative transcript (no <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> here — it's contiguous genomic DNA, not spliced CDS).</p>
     <div class="table-scroll">
       <table class="data" id="summary-table-crispri">
         <thead>
           <tr>
-            <th>Gen</th>
+            <th>Gene</th>
             <th>TSS</th>
-            <th class="num">Guías</th>
-            <th>Composición</th>
-            <th class="num">Afectadas</th>
+            <th class="num">Guides</th>
+            <th>Composition</th>
+            <th class="num">Affected</th>
             <th>CRISPOR</th>
           </tr>
         </thead>
@@ -344,76 +344,76 @@
   </section>
 
   <section id="criteria" class="divider-top">
-    <h2>Criterios para elegir la mejor guía</h2>
-    <p class="section-sub">La posición óptima dentro del gen es distinta según el sistema: CRISPRko busca romper la proteína editando el ADN; CRISPRi busca silenciar la transcripción sin cortar. Tu intuición es correcta en el fondo, con matices importantes en ambos extremos.</p>
+    <h2>Criteria for Choosing the Best Guide</h2>
+    <p class="section-sub">The optimal position within the gene differs by system: CRISPRko aims to break the protein by editing the DNA; CRISPRi aims to silence transcription without cutting. Your intuition is fundamentally right, with important nuances at both ends.</p>
 
     <div class="criteria-grid">
       <div class="crit-card">
-        <h3>CRISPRko <span class="tag">Cas9 · corte de doble cadena</span></h3>
-        <p class="role">Objetivo: indel por NHEJ → frameshift → proteína truncada/degradada (NMD)</p>
+        <h3>CRISPRko <span class="tag">Cas9 · double-strand cut</span></h3>
+        <p class="role">Goal: NHEJ indel → frameshift → truncated/degraded protein (NMD)</p>
         <ol>
-          <li><b>Exón temprano y constitutivo.</b> Idealmente en el primer tercio del CDS, presente en todas las isoformas relevantes — un frameshift ahí arrastra el resto de la proteína. Evita el <b>último exón</b>: un codón de paro prematuro ahí suele escapar de NMD (nonsense-mediated decay) y puede producir una proteína truncada parcialmente funcional en vez de un null real.</li>
-          <li><b>Sin variantes poblacionales en PAM o semilla.</b> Usa solo guías <span class="pill pill-IDENTICAL">IDENTICAL</span> contra el pseudogenoma — un PAM roto o un SNP en las 10pb proximales al PAM puede anular el corte en la población que realmente vas a editar.</li>
-          <li><b>Alta especificidad, bajo off-target real.</b> mitSpecScore de CRISPOR alto (&gt;90) y offtargetCount bajo — recuerda que Cas-OFFinder/CRISPOR buscan sobre el genoma completo, no solo el CDS.</li>
-          <li><b>Eficiencia de corte razonable.</b> Score Doench 2016 más alto = mayor probabilidad de indel por alelo editado, pero es la señal más débil de las cuatro — no sacrifiques posición o especificidad por unos puntos de Doench.</li>
-          <li><b>Evita uniones exón-exón.</b> Un candidato que solo existe en el CDS empalmado (no en ADN genómico contiguo) no es editable — ya filtrado como <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> en esta tabla.</li>
+          <li><b>Early, constitutive exon.</b> Ideally in the first third of the CDS, present in all relevant isoforms — a frameshift there drags down the rest of the protein. Avoid the <b>last exon</b>: a premature stop codon there often escapes NMD (nonsense-mediated decay) and can produce a partially functional truncated protein instead of a real null.</li>
+          <li><b>No population variants in the PAM or seed.</b> Use only <span class="pill pill-IDENTICAL">IDENTICAL</span> guides against the pseudogenome — a broken PAM or a SNP in the 10bp proximal to the PAM can abolish cutting in the population you're actually going to edit.</li>
+          <li><b>High specificity, low real off-target.</b> High CRISPOR mitSpecScore (&gt;90) and low offtargetCount — remember Cas-OFFinder/CRISPOR search the whole genome, not just the CDS.</li>
+          <li><b>Reasonable cutting efficiency.</b> A higher Doench 2016 score = higher probability of an indel per edited allele, but it's the weakest signal of the four — don't sacrifice position or specificity for a few Doench points.</li>
+          <li><b>Avoid exon-exon junctions.</b> A candidate that only exists in the spliced CDS (not in contiguous genomic DNA) isn't editable — already filtered as <span class="pill pill-EXON_JUNCTION_ARTIFACT">JUNCTION</span> in this table.</li>
         </ol>
         <div class="zone-diagram">
-          <div class="zone-label">Dónde cortar en el gen (5' → 3')</div>
+          <div class="zone-label">Where to cut in the gene (5' → 3')</div>
           <div class="zone-track">
             <div class="zone-utr">5'UTR</div>
-            <div class="zone-ko-good">CDS temprano/medio — objetivo</div>
-            <div class="zone-ko-avoid">último exón — evitar</div>
+            <div class="zone-ko-good">early/mid CDS — target</div>
+            <div class="zone-ko-avoid">last exon — avoid</div>
             <div class="zone-utr">3'UTR</div>
           </div>
         </div>
       </div>
 
       <div class="crit-card">
-        <h3>CRISPRi <span class="tag">dCas9-KRAB · sin corte</span></h3>
-        <p class="role">Objetivo: bloquear el reclutamiento/avance de la ARN polimerasa cerca del TSS</p>
+        <h3>CRISPRi <span class="tag">dCas9-KRAB · no cutting</span></h3>
+        <p class="role">Goal: block RNA polymerase recruitment/progression near the TSS</p>
         <ol>
-          <li><b>Ventana estrecha alrededor del TSS.</b> La literatura (Gilbert et al. 2014; Horlbeck et al. 2016) converge en <b>−50 a +300 pb</b> respecto al sitio de inicio de transcripción — no en el promotor "en general". Fuera de esa ventana el silenciamiento cae drásticamente, sin importar qué tan buena sea la guía.</li>
-          <li><b>La hebra importa menos que la posición.</b> A diferencia de lo que se suele asumir, dCas9-KRAB funciona en ambas hebras dentro de la ventana — prioriza distancia al TSS, no orientación.</li>
-          <li><b>Nunca dentro del CDS.</b> Guías CRISPRi corriente abajo del TSS (en exones internos) casi no silencian — el bloqueo de RNAPII solo es eficiente cerca del inicio.</li>
-          <li><b>Evita también variantes poblacionales en esa ventana.</b> El mismo criterio de "sin SNP en PAM/semilla" aplica — pero aquí la ventana de interés es genómica (TSS ±350pb), no el CDS que ya escaneamos.</li>
-          <li><b>Especificidad sobre eficiencia.</b> Como no hay reparación de por medio, un off-target real es más costoso (silenciamiento fuera de blanco) — prioriza mitSpecScore/offtargetCount incluso más que para KO.</li>
+          <li><b>Narrow window around the TSS.</b> The literature (Gilbert et al. 2014; Horlbeck et al. 2016) converges on <b>−50 to +300 bp</b> relative to the transcription start site — not the "promoter" in general. Outside that window, silencing drops sharply no matter how good the guide is.</li>
+          <li><b>Strand matters less than position.</b> Contrary to common assumption, dCas9-KRAB works on both strands within the window — prioritize distance to the TSS, not orientation.</li>
+          <li><b>Never inside the CDS.</b> CRISPRi guides downstream of the TSS (in internal exons) barely silence — RNAPII blocking is only efficient near the start.</li>
+          <li><b>Also avoid population variants in that window.</b> The same "no SNP in PAM/seed" criterion applies — but here the window of interest is genomic (TSS ±350bp), not the CDS we already scanned.</li>
+          <li><b>Specificity over efficiency.</b> Since there's no repair involved, a real off-target is costlier (off-target silencing) — prioritize mitSpecScore/offtargetCount even more than for KO.</li>
         </ol>
         <div class="zone-diagram">
-          <div class="zone-label">Dónde silenciar en el gen (5' → 3')</div>
+          <div class="zone-label">Where to silence in the gene (5' → 3')</div>
           <div class="zone-track">
-            <div class="zone-tss">−50…+300pb del TSS — objetivo</div>
-            <div class="zone-cds-avoid">resto del CDS — no funciona bien</div>
+            <div class="zone-tss">−50…+300bp from TSS — target</div>
+            <div class="zone-cds-avoid">rest of the CDS — doesn't work well</div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="callout">
-      <span class="eyebrow">Nota sobre este reporte</span>
-      Las guías listadas abajo son las <b>predichas directamente por CRISPOR</b> (no un escaneo manual de PAMs) — cada una trae su ID de CRISPOR, sus scores reales (MIT, CFD, Doench'16/Moreno-Mateos para KO) y sus <b>off-targets reales</b> (posición genómica, mismatches, score CFD), tomados de correr <code>crispor.py</code> contra el genoma de referencia registrado. La comparación contra el pseudogenoma colombiano (IDENTICAL/PAM_BROKEN/etc.) se sigue calculando con el alineamiento propio del proyecto — CRISPOR no compara genomas entre sí, solo evalúa uno a la vez. El score Doench'16 no aparece en las tablas de CRISPRi: está entrenado para eficiencia de corte/indel, no de silenciamiento por dCas9-KRAB.
+      <span class="eyebrow">Note on this report</span>
+      The guides listed below are <b>predicted directly by CRISPOR</b> (not a manual PAM scan) — each carries its CRISPOR ID, real scores (MIT, CFD, Doench'16/Moreno-Mateos for KO), and its <b>real off-targets</b> (genomic position, mismatches, CFD score), taken from running <code>crispor.py</code> against the registered reference genome. The comparison against the Colombian pseudogenome (IDENTICAL/PAM_BROKEN/etc.) is still computed with the project's own alignment — CRISPOR doesn't compare genomes to each other, it only evaluates one at a time. The Doench'16 score doesn't appear in the CRISPRi tables: it's trained for cutting/indel efficiency, not dCas9-KRAB silencing.
     </div>
   </section>
 
   <section id="genes" class="divider-top">
-    <h2>Guías candidatas por gen</h2>
-    <p class="section-sub">Por gen: hasta 5 guías de CRISPOR <b>CRISPRko</b> (CDS, priorizando exón no-terminal → especificidad MIT/CFD → off-targets reales → Doench'16/Moreno-Mateos) y hasta 5 <b>CRISPRi</b> (ventana TSS, priorizando especificidad → off-targets reales → cercanía al TSS), cada una con sus 3 off-targets reales más relevantes. Debajo de cada tabla, las guías de esa misma región afectadas por variantes poblacionales — evítalas para esta población.</p>
+    <h2>Candidate Guides per Gene</h2>
+    <p class="section-sub">Per gene: up to 5 CRISPOR <b>CRISPRko</b> guides (CDS, prioritizing non-terminal exon → MIT/CFD specificity → real off-targets → Doench'16/Moreno-Mateos) and up to 5 <b>CRISPRi</b> (TSS window, prioritizing specificity → real off-targets → proximity to the TSS), each with its 3 most relevant real off-targets. Below each table, guides from that same region affected by population variants — avoid these for this population.</p>
     <div id="gene-cards"></div>
   </section>
 
   <section id="methods" class="divider-top">
-    <h2>Métodos y limitaciones</h2>
+    <h2>Methods and Limitations</h2>
     <p class="section-sub" style="margin-bottom:14px;">
-      Las guías mostradas y sus métricas/off-targets vienen del propio <code>crispor.py</code> (contenedor Singularity) corrido contra el genoma de referencia registrado: <b>CRISPRko</b> con el CDS completo del transcrito representativo como entrada, <b>CRISPRi</b> con la ventana genómica −50/+300pb alrededor de su TSS (inicio del mRNA, no del CDS). La clasificación de seguridad poblacional (IDENTICAL/PAM_BROKEN/SEED_VARIANT/DISTAL_VARIANT) sigue viniendo del alineamiento propio del proyecto (minimap2 --cs) contra la misma región en el pseudogenoma colombiano — ko_guide_scan.py / crispri_tss_scan.py — y se une a cada guía de CRISPOR por su secuencia exacta de 23pb (espaciador+PAM). Solo se muestran candidatos <span class="pill pill-IDENTICAL">IDENTICAL</span>; los off-targets reales (top 3 por guía, orden mismatches↑/CFD↓) salen del TSV de off-targets que <code>crispor.py</code> ya calcula contra el genoma completo.
+      The guides shown and their metrics/off-targets come from <code>crispor.py</code> itself (Singularity container) run against the registered reference genome: <b>CRISPRko</b> with the representative transcript's full CDS as input, <b>CRISPRi</b> with the −50/+300bp genomic window around its TSS (mRNA start, not the CDS start). Population-safety classification (IDENTICAL/PAM_BROKEN/SEED_VARIANT/DISTAL_VARIANT) still comes from the project's own alignment (minimap2 --cs) against the same region in the Colombian pseudogenome — ko_guide_scan.py / crispri_tss_scan.py — and is joined to each CRISPOR guide by its exact 23bp sequence (spacer+PAM). Only <span class="pill pill-IDENTICAL">IDENTICAL</span> candidates are shown; real off-targets (top 3 per guide, ordered by mismatches↑/CFD↓) come from the off-target TSV that <code>crispor.py</code> already computes against the whole genome.
     </p>
     <div class="note-crispor-off" style="max-width:680px; flex-direction:column; align-items:flex-start; gap:10px;">
-      <div>⚠ <b>CRISPRko — agap3, grin1a y gria1a</b> no tienen puntajes de CRISPOR: el genoma de referencia (ensamblaje 2014, short-read) contiene códigos de ambigüedad IUPAC (R/Y/S/W/K/M) en el CDS de esas regiones — probablemente sitios heterocigotos sin resolver. Confirmado que es un fallo duro y no controlado dentro del propio <code>crispor.py</code>, en dos puntos distintos de su código que no toleran caracteres fuera de A/C/G/T/N: para agap3 y grin1a, su función <code>revComp()</code> (usada al extraer la secuencia flanqueante para contar off-targets) no reconoce la letra <code>'S'</code> (<code>KeyError: 'S'</code>); para gria1a, el modelo de eficiencia Azimuth-2.0 (Doench'16) no reconoce la letra <code>'R'</code> en su alfabeto fijo de codificación (<code>ValueError: 'R' is not in list</code>). El escaneo manual y la clasificación de variantes no se ven afectados; solo falta el ranking adicional por especificidad/eficiencia para esos 3 genes. <b>CRISPRi — solo agap3</b> tiene el mismo problema en su ventana TSS (es una región genómica distinta y mucho más pequeña que el CDS, así que la mayoría de genes no tropiezan con un código de ambigüedad ahí aunque sí lo hagan en el CDS).</div>
-      <div>↻ <b>Plan de re-análisis:</b> el genoma de referencia macho más nuevo (GCF_904066995.2, PacBio+Hi-C, 2025) tiene una migración en curso en el proyecto — al completarse, estos 3 genes se volverán a correr contra esa referencia y su pseudogenoma v2. Al ser un ensamblaje long-read mucho mejor resuelto, es probable que ya no tenga estos códigos de ambigüedad en las mismas posiciones, lo que debería permitir obtener los puntajes de CRISPOR que faltan aquí.</div>
+      <div>⚠ <b>CRISPRko — agap3, grin1a, and gria1a</b> have no CRISPOR scores: the reference genome (2014 short-read assembly) contains ambiguous IUPAC codes (R/Y/S/W/K/M) in the CDS of those regions — likely unresolved heterozygous sites. Confirmed this is a hard, unhandled failure inside <code>crispor.py</code> itself, at two different points in its code that don't tolerate characters outside A/C/G/T/N: for agap3 and grin1a, its <code>revComp()</code> function (used when extracting the flanking sequence to count off-targets) doesn't recognize the letter <code>'S'</code> (<code>KeyError: 'S'</code>); for gria1a, the Azimuth-2.0 efficiency model (Doench'16) doesn't recognize the letter <code>'R'</code> in its fixed encoding alphabet (<code>ValueError: 'R' is not in list</code>). The manual scan and variant classification are unaffected; only the additional specificity/efficiency ranking is missing for those 3 genes. <b>CRISPRi — only agap3</b> has the same problem in its TSS window (a different, much smaller genomic region than the CDS, so most genes don't run into an ambiguity code there even if they do in the CDS).</div>
+      <div>↻ <b>Re-analysis plan:</b> the newer male reference genome (GCF_904066995.2, PacBio+Hi-C, 2025) has a migration under way in the project — once complete, these 3 genes will be re-run against that reference and its v2 pseudogenome. Being a much better-resolved long-read assembly, it likely no longer has these ambiguity codes at the same positions, which should allow obtaining the CRISPOR scores currently missing here.</div>
     </div>
   </section>
 
   <footer>
-    <p>Guppy CRISPR Atlas · generado a partir de analysis/ko_guide_scan/*.csv · pipeline: ko_guide_scan.py (CRISPRko) + crispri_tss_scan.py (CRISPRi) + CRISPOR (Singularity) · off-target_data project, 2026-09-07.</p>
+    <p>Guppy CRISPR Atlas · generated from analysis/ko_guide_scan/*.csv · pipeline: ko_guide_scan.py (CRISPRko) + crispri_tss_scan.py (CRISPRi) + CRISPOR (Singularity) · off-target_data project, 2026-09-07.</p>
   </footer>
 
 </div>
@@ -425,12 +425,12 @@ const GENE_ORDER = ["bdnf","agap3","grin1a","grin1b","gria1a","gria1b","gria2b",
 const CLASS_ORDER = ["IDENTICAL","PAM_BROKEN","SEED_VARIANT","DISTAL_VARIANT","EXON_JUNCTION_ARTIFACT"];
 const CLASS_ORDER_CRISPRI = ["IDENTICAL","PAM_BROKEN","SEED_VARIANT","DISTAL_VARIANT"];
 const CLASS_LABEL = {
-  IDENTICAL: "Idéntica",
-  PAM_BROKEN: "PAM roto",
-  SEED_VARIANT: "Var. semilla",
-  DISTAL_VARIANT: "Var. distal",
-  EXON_JUNCTION_ARTIFACT: "Unión exón-exón",
-  NO_ALIGNMENT: "Sin alineamiento",
+  IDENTICAL: "Identical",
+  PAM_BROKEN: "Broken PAM",
+  SEED_VARIANT: "Seed variant",
+  DISTAL_VARIANT: "Distal variant",
+  EXON_JUNCTION_ARTIFACT: "Exon-exon junction",
+  NO_ALIGNMENT: "No alignment",
 };
 
 function esc(s){
@@ -445,7 +445,7 @@ function fmtNum(x, digits){
 }
 function fmtOfftargets(offtargets){
   if (!offtargets || offtargets.length === 0) {
-    return '<span style="color:var(--ink-faint); font-style:italic;">sin datos de CRISPOR para esta guía (ver Métodos) — clasificación por escaneo manual únicamente</span>';
+    return '<span style="color:var(--ink-faint); font-style:italic;">no CRISPOR data for this guide (see Methods) — classification by manual scan only</span>';
   }
   const items = offtargets.map(o =>
     `<span class="ot-item mono">${esc(o.chrom)}:${o.start} (${o.strand}, ${o.mismatch_count}mm${o.cfd_score!=null ? ', CFD '+o.cfd_score.toFixed(2) : ''})</span>`
@@ -538,24 +538,24 @@ GENE_ORDER.forEach(gene => {
         </div>
       </div>
       <div class="gene-stats">
-        <div class="stat"><div class="stat-value">${g.total_guides}</div><div class="stat-label">guías totales</div></div>
-        <div class="stat"><div class="stat-value">${affected}</div><div class="stat-label">afectadas</div></div>
+        <div class="stat"><div class="stat-value">${g.total_guides}</div><div class="stat-label">total guides</div></div>
+        <div class="stat"><div class="stat-value">${affected}</div><div class="stat-label">affected</div></div>
       </div>
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px;">${pillRow}</div>
   `;
 
   if (!g.crispor_available) {
-    html += `<div class="note-crispor-off">⚠ Sin puntajes de CRISPOR para este gen (código IUPAC de ambigüedad en la referencia — ver Métodos). Ranking abajo por posición únicamente. Se repetirá con el genoma de referencia v2 (macho) cuando esté disponible.</div>`;
+    html += `<div class="note-crispor-off">⚠ No CRISPOR scores for this gene (ambiguous IUPAC code in the reference — see Methods). Ranking below by position only. Will be repeated with the v2 (male) reference genome once available.</div>`;
   }
 
-  html += `<div class="subhead">Mejores candidatos CRISPRko — guías predichas por CRISPOR (${g.crispor_available ? "rankeadas por especificidad + eficiencia" : "sin datos de CRISPOR, por posición"})</div>`;
+  html += `<div class="subhead">Best CRISPRko candidates — guides predicted by CRISPOR (${g.crispor_available ? "ranked by specificity + efficiency" : "no CRISPOR data, by position"})</div>`;
 
   if (g.top_ko_candidates.length === 0) {
-    html += `<div class="empty-note">Sin candidatos IDENTICAL disponibles.</div>`;
+    html += `<div class="empty-note">No IDENTICAL candidates available.</div>`;
   } else {
     html += `<div class="table-scroll"><table class="data"><thead><tr>
-      <th>Guía CRISPOR</th><th>Pos. CDS</th><th>Exón</th>
+      <th>CRISPOR Guide</th><th>CDS Pos.</th><th>Exon</th>
       <th class="num">MIT</th><th class="num">CFD</th><th class="num">Off-t.</th>
       <th class="num">Doench'16</th><th class="num">M-Mateos</th>
     </tr></thead><tbody>`;
@@ -563,7 +563,7 @@ GENE_ORDER.forEach(gene => {
       html += `<tr class="main-guide-row">
         <td class="seq">${colorSeq(c.spacer)}<span class="pam-wrap">${colorSeq(c.pam)}</span>${guideIdTag(c.guide_id_crispor)}</td>
         <td class="num">${c.cds_pos_1based} <span style="color:var(--ink-faint)">(${(c.frac_cds*100).toFixed(0)}%)</span></td>
-        <td>${c.in_last_exon ? '<span class="pill pill-DISTAL_VARIANT">último</span>' : '<span class="pill pill-IDENTICAL">interno</span>'}</td>
+        <td>${c.in_last_exon ? '<span class="pill pill-DISTAL_VARIANT">last</span>' : '<span class="pill pill-IDENTICAL">internal</span>'}</td>
         <td class="num">${fmtNum(c.mit_spec_score,0)}</td>
         <td class="num">${fmtNum(c.cfd_spec_score,0)}</td>
         <td class="num">${fmtNum(c.offtarget_count)}</td>
@@ -576,9 +576,9 @@ GENE_ORDER.forEach(gene => {
   }
 
   if (g.variant_affected_guides.length > 0) {
-    html += `<div class="subhead">Guías a evitar (afectadas por variantes poblacionales)</div>`;
+    html += `<div class="subhead">Guides to Avoid (affected by population variants)</div>`;
     html += `<div class="table-scroll"><table class="data"><thead><tr>
-      <th>Espaciador + PAM (ref.)</th><th>Pos. CDS</th><th>Hebra</th><th>Clasificación</th><th>Nota</th>
+      <th>Spacer + PAM (ref.)</th><th>CDS Pos.</th><th>Strand</th><th>Classification</th><th>Note</th>
     </tr></thead><tbody>`;
     g.variant_affected_guides.forEach(r => {
       html += `<tr>
@@ -594,13 +594,13 @@ GENE_ORDER.forEach(gene => {
 
   // ---- CRISPRi ----
   const ci = g.crispri;
-  html += `<div class="subhead" style="margin-top:26px; border-top:1px dashed var(--border-strong); padding-top:18px;">Mejores candidatos CRISPRi — ventana TSS, guías predichas por CRISPOR ${ci.crispor_available ? "(rankeadas por especificidad + cercanía al TSS)" : "(sin datos de CRISPOR, por cercanía al TSS)"}</div>`;
+  html += `<div class="subhead" style="margin-top:26px; border-top:1px dashed var(--border-strong); padding-top:18px;">Best CRISPRi candidates — TSS window, guides predicted by CRISPOR ${ci.crispor_available ? "(ranked by specificity + proximity to the TSS)" : "(no CRISPOR data, by proximity to the TSS)"}</div>`;
 
   if (ci.top_candidates.length === 0) {
-    html += `<div class="empty-note">Sin candidatos IDENTICAL disponibles en la ventana TSS.</div>`;
+    html += `<div class="empty-note">No IDENTICAL candidates available in the TSS window.</div>`;
   } else {
     html += `<div class="table-scroll"><table class="data"><thead><tr>
-      <th>Guía CRISPOR</th><th>Pos. vs TSS</th><th>Hebra (ventana)</th>
+      <th>CRISPOR Guide</th><th>Pos. vs TSS</th><th>Strand (window)</th>
       <th class="num">MIT</th><th class="num">CFD</th><th class="num">Off-t.</th>
     </tr></thead><tbody>`;
     ci.top_candidates.forEach(c => {
@@ -619,9 +619,9 @@ GENE_ORDER.forEach(gene => {
   }
 
   if (ci.variant_affected_guides.length > 0) {
-    html += `<div class="subhead">Guías CRISPRi a evitar (afectadas por variantes poblacionales)</div>`;
+    html += `<div class="subhead">CRISPRi Guides to Avoid (affected by population variants)</div>`;
     html += `<div class="table-scroll"><table class="data"><thead><tr>
-      <th>Espaciador + PAM (ref.)</th><th>Pos. vs TSS</th><th>Hebra</th><th>Clasificación</th><th>Nota</th>
+      <th>Spacer + PAM (ref.)</th><th>Pos. vs TSS</th><th>Strand</th><th>Classification</th><th>Note</th>
     </tr></thead><tbody>`;
     ci.variant_affected_guides.forEach(r => {
       const s = parseInt(r.tss_rel_start), e = parseInt(r.tss_rel_end);

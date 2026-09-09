@@ -92,69 +92,69 @@
   <div class="topbar-inner">
     <span class="brand">Variant Hotspots Report</span>
     <nav class="jump">
-      <a href="#summary">Resumen</a>
-      <a href="#distribution">Distribución</a>
+      <a href="#summary">Summary</a>
+      <a href="#distribution">Distribution</a>
       <a href="#genes">Genes</a>
-      <a href="#method">Método</a>
+      <a href="#method">Method</a>
     </nav>
   </div>
 </header>
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · genoma completo · genoma v1</span>
-    <h1>Hotspots de densidad de variantes</h1>
-    <p class="lede">Regiones del genoma con una densidad de SNPs/INDELs anormalmente alta entre la población colombiana y la referencia Guanapo/Trinidad — contexto de divergencia poblacional general, independiente de los sitios CRISPR específicos.</p>
+    <span class="eyebrow">Poecilia reticulata · whole genome · v1 genome</span>
+    <h1>Variant Density Hotspots</h1>
+    <p class="lede">Regions of the genome with abnormally high SNP/INDEL density between the Colombian population and the Guanapo/Trinidad reference — general population-divergence context, independent of the specific CRISPR sites.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Ventana</div><div class="value">10kb, paso 2kb</div></div>
-      <div class="scope-item"><div class="label">Ventanas escaneadas</div><div class="value">366,998</div></div>
-      <div class="scope-item"><div class="label">Umbral</div><div class="value">FDR (BH) &lt; 0.05</div></div>
-      <div class="scope-item"><div class="label">Fusión</div><div class="value">bedtools merge -d 2000</div></div>
+      <div class="scope-item"><div class="label">Window</div><div class="value">10kb, 2kb step</div></div>
+      <div class="scope-item"><div class="label">Windows scanned</div><div class="value">366,998</div></div>
+      <div class="scope-item"><div class="label">Threshold</div><div class="value">FDR (BH) &lt; 0.05</div></div>
+      <div class="scope-item"><div class="label">Merge</div><div class="value">bedtools merge -d 2000</div></div>
     </div>
   </section>
 
   <section id="summary">
-    <h2>Resumen</h2>
+    <h2>Summary</h2>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">403</div><div class="kpi-label">regiones hotspot fusionadas</div></div>
-      <div class="kpi"><div class="kpi-value">1,780</div><div class="kpi-label">ventanas con FDR&lt;0.05</div></div>
-      <div class="kpi"><div class="kpi-value">0.49%</div><div class="kpi-label">de las 366,998 ventanas</div></div>
-      <div class="kpi"><div class="kpi-value">LG2</div><div class="kpi-label">cromosoma con más regiones (32)</div></div>
+      <div class="kpi"><div class="kpi-value">403</div><div class="kpi-label">merged hotspot regions</div></div>
+      <div class="kpi"><div class="kpi-value">1,780</div><div class="kpi-label">windows with FDR&lt;0.05</div></div>
+      <div class="kpi"><div class="kpi-value">0.49%</div><div class="kpi-label">of the 366,998 windows</div></div>
+      <div class="kpi"><div class="kpi-value">LG2</div><div class="kpi-label">chromosome with the most regions (32)</div></div>
     </div>
     <div class="callout">
-      <span class="eyebrow">Nota de interpretación</span>
-      Estos hotspots reflejan divergencia genómica general entre poblaciones (deriva, selección local, o artefactos de mapeo en regiones repetitivas) — no están relacionados con la edición CRISPR. Su valor es como recurso de genómica poblacional: candidatos para estudios futuros de adaptación local o estructura poblacional.
+      <span class="eyebrow">Interpretation note</span>
+      These hotspots reflect general genomic divergence between populations (drift, local selection, or mapping artifacts in repetitive regions) — they are not related to CRISPR editing. Their value is as a population-genomics resource: candidates for future studies of local adaptation or population structure.
     </div>
   </section>
 
   <section id="distribution" class="divider-top">
-    <h2>Distribución por cromosoma</h2>
-    <p class="section-sub">Número de regiones hotspot por grupo de ligamiento (LG), los 15 cromosomas con más regiones de 23 totales.</p>
+    <h2>Distribution by Chromosome</h2>
+    <p class="section-sub">Number of hotspot regions per linkage group (LG), the 15 chromosomes with the most regions out of 23 total.</p>
     <div class="chart-card">
       <div id="chrom-bars"></div>
     </div>
   </section>
 
   <section id="genes" class="divider-top">
-    <h2>Top 10 regiones hotspot por Z-score</h2>
-    <p class="section-sub">Las regiones de mayor densidad relativa de variantes (Z-score dentro de su propio cromosoma), con genes anotados que caen dentro de cada región y su ortólogo en zebrafish cuando existe.</p>
+    <h2>Top 10 Hotspot Regions by Z-score</h2>
+    <p class="section-sub">The regions with the highest relative variant density (Z-score within its own chromosome), with genes annotated within each region and their zebrafish ortholog where one exists.</p>
     <div class="table-scroll">
       <table class="data" id="genes-table">
-        <thead><tr><th>Región</th><th>LG</th><th class="num">Z-score</th><th class="num">Densidad</th><th class="num">Genes</th><th>Genes nombrados</th></tr></thead>
+        <thead><tr><th>Region</th><th>LG</th><th class="num">Z-score</th><th class="num">Density</th><th class="num">Genes</th><th>Named genes</th></tr></thead>
         <tbody id="genes-tbody"></tbody>
       </table>
     </div>
   </section>
 
   <section id="method" class="divider-top">
-    <h2>Método</h2>
+    <h2>Method</h2>
     <p class="section-sub">
-      1) <code>bedtools makewindows -w 10000 -s 2000</code> sobre el genoma completo. 2) Conteo de SNPs/INDELs PASS por ventana (<code>bedtools coverage -counts</code>). 3) Densidad = variantes/kb; Z-score calculado <b>por cromosoma</b> (no genoma completo, para no sesgar por diferencias de tamaño/cobertura entre cromosomas). 4) Ventana = hotspot si su p-valor asociado al Z-score sobrevive corrección Benjamini-Hochberg con FDR&lt;0.05 (umbral de respaldo Z&gt;4.0 si <code>statsmodels</code> no está disponible). 5) Ventanas hotspot adyacentes se fusionan (<code>bedtools merge -d 2000</code>) en las 403 regiones finales. 6) Anotación génica por solapamiento directo con el GFF de la referencia; ortólogos de zebrafish vía mapeo de ID + enriquecimiento funcional con gProfiler.
+      1) <code>bedtools makewindows -w 10000 -s 2000</code> over the whole genome. 2) Count of PASS SNPs/INDELs per window (<code>bedtools coverage -counts</code>). 3) Density = variants/kb; Z-score computed <b>per chromosome</b> (not genome-wide, to avoid bias from size/coverage differences between chromosomes). 4) Window = hotspot if its Z-score-associated p-value survives Benjamini-Hochberg correction with FDR&lt;0.05 (fallback threshold Z&gt;4.0 if <code>statsmodels</code> is unavailable). 5) Adjacent hotspot windows are merged (<code>bedtools merge -d 2000</code>) into the 403 final regions. 6) Gene annotation via direct overlap with the reference GFF; zebrafish orthologs via ID mapping + functional enrichment with gProfiler.
     </p>
   </section>
 
   <footer>
-    <p>Variant Hotspots Report · generado a partir de gatk/trimmomatic/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.</p>
+    <p>Variant Hotspots Report · generated from gatk/trimmomatic/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.</p>
   </footer>
 </div>
 

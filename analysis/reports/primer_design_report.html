@@ -107,96 +107,96 @@
 <header class="top">
   <div class="topbar-inner">
     <span class="brand">Primer Design Report</span>
-    <nav class="jump"><a href="#summary">Resumen</a><a href="#sites">Sitios</a><a href="#rtqpcr">RT-qPCR</a><a href="#methods">Métodos</a></nav>
+    <nav class="jump"><a href="#summary">Summary</a><a href="#sites">Sites</a><a href="#rtqpcr">RT-qPCR</a><a href="#methods">Methods</a></nav>
   </div>
 </header>
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · bdnf · genoma v1</span>
-    <h1>Primers PCR para validación on-/off-target</h1>
-    <p class="lede">Pares de primers diseñados con <code>eprimer3</code> alrededor de cada sitio de corte (on-target + 8 off-target), validados in-silico por especificidad genómica (<code>primersearch</code>) y por ausencia de variantes poblacionales colombianas en el sitio de unión — listos para verificación en gel o secuenciación dirigida.</p>
+    <span class="eyebrow">Poecilia reticulata · bdnf · v1 genome</span>
+    <h1>PCR Primers for On-/Off-Target Validation</h1>
+    <p class="lede">Primer pairs designed with <code>eprimer3</code> around each cut site (on-target + 8 off-target), validated in silico for genomic specificity (<code>primersearch</code>) and for the absence of Colombian population variants at the binding site — ready for gel verification or targeted sequencing.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Gen / versión</div><div class="value">bdnf / v1</div></div>
-      <div class="scope-item"><div class="label">Sitios con candidatos</div><div class="value">7 / 9</div></div>
-      <div class="scope-item"><div class="label">Pares candidatos</div><div class="value">35 (hasta 5/sitio)</div></div>
-      <div class="scope-item"><div class="label">Producto objetivo</div><div class="value">200-400pb</div></div>
+      <div class="scope-item"><div class="label">Gene / version</div><div class="value">bdnf / v1</div></div>
+      <div class="scope-item"><div class="label">Sites with candidates</div><div class="value">7 / 9</div></div>
+      <div class="scope-item"><div class="label">Candidate pairs</div><div class="value">35 (up to 5/site)</div></div>
+      <div class="scope-item"><div class="label">Target product</div><div class="value">200-400bp</div></div>
     </div>
   </section>
 
   <section id="summary">
-    <h2>Resumen</h2>
+    <h2>Summary</h2>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">35</div><div class="kpi-label">pares candidatos totales</div></div>
-      <div class="kpi"><div class="kpi-value">25</div><div class="kpi-label">específicos (1 sola región genómica)</div></div>
-      <div class="kpi"><div class="kpi-value">35/35</div><div class="kpi-label">sin variante poblacional en el primer</div></div>
-      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">sitios bloqueados (bases IUPAC ambiguas)</div></div>
+      <div class="kpi"><div class="kpi-value">35</div><div class="kpi-label">total candidate pairs</div></div>
+      <div class="kpi"><div class="kpi-value">25</div><div class="kpi-label">specific (1 genomic region only)</div></div>
+      <div class="kpi"><div class="kpi-value">35/35</div><div class="kpi-label">no population variant in the primer</div></div>
+      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">blocked sites (ambiguous IUPAC bases)</div></div>
     </div>
-    <p class="section-sub">Recomendación por sitio: usar el candidato marcado en verde en cada tabla — <span class="pill pill-safe">SPECIFIC</span> y sin bandera de variante. Para off_target_5, ningún candidato es específico en solitario (ver nota); revisar los hits alternos antes de sintetizar.</p>
+    <p class="section-sub">Recommendation per site: use the candidate marked green in each table — <span class="pill pill-safe">SPECIFIC</span> and no variant flag. For off_target_5, no candidate is specific on its own (see note); review the alternate hits before ordering synthesis.</p>
   </section>
 
   <section id="sites" class="divider-top">
-    <h2>Candidatos por sitio</h2>
+    <h2>Candidates per Site</h2>
     <div id="site-cards"></div>
   </section>
 
   <section id="rtqpcr" class="divider-top">
-    <h2>Verificación de primers RT-qPCR existentes</h2>
-    <p class="section-sub">Consulta puntual (2026-09-08), fuera del pipeline automático de diseño: 4 pares de primers de RT-qPCR <b>ya en uso en el laboratorio</b> (no diseñados por este proyecto) — bdnf y 3 genes de referencia/housekeeping (miosina, beta-actina, rpl13a) — verificados contra el genoma v1 (genoma de diseño original), el genoma v2, y el pseudogenoma colombiano, para investigar resultados de RT-qPCR inconsistentes.</p>
+    <h2>Verification of Existing RT-qPCR Primers</h2>
+    <p class="section-sub">One-off query (2026-09-08), outside the automated design pipeline: 4 RT-qPCR primer pairs <b>already in use in the lab</b> (not designed by this project) — bdnf and 3 reference/housekeeping genes (myosin, beta-actin, rpl13a) — verified against the v1 genome (the original design genome), the v2 genome, and the Colombian pseudogenome, to investigate inconsistent RT-qPCR results.</p>
 
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">pares con sitio confirmado en v1 y v2</div></div>
-      <div class="kpi"><div class="kpi-value">3/4</div><div class="kpi-label">genes correctamente identificados</div></div>
-      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">SNP colombiano encontrado (rpl_13a_F)</div></div>
-      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">par sin sitio localizable, ni en v1 ni en v2 (miosina)</div></div>
+      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">pairs with a confirmed site in v1 and v2</div></div>
+      <div class="kpi"><div class="kpi-value">3/4</div><div class="kpi-label">genes correctly identified</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">Colombian SNP found (rpl_13a_F)</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">pair with no locatable site, in v1 or v2 (myosin)</div></div>
     </div>
 
     <div class="table-scroll">
       <table class="rtqpcr-table">
-        <thead><tr><th>Primer</th><th>Gen confirmado</th><th>¿Cruza unión exón-exón?</th><th>v1 (diseño)</th><th>v2 (macho)</th><th>Pseudogenoma colombiano</th></tr></thead>
+        <thead><tr><th>Primer</th><th>Confirmed gene</th><th>Crosses exon-exon junction?</th><th>v1 (design)</th><th>v2 (male)</th><th>Colombian pseudogenome</th></tr></thead>
         <tbody>
-          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code> / <code>NC_088832.1</code>)</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(no actb1)</span></td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Sí (exón 5/6)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">rpl_13a_F</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-danger">1 SNP</span></td></tr>
-          <tr><td class="seq">rpl_13a_R</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">miosina_guppy_F</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable en v1 ni en v2 — ver hallazgo abajo</td></tr>
-          <tr><td class="seq">miosina_guppy_R</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable en v1 ni en v2 — ver hallazgo abajo</td></tr>
+          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code> / <code>NC_088832.1</code>)</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(not actb1)</span></td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Yes (exon 5/6)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td class="seq">rpl_13a_F</td><td>rpl13a</td><td>Yes (exon 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-danger">1 SNP</span></td></tr>
+          <tr><td class="seq">rpl_13a_R</td><td>rpl13a</td><td>Yes (exon 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td class="seq">miosina_guppy_F</td><td colspan="5" style="color:var(--ink-faint);">no locatable site in v1 or v2 — see finding below</td></tr>
+          <tr><td class="seq">miosina_guppy_R</td><td colspan="5" style="color:var(--ink-faint);">no locatable site in v1 or v2 — see finding below</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="finding-card danger" style="margin-top:22px;">
-      <h3>⚠ SNP colombiano real en rpl_13a_F (posición 6/20, extremo 5')</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Confirmado por reconstrucción del ARNm empalmado (el primer cruza la unión exón1/exón2 de rpl13a) + liftover exacto contra el pseudogenoma colombiano. El mismo alelo del primer (A) está presente en <b>ambos</b> genomas de referencia públicos (v1 hembra Trinidad y v2 macho PacBio+Hi-C, dos individuos y ensamblajes independientes) — lo que hace más probable que la variante sea genuinamente específica de la población colombiana, no un artefacto de un solo ensamblaje.</p>
+      <h3>⚠ Real Colombian SNP in rpl_13a_F (position 6/20, 5' end)</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Confirmed by spliced-mRNA reconstruction (the primer crosses rpl13a's exon1/exon2 junction) + exact liftover against the Colombian pseudogenome. The same primer allele (A) is present in <b>both</b> public reference genomes (v1 female Trinidad and v2 male PacBio+Hi-C, two independent individuals and assemblies) — making it more likely the variant is genuinely specific to the Colombian population, not an artifact of a single assembly.</p>
       <div class="diff-grid seq-compare">
         <div class="diff-label">Primer / v1 / v2</div><div>CCGCC<b>A</b>TACGACAAGAGGAA</div>
-        <div class="diff-label">Pseudogenoma colombiano</div><div>CCGCC<span class="base-diff">C</span>TACGACAAGAGGAA</div>
+        <div class="diff-label">Colombian pseudogenome</div><div>CCGCC<span class="base-diff">C</span>TACGACAAGAGGAA</div>
       </div>
-      <p style="margin:6px 0 0;font-size:13px;">La posición 6 está en la región 5' del primer (no en las últimas bases 3', las más críticas para la extensión por la polimerasa) — probablemente reduce eficiencia/Tm en vez de abolir la amplificación por completo, consistente con Ct inconsistentes en vez de fallo total.</p>
+      <p style="margin:6px 0 0;font-size:13px;">Position 6 is in the primer's 5' region (not the last 3' bases, which matter most for polymerase extension) — likely reducing efficiency/Tm rather than abolishing amplification entirely, consistent with inconsistent Ct values rather than total failure.</p>
     </div>
 
     <div class="finding-card danger">
-      <h3>⚠ miosina_guppy_F/R: sin sitio de unión identificable en ningún genoma de guppy</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Búsqueda exhaustiva: 0 coincidencias exactas en todo el genoma v1; 0 coincidencias con hasta 2 mismatches contra los <b>58 genes</b> de la familia miosina en v1 (<code>myh*</code>/<code>myo*</code>/<code>myl*</code>, 156 transcritos, ARNm empalmado completo). <b>Repetido de forma independiente contra v2</b> (macho, anotación más completa): <b>64 genes</b> candidatos, <b>199 transcritos</b> — de nuevo 0 coincidencias, incluso con 2 mismatches. Dos ensamblajes y anotaciones distintas coinciden en no tener ningún gen de la familia miosina compatible con estos primers, lo que descarta que sea un problema de anotación incompleta de un solo genoma. No es un problema de variantes poblacionales — sugiere que estos primers se diseñaron contra la secuencia de otra especie o un modelo de transcrito que nunca existió en <i>P. reticulata</i>. Si el RT-qPCR falla de forma sistemática con este par, este es el motivo más probable, independiente de la población de origen de las muestras.</p>
+      <h3>⚠ miosina_guppy_F/R: no identifiable binding site in any guppy genome</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Exhaustive search: 0 exact matches across the whole v1 genome; 0 matches within 2 mismatches against the <b>58 genes</b> of the myosin family in v1 (<code>myh*</code>/<code>myo*</code>/<code>myl*</code>, 156 transcripts, full spliced mRNA). <b>Independently repeated against v2</b> (male, more complete annotation): <b>64 candidate genes</b>, <b>199 transcripts</b> — again 0 matches, even with 2 mismatches. Two independent assemblies and annotations agree on having no myosin-family gene compatible with these primers, which rules out incomplete annotation of a single genome as the explanation. This is not a population-variant issue — it suggests these primers were designed against a different species' sequence or a transcript model that never existed in <i>P. reticulata</i>. If RT-qPCR fails systematically with this pair, this is the most likely reason, independent of the samples' population of origin.</p>
     </div>
 
-    <p class="section-sub" style="margin-top:18px;">Metodología: localización por búsqueda de subcadena exacta (+ complemento reverso) contra el genoma completo; para primers sin coincidencia genómica contigua, reconstrucción del ARNm empalmado (exones concatenados según la anotación) para confirmar que cruzan una unión exón-exón real y ubicar el punto de corte; verificación poblacional por liftover exacto (<code>.chain</code>) de cada segmento genómico hacia el pseudogenoma colombiano y comparación directa de secuencia. Detalle completo de la sesión en <code>CLAUDE.md</code> ("RT-qPCR primer verification").</p>
+    <p class="section-sub" style="margin-top:18px;">Methodology: localization via exact substring search (+ reverse complement) against the whole genome; for primers with no contiguous genomic match, spliced-mRNA reconstruction (exons concatenated per the annotation) to confirm they cross a real exon-exon junction and pinpoint the breakpoint; population verification via exact liftover (<code>.chain</code>) of each genomic segment to the Colombian pseudogenome and direct sequence comparison. Full session detail in <code>CLAUDE.md</code> ("RT-qPCR primer verification").</p>
   </section>
 
   <section id="methods" class="divider-top">
-    <h2>Métodos (diseño de primers on-/off-target)</h2>
+    <h2>Methods (On-/Off-Target Primer Design)</h2>
     <p class="section-sub">
-      <code>eprimer3</code> (EMBOSS 6.6.0 + <code>primer3_core</code> 1.1.4) sobre una ventana de ±500pb alrededor del sitio de corte estimado, excluyendo ±75pb inmediatos al corte. Parámetros: Tm 58-62°C (óptimo 60), GC 40-60%, tamaño 200-400pb, hasta 5 candidatos por sitio. Especificidad verificada con <code>primersearch</code> contra el genoma completo (10% mismatch tolerado) — <span class="pill pill-safe">SPECIFIC</span> = un solo amplicón; <span class="pill pill-mod">WARN_MULTI_HIT</span> = el primer amplificaría también en otra(s) región(es) del genoma (posiciones listadas). Variantes poblacionales: liftover exacto vía archivo <code>.chain</code> + <code>minimap2 --cs</code> contra el pseudogenoma colombiano, marcando si alguna variante cae dentro del footprint genómico del primer forward o reverse.
+      <code>eprimer3</code> (EMBOSS 6.6.0 + <code>primer3_core</code> 1.1.4) over a ±500bp window around the estimated cut site, excluding ±75bp immediately around the cut. Parameters: Tm 58-62°C (optimum 60), GC 40-60%, size 200-400bp, up to 5 candidates per site. Specificity checked with <code>primersearch</code> against the whole genome (10% mismatch tolerance) — <span class="pill pill-safe">SPECIFIC</span> = a single amplicon; <span class="pill pill-mod">WARN_MULTI_HIT</span> = the primer would also amplify other region(s) of the genome (positions listed). Population variants: exact liftover via a <code>.chain</code> file + <code>minimap2 --cs</code> against the Colombian pseudogenome, flagging whether any variant falls within the forward or reverse primer's genomic footprint.
     </p>
     <div class="blocked-note" style="max-width:720px;">
-      ⚠ off_target_1 y off_target_7 no tienen candidatos: la ventana de referencia contiene códigos de ambigüedad IUPAC (K/M/R/S/W/Y — sitios heterocigotos sin resolver en el ensamblaje 2014) que <code>primer3_core</code> rechaza por completo. Confirmado que esto <b>no</b> afecta los resultados ya reportados de GATK/CRISPResso2 para estos 2 sitios (sus ventanas de análisis reales son mucho más angostas y están limpias) — ver <a href="../../docs/PIPELINE.md#9-diseño-de-primers-pcr">docs/PIPELINE.md</a>. Se repetirá contra el genoma v2 cuando esté disponible.
+      ⚠ off_target_1 and off_target_7 have no candidates: the reference window contains ambiguous IUPAC codes (K/M/R/S/W/Y — unresolved heterozygous sites in the 2014 assembly) that <code>primer3_core</code> rejects entirely. Confirmed this does <b>not</b> affect the already-reported GATK/CRISPResso2 results for these 2 sites (their actual analysis windows are much narrower and clean) — see <a href="../../docs/PIPELINE.md#9-pcr-primer-design">docs/PIPELINE.md</a>. Will be repeated against the v2 genome once available.
     </div>
   </section>
 
   <footer>
-    <p>Primer Design Report · generado a partir de analysis/offtarget_primers/bdnf_v1_primers.csv · off-target_data project.</p>
+    <p>Primer Design Report · generated from analysis/offtarget_primers/bdnf_v1_primers.csv · off-target_data project.</p>
   </footer>
 </div>
 
@@ -240,13 +240,13 @@ for(const site of SITES_ORDER){
     html += `<div class="blocked-note">⚠ ${first.design_note}</div>`;
   } else {
     html += `<div class="table-scroll"><table class="data"><thead><tr>
-      <th>#</th><th class="num">Producto</th><th>Forward 5'→3'</th><th class="num">Tm</th><th class="num">GC%</th>
-      <th>Reverse 5'→3'</th><th class="num">Tm</th><th class="num">GC%</th><th>Especificidad</th><th>Variante</th>
+      <th>#</th><th class="num">Product</th><th>Forward 5'→3'</th><th class="num">Tm</th><th class="num">GC%</th>
+      <th>Reverse 5'→3'</th><th class="num">Tm</th><th class="num">GC%</th><th>Specificity</th><th>Variant</th>
       </tr></thead><tbody>`;
     for(const r of rows){
       const best = r.specificity_status==="SPECIFIC" && r.primer_variant_flag==="NONE";
       html += `<tr class="${best?'best-row':''}">
-        <td>${r.primer_rank}</td><td class="num">${r.product_size}pb</td>
+        <td>${r.primer_rank}</td><td class="num">${r.product_size}bp</td>
         <td class="seq">${r.forward_seq}</td><td class="num">${Number(r.forward_tm).toFixed(1)}</td><td class="num">${Number(r.forward_gc).toFixed(0)}</td>
         <td class="seq">${r.reverse_seq}</td><td class="num">${Number(r.reverse_tm).toFixed(1)}</td><td class="num">${Number(r.reverse_gc).toFixed(0)}</td>
         <td>${specPill(r.specificity_status)}${r.specificity_extra_hits?`<div style="font-size:10.5px;color:var(--ink-faint);margin-top:2px;">${r.specificity_extra_hits}</div>`:""}</td>

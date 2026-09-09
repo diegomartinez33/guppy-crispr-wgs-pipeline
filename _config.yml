@@ -1,10 +1,10 @@
 title: Guppy CRISPR-Cas9 WGS Analysis Pipeline
 description: >-
-  Pipeline bioinformático para el análisis de WGS de edición CRISPR-Cas9 y
-  efectos off-target en Poecilia reticulata de una población colombiana,
-  con recursos genómicos poblacionales propios y herramientas reutilizables
-  para diseño de guías CRISPR y primers PCR.
-lang: es
+  Bioinformatics pipeline for WGS analysis of CRISPR-Cas9 editing efficiency
+  and off-target effects in a Colombian population of Poecilia reticulata,
+  with proprietary population genomic resources and reusable tools for
+  CRISPR guide and PCR primer design.
+lang: en
 
 markdown: kramdown
 kramdown:
@@ -15,9 +15,9 @@ kramdown:
 plugins:
   - jekyll-relative-links
 
-# Aplica el layout personalizado a toda página .md sin necesidad de
-# front-matter individual en cada archivo; asigna además un título de
-# pestaña distinto por página (sin tocar el markdown fuente).
+# Applies the custom layout to every .md page without needing per-file
+# front matter; also assigns a distinct tab title per page (without
+# touching the markdown source).
 defaults:
   - scope:
       path: ""
@@ -26,7 +26,7 @@ defaults:
   - scope:
       path: "README.md"
     values:
-      title: "Inicio"
+      title: "Home"
   - scope:
       path: "docs/PIPELINE.md"
     values:
@@ -38,15 +38,14 @@ defaults:
   - scope:
       path: "docs/RESULTS.md"
     values:
-      title: "Resultados"
+      title: "Results"
   - scope:
       path: "docs/CLUSTER_ACCESS.md"
     values:
-      title: "Acceso al clúster"
+      title: "Cluster Access"
 
-# CLAUDE.md es una bitácora de trabajo interna (verbosa, sin formato
-# pensado para lectura pública) - se mantiene en el repo pero no se
-# publica como página del sitio.
+# CLAUDE.md is an internal working log (verbose, not formatted for public
+# reading) - kept in the repo but not published as a site page.
 exclude:
   - CLAUDE.md
   - Gemfile

@@ -89,89 +89,89 @@
   <div class="topbar-inner">
     <span class="brand">Off-Target WGS Report</span>
     <nav class="jump">
-      <a href="#summary">Resumen</a>
-      <a href="#sites">Sitios</a>
-      <a href="#genotypes">Genotipos</a>
-      <a href="#editing">Edición</a>
-      <a href="#variants">Variantes</a>
+      <a href="#summary">Summary</a>
+      <a href="#sites">Sites</a>
+      <a href="#genotypes">Genotypes</a>
+      <a href="#editing">Editing</a>
+      <a href="#variants">Variants</a>
     </nav>
   </div>
 </header>
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · bdnf · genoma v1 (Guanapo/Trinidad)</span>
-    <h1>Análisis de off-targets por WGS: GATK + CRISPResso2</h1>
-    <p class="lede">Cuantificación de edición CRISPR y llamado de variantes en los 8 sitios off-target predichos computacionalmente (Cas-OFFinder + CRISPOR) para la guía de bdnf, en las 15 muestras del experimento, comparado contra el sitio on-target.</p>
+    <span class="eyebrow">Poecilia reticulata · bdnf · v1 genome (Guanapo/Trinidad)</span>
+    <h1>Off-Target WGS Analysis: GATK + CRISPResso2</h1>
+    <p class="lede">CRISPR editing quantification and variant calling at the 8 computationally predicted off-target sites (Cas-OFFinder + CRISPOR) for the bdnf guide, across the experiment's 15 samples, compared against the on-target site.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Muestras</div><div class="value">15 (4 grupos)</div></div>
-      <div class="scope-item"><div class="label">Sitios analizados</div><div class="value">1 on-target + 8 off-target</div></div>
-      <div class="scope-item"><div class="label">Herramientas</div><div class="value">GATK4 4.4.0.0 · CRISPResso2</div></div>
-      <div class="scope-item"><div class="label">Genoma</div><div class="value">GCF_000633615.1 (v1)</div></div>
+      <div class="scope-item"><div class="label">Samples</div><div class="value">15 (4 groups)</div></div>
+      <div class="scope-item"><div class="label">Sites analyzed</div><div class="value">1 on-target + 8 off-target</div></div>
+      <div class="scope-item"><div class="label">Tools</div><div class="value">GATK4 4.4.0.0 · CRISPResso2</div></div>
+      <div class="scope-item"><div class="label">Genome</div><div class="value">GCF_000633615.1 (v1)</div></div>
     </div>
   </section>
 
   <section id="summary">
-    <h2>Hallazgo principal</h2>
+    <h2>Main Finding</h2>
     <div class="callout finding">
-      <span class="eyebrow">Conclusión del análisis</span>
-      No se detectó ningún indel inducido por CRISPR en los 8 sitios off-target predichos, en ninguna de las 15 muestras (GATK ni CRISPRessoWGS). El único sitio con variantes detectadas (OT4) las tiene también el grupo Control — son polimorfismos poblacionales preexistentes, no un efecto de la edición.
+      <span class="eyebrow">Analysis conclusion</span>
+      No CRISPR-induced indel was detected at any of the 8 predicted off-target sites, in any of the 15 samples (neither GATK nor CRISPRessoWGS). The only site with detected variants (OT4) also has them in the Control group — they are pre-existing population polymorphisms, not an editing effect.
     </div>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">0/8</div><div class="kpi-label">sitios con indel inducido</div></div>
-      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">SNPs de fondo (OT4, preexistentes)</div></div>
-      <div class="kpi"><div class="kpi-value">~1.42M</div><div class="kpi-label">SNPs / muestra (genoma completo)</div></div>
-      <div class="kpi"><div class="kpi-value">1.37</div><div class="kpi-label">Ti/Tv promedio (calidad esperada)</div></div>
+      <div class="kpi"><div class="kpi-value">0/8</div><div class="kpi-label">sites with induced indel</div></div>
+      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">background SNPs (OT4, pre-existing)</div></div>
+      <div class="kpi"><div class="kpi-value">~1.42M</div><div class="kpi-label">SNPs / sample (genome-wide)</div></div>
+      <div class="kpi"><div class="kpi-value">1.37</div><div class="kpi-label">average Ti/Tv (expected quality)</div></div>
     </div>
   </section>
 
   <section id="sites" class="divider-top">
-    <h2>Los 9 sitios analizados</h2>
-    <p class="section-sub">On-target + 8 off-target, de <code>crispresso/offtargets/combined/combined_offtargets.csv</code> — fusión deduplicada (±2pb) de Cas-OFFinder + CRISPOR, con prioridad a las entradas de CRISPOR (traen score MIT/CFD + anotación de locus).</p>
+    <h2>The 9 Sites Analyzed</h2>
+    <p class="section-sub">On-target + 8 off-target, from <code>crispresso/offtargets/combined/combined_offtargets.csv</code> — deduplicated merge (±2bp) of Cas-OFFinder + CRISPOR, prioritizing CRISPOR entries (they carry MIT/CFD scores + locus annotation).</p>
     <div class="table-scroll">
       <table class="data" id="sites-table">
-        <thead><tr><th>Sitio</th><th>Coordenadas</th><th>Hebra</th><th class="num">Mismatches</th><th class="num">MIT</th><th class="num">CFD</th><th>Locus</th></tr></thead>
+        <thead><tr><th>Site</th><th>Coordinates</th><th>Strand</th><th class="num">Mismatches</th><th class="num">MIT</th><th class="num">CFD</th><th>Locus</th></tr></thead>
         <tbody id="sites-tbody"></tbody>
       </table>
     </div>
   </section>
 
   <section id="genotypes" class="divider-top">
-    <h2>Genotipos GATK en los 8 sitios off-target</h2>
-    <p class="section-sub">Extraídos del VCF conjunto filtrado (<code>gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz</code>) vía <code>gatk_offtarget_genotypes.py</code>. Solo <b>OT4</b> tiene variantes — ambas ya presentes en el grupo Control a frecuencia comparable, clasificadas como <span class="pill pill-mod">background_variant</span> (polimorfismo preexistente, no inducido por CRISPR).</p>
+    <h2>GATK Genotypes at the 8 Off-Target Sites</h2>
+    <p class="section-sub">Extracted from the filtered joint VCF (<code>gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz</code>) via <code>gatk_offtarget_genotypes.py</code>. Only <b>OT4</b> has variants — both already present in the Control group at a comparable frequency, classified as <span class="pill pill-mod">background_variant</span> (pre-existing polymorphism, not CRISPR-induced).</p>
     <div class="table-scroll">
       <table class="data" id="geno-table">
-        <thead><tr><th>Sitio</th><th>Posición</th><th>Ref&gt;Alt</th><th class="num">AF Control</th><th class="num">AF Only_MNP</th><th class="num">AF Plasmid_Ko</th><th class="num">AF RNP_Cas</th><th>Clasificación</th></tr></thead>
+        <thead><tr><th>Site</th><th>Position</th><th>Ref&gt;Alt</th><th class="num">AF Control</th><th class="num">AF Only_MNP</th><th class="num">AF Plasmid_Ko</th><th class="num">AF RNP_Cas</th><th>Classification</th></tr></thead>
         <tbody id="geno-tbody"></tbody>
       </table>
     </div>
-    <p class="section-sub" style="margin-top:14px;">Los otros 7 sitios (on-target incluido en su propio track de CRISPResso, off-targets 1,2,3,5,6,7,8) no tienen ningún registro en el VCF filtrado — sin evidencia de variante alguna, inducida o de fondo.</p>
+    <p class="section-sub" style="margin-top:14px;">The other 7 sites (on-target covered in its own CRISPResso track, off-targets 1,2,3,5,6,7,8) have no record at all in the filtered VCF — no evidence of any variant, induced or background.</p>
   </section>
 
   <section id="editing" class="divider-top">
-    <h2>% de edición por muestra (CRISPResso2 / CRISPRessoWGS)</h2>
-    <p class="section-sub">Porcentaje de lecturas modificadas (indeles) en la ventana de cuantificación de cada sitio, por muestra individual. Celdas en blanco = menos de 10 lecturas cubrieron la región (umbral <code>--min_reads_to_use_region 10</code>, resultado no reportado por CRISPResso). Escala de color: verde = 0%, ámbar/rojo = mayor edición detectada.</p>
+    <h2>% Editing per Sample (CRISPResso2 / CRISPRessoWGS)</h2>
+    <p class="section-sub">Percentage of modified reads (indels) in each site's quantification window, per individual sample. Blank cells = fewer than 10 reads covered the region (threshold <code>--min_reads_to_use_region 10</code>, result not reported by CRISPResso). Color scale: green = 0%, amber/red = higher detected editing.</p>
     <div class="table-scroll">
       <table class="data" id="edit-table">
-        <thead><tr><th>Muestra</th><th>Grupo</th><th class="num">On-target</th><th class="num">OT1</th><th class="num">OT2</th><th class="num">OT3</th><th class="num">OT4</th><th class="num">OT5</th><th class="num">OT6</th><th class="num">OT7</th><th class="num">OT8</th></tr></thead>
+        <thead><tr><th>Sample</th><th>Group</th><th class="num">On-target</th><th class="num">OT1</th><th class="num">OT2</th><th class="num">OT3</th><th class="num">OT4</th><th class="num">OT5</th><th class="num">OT6</th><th class="num">OT7</th><th class="num">OT8</th></tr></thead>
         <tbody id="edit-tbody"></tbody>
       </table>
     </div>
   </section>
 
   <section id="variants" class="divider-top">
-    <h2>Resumen de variantes genoma completo</h2>
-    <p class="section-sub">Conteo de SNPs/INDELs PASS por muestra (VCF conjunto filtrado, las 15 muestras), reflejando la divergencia genómica general entre la población colombiana y la referencia Guanapo/Trinidad — contexto de fondo, no específico de los sitios CRISPR.</p>
+    <h2>Genome-Wide Variant Summary</h2>
+    <p class="section-sub">Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites.</p>
     <div class="table-scroll">
       <table class="data" id="var-table">
-        <thead><tr><th>Muestra</th><th>Grupo</th><th class="num">SNPs</th><th class="num">Het</th><th class="num">Hom</th><th class="num">Ti/Tv</th><th class="num">INDELs</th><th class="num">Prof. media</th></tr></thead>
+        <thead><tr><th>Sample</th><th>Group</th><th class="num">SNPs</th><th class="num">Het</th><th class="num">Hom</th><th class="num">Ti/Tv</th><th class="num">INDELs</th><th class="num">Mean depth</th></tr></thead>
         <tbody id="var-tbody"></tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    <p>Off-Target WGS Report · generado a partir de codes/analysis/gatk_summary/*.csv, codes/analysis/editing_comparison/*.csv y crispresso/offtargets/combined/combined_offtargets.csv · off-target_data project.</p>
+    <p>Off-Target WGS Report · generated from codes/analysis/gatk_summary/*.csv, codes/analysis/editing_comparison/*.csv, and crispresso/offtargets/combined/combined_offtargets.csv · off-target_data project.</p>
   </footer>
 </div>
 

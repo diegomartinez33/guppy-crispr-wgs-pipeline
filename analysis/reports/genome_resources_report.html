@@ -106,97 +106,97 @@
   <div class="topbar-inner">
     <span class="brand">Colombian Genome Resources</span>
     <nav class="jump">
-      <a href="#compare">Comparación</a>
-      <a href="#assembly-qc">QC del ensamblaje</a>
-      <a href="#pseudogenome">Pseudogenoma</a>
+      <a href="#compare">Comparison</a>
+      <a href="#assembly-qc">Assembly QC</a>
+      <a href="#pseudogenome">Pseudogenome</a>
     </nav>
   </div>
 </header>
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · población colombiana</span>
-    <h1>Dos genomas de referencia poblacionales colombianos</h1>
-    <p class="lede">Recursos complementarios — no intercambiables — construidos a partir de las 3 réplicas del grupo Control, para que cualquier análisis futuro sobre esta población parta de una línea base que ya refleja sus variantes reales, en vez de la referencia de Trinidad/Guanapo.</p>
+    <span class="eyebrow">Poecilia reticulata · Colombian population</span>
+    <h1>Two Colombian Population Reference Genomes</h1>
+    <p class="lede">Complementary — not interchangeable — resources built from the 3 Control group replicates, so any future analysis on this population starts from a baseline that already reflects its real variants, instead of the Trinidad/Guanapo reference.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Muestras base</div><div class="value">3 réplicas Control</div></div>
-      <div class="scope-item"><div class="label">Referencia guía</div><div class="value">GCF_000633615.1 (v1)</div></div>
-      <div class="scope-item"><div class="label">Anotación</div><div class="value">Liftoff v1.5.1</div></div>
+      <div class="scope-item"><div class="label">Base samples</div><div class="value">3 Control replicates</div></div>
+      <div class="scope-item"><div class="label">Guide reference</div><div class="value">GCF_000633615.1 (v1)</div></div>
+      <div class="scope-item"><div class="label">Annotation</div><div class="value">Liftoff v1.5.1</div></div>
     </div>
   </section>
 
   <section id="compare">
-    <h2>Comparación de método</h2>
+    <h2>Method Comparison</h2>
     <div class="compare-grid">
       <div class="res-card pseudo">
-        <span class="tag">A · Pseudogenoma</span>
+        <span class="tag">A · Pseudogenome</span>
         <h3>bcftools consensus</h3>
         <dl>
-          <div><dt>Método</dt><dd>Sustitución de variantes de alta confianza (AF≥0.667) sobre la referencia</dd></div>
-          <div><dt>Variantes estructurales</dt><dd>No — solo SNPs/indeles cortos</dd></div>
-          <div><dt>Coordenadas</dt><dd>Casi idénticas a la referencia</dd></div>
-          <div><dt>Precisión base</dt><dd>Muy alta — derivada matemáticamente</dd></div>
-          <div><dt>Anotación (Liftoff)</dt><dd>99.5% transferida, 26,264 genes, 0 huérfanos</dd></div>
-          <div><dt>Recomendado para</dt><dd>Mapeo, variant calling, CRISPResso2, IGV</dd></div>
-          <div><dt>Estado</dt><dd><span class="pill pill-safe">Producción</span></dd></div>
+          <div><dt>Method</dt><dd>High-confidence variant substitution (AF≥0.667) onto the reference</dd></div>
+          <div><dt>Structural variants</dt><dd>No — SNPs/short indels only</dd></div>
+          <div><dt>Coordinates</dt><dd>Nearly identical to the reference</dd></div>
+          <div><dt>Base accuracy</dt><dd>Very high — mathematically derived</dd></div>
+          <div><dt>Annotation (Liftoff)</dt><dd>99.5% transferred, 26,264 genes, 0 orphans</dd></div>
+          <div><dt>Recommended for</dt><dd>Mapping, variant calling, CRISPResso2, IGV</dd></div>
+          <div><dt>Status</dt><dd><span class="pill pill-safe">Production</span></dd></div>
         </dl>
       </div>
       <div class="res-card denovo">
-        <span class="tag">B · Ensamblaje de novo</span>
-        <h3>SPAdes → RagTag → gap-filling → pulido</h3>
+        <span class="tag">B · De Novo Assembly</span>
+        <h3>SPAdes → RagTag → gap-filling → polishing</h3>
         <dl>
-          <div><dt>Método</dt><dd>Co-ensamblaje de novo + scaffolding guiado por referencia</dd></div>
-          <div><dt>Variantes estructurales</dt><dd>Sí, en principio</dd></div>
-          <div><dt>Coordenadas</dt><dd>Propias (sufijo <code>_RagTag</code>)</dd></div>
-          <div><dt>Precisión base</dt><dd>Calidad borrador — errores de ensamblaje posibles</dd></div>
-          <div><dt>Anotación (Liftoff)</dt><dd>bdnf: coverage=0.945, sequence_ID=0.923</dd></div>
-          <div><dt>Recomendado para</dt><dd>Análisis estructural, secuencia novedosa</dd></div>
-          <div><dt>Estado</dt><dd><span class="pill pill-denovo">Borrador</span></dd></div>
+          <div><dt>Method</dt><dd>De novo co-assembly + reference-guided scaffolding</dd></div>
+          <div><dt>Structural variants</dt><dd>Yes, in principle</dd></div>
+          <div><dt>Coordinates</dt><dd>Its own (<code>_RagTag</code> suffix)</dd></div>
+          <div><dt>Base accuracy</dt><dd>Draft quality — assembly errors possible</dd></div>
+          <div><dt>Annotation (Liftoff)</dt><dd>bdnf: coverage=0.945, sequence_ID=0.923</dd></div>
+          <div><dt>Recommended for</dt><dd>Structural analysis, novel sequence</dd></div>
+          <div><dt>Status</dt><dd><span class="pill pill-denovo">Draft</span></dd></div>
         </dl>
       </div>
     </div>
-    <p class="section-sub" style="margin-top:20px;">Detalle completo de cada uno (método paso a paso, QC completo, limitaciones): <a href="../../reference/pseudogenome/README.md">reference/pseudogenome/README.md</a> · <a href="../../reference/colombian_scaffolded_genome/README.md">reference/colombian_scaffolded_genome/README.md</a>.</p>
+    <p class="section-sub" style="margin-top:20px;">Full detail on each (step-by-step method, complete QC, limitations): <a href="../../reference/pseudogenome/README.md">reference/pseudogenome/README.md</a> · <a href="../../reference/colombian_scaffolded_genome/README.md">reference/colombian_scaffolded_genome/README.md</a>.</p>
   </section>
 
   <section id="assembly-qc" class="divider-top">
-    <h2>Progreso de QC del ensamblaje de novo (4 etapas)</h2>
-    <p class="section-sub">El gap-filling con lecturas Nanopore (~3.2x, ver <code>[[nanopore_epigenome_data]]</code>) fue la mejora real de completitud; el pulido posterior con Illumina corrige errores puntuales sin cambiar la estructura.</p>
+    <h2>De Novo Assembly QC Progress (4 Stages)</h2>
+    <p class="section-sub">Gap-filling with Nanopore reads (~3.2x, see <code>[[nanopore_epigenome_data]]</code>) was the real completeness improvement; the subsequent Illumina polishing fixes point errors without changing the structure.</p>
     <div class="stage-track">
       <div class="stage-pip">1 · raw scaffold</div>
-      <div class="stage-pip">2 · pulido (Illumina)</div>
+      <div class="stage-pip">2 · polished (Illumina)</div>
       <div class="stage-pip">3 · gap-filled (Nanopore)</div>
-      <div class="stage-pip final">4 · gap-filled + pulido</div>
+      <div class="stage-pip final">4 · gap-filled + polished</div>
     </div>
     <div class="table-scroll" style="margin-top:16px;">
       <table class="data" id="qc-table">
-        <thead><tr><th>Etapa</th><th class="num">BUSCO completo</th><th class="num">Fragmentado</th><th class="num">Ausente</th><th class="num">Fracción genoma</th><th class="num">N50</th><th class="num">Misassemblies</th></tr></thead>
+        <thead><tr><th>Stage</th><th class="num">BUSCO Complete</th><th class="num">Fragmented</th><th class="num">Missing</th><th class="num">Genome Fraction</th><th class="num">N50</th><th class="num">Misassemblies</th></tr></thead>
         <tbody id="qc-tbody"></tbody>
       </table>
     </div>
   </section>
 
   <section id="pseudogenome" class="divider-top">
-    <h2>Pseudogenoma — resumen de construcción</h2>
+    <h2>Pseudogenome — Construction Summary</h2>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">99.5%</div><div class="kpi-label">anotación transferida (Liftoff)</div></div>
+      <div class="kpi"><div class="kpi-value">99.5%</div><div class="kpi-label">annotation transferred (Liftoff)</div></div>
       <div class="kpi"><div class="kpi-value">26,264</div><div class="kpi-label">genes</div></div>
-      <div class="kpi"><div class="kpi-value">0</div><div class="kpi-label">registros huérfanos</div></div>
-      <div class="kpi"><div class="kpi-value">AF≥0.667</div><div class="kpi-label">umbral de inclusión de variante</div></div>
+      <div class="kpi"><div class="kpi-value">0</div><div class="kpi-label">orphaned records</div></div>
+      <div class="kpi"><div class="kpi-value">AF≥0.667</div><div class="kpi-label">variant inclusion threshold</div></div>
     </div>
-    <p class="section-sub">Construido con <code>bcftools consensus -H A</code> sobre las variantes PASS de los 3 Control con frecuencia ≥66.7% entre ellos (mayoría 2/3), aplicadas a la referencia Guanapo/Trinidad. Incluye un archivo <code>.chain</code> para liftover exacto de coordenadas — necesario porque el corrimiento acumulado por indeles no es despreciable (hasta ~2,800pb en el locus de bdnf, ~5,300pb en todo el cromosoma).</p>
+    <p class="section-sub">Built with <code>bcftools consensus -H A</code> over the 3 Controls' PASS variants at ≥66.7% frequency among them (2/3 majority), applied to the Guanapo/Trinidad reference. Includes a <code>.chain</code> file for exact coordinate liftover — needed because the indel-driven cumulative drift is not negligible (up to ~2,800bp at the bdnf locus, ~5,300bp across the whole chromosome).</p>
   </section>
 
   <footer>
-    <p>Colombian Genome Resources Report · generado a partir de assembly/qc_results/{busco,quast}_*/ y los README de reference/pseudogenome/ y reference/colombian_scaffolded_genome/ · off-target_data project.</p>
+    <p>Colombian Genome Resources Report · generated from assembly/qc_results/{busco,quast}_*/ and the READMEs of reference/pseudogenome/ and reference/colombian_scaffolded_genome/ · off-target_data project.</p>
   </footer>
 </div>
 
 <script>
 const QC_STAGES = [
   {stage:"1 · Raw scaffold", complete:87.1, frag:6.2, missing:6.7, gf:82.807, n50:28305693, mis:7589},
-  {stage:"2 · Pulido (Illumina)", complete:87.1, frag:6.1, missing:6.8, gf:82.038, n50:28304008, mis:8043},
+  {stage:"2 · Polished (Illumina)", complete:87.1, frag:6.1, missing:6.8, gf:82.038, n50:28304008, mis:8043},
   {stage:"3 · Gap-filled (Nanopore)", complete:95.4, frag:2.5, missing:2.1, gf:92.088, n50:29425112, mis:23532},
-  {stage:"4 · Gap-filled + pulido", complete:95.5, frag:2.4, missing:2.1, gf:92.209, n50:29409873, mis:23914},
+  {stage:"4 · Gap-filled + polished", complete:95.5, frag:2.4, missing:2.1, gf:92.209, n50:29409873, mis:23914},
 ];
 document.getElementById("qc-tbody").innerHTML = QC_STAGES.map((s,i)=>`
   <tr style="${i===3?'background:var(--accent-soft);':''}">
