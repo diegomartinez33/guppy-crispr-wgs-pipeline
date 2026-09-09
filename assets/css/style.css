@@ -1,0 +1,272 @@
+/* Guppy CRISPR WGS Pipeline site theme — same design tokens as the
+   analysis/reports/*.html reports (IBM Plex type system, teal/green
+   accent, light/dark tokens). */
+
+:root {
+  --bg: #F1F4F2;
+  --surface: #FFFFFF;
+  --surface-alt: #E7EDE9;
+  --ink: #182420;
+  --ink-soft: #51605A;
+  --ink-faint: #8A968F;
+  --border: #D4DDD7;
+  --border-strong: #B7C4BC;
+  --accent: #0E7A69;
+  --accent-ink: #083F37;
+  --accent-soft: #DFF0EC;
+  --safe: #2F7A4F;
+  --safe-soft: #E4F2E8;
+  --danger: #AC3A2E;
+  --danger-soft: #F7E5E2;
+  --high: #B4590F;
+  --high-soft: #F5E7D8;
+  --mod: #9C7A0A;
+  --mod-soft: #F3EED3;
+  --code-bg: #E7EDE9;
+  --shadow: 0 1px 2px rgba(20, 30, 26, 0.06), 0 6px 20px -8px rgba(20, 30, 26, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131A17;
+    --surface: #1B2420;
+    --surface-alt: #22302A;
+    --ink: #E7EEEA;
+    --ink-soft: #AEBCB4;
+    --ink-faint: #71827A;
+    --border: #2E3C35;
+    --border-strong: #3E4E45;
+    --accent: #4FC3AA;
+    --accent-ink: #B9EDE0;
+    --accent-soft: #1E3833;
+    --safe: #6FBE8B;
+    --safe-soft: #1D3327;
+    --danger: #E08A7C;
+    --danger-soft: #3A241F;
+    --high: #E3A868;
+    --high-soft: #3B2E1B;
+    --mod: #D8C468;
+    --mod-soft: #37311A;
+    --code-bg: #22302A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #131A17;
+  --surface: #1B2420;
+  --surface-alt: #22302A;
+  --ink: #E7EEEA;
+  --ink-soft: #AEBCB4;
+  --ink-faint: #71827A;
+  --border: #2E3C35;
+  --border-strong: #3E4E45;
+  --accent: #4FC3AA;
+  --accent-ink: #B9EDE0;
+  --accent-soft: #1E3833;
+  --safe: #6FBE8B;
+  --safe-soft: #1D3327;
+  --danger: #E08A7C;
+  --danger-soft: #3A241F;
+  --high: #E3A868;
+  --high-soft: #3B2E1B;
+  --mod: #D8C468;
+  --mod-soft: #37311A;
+  --code-bg: #22302A;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+h1, h2, h3, h4 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  text-wrap: balance;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.6em 0 0.5em;
+}
+.markdown-content > h1:first-child,
+.markdown-content > h2:first-child { margin-top: 0; }
+
+h1 { font-size: clamp(28px, 4.2vw, 38px); }
+h2 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+h3 { font-size: 19px; }
+h4 { font-size: 16px; }
+
+p, li { color: var(--ink); }
+p { max-width: 74ch; }
+
+a { color: var(--accent-ink); text-decoration-color: color-mix(in srgb, var(--accent-ink) 40%, transparent); }
+a:hover { text-decoration-color: var(--accent-ink); }
+
+code, kbd, pre, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+code {
+  background: var(--code-bg);
+  color: var(--accent-ink);
+  padding: 0.15em 0.4em;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+pre code { background: none; padding: 0; color: var(--ink); font-size: 13.5px; }
+
+blockquote {
+  margin: 1em 0;
+  padding: 4px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+  color: var(--ink-soft);
+}
+
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+
+ul, ol { padding-left: 1.4em; }
+li { margin: 0.3em 0; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); margin: 1.2em 0; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+}
+th, td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 14.5px;
+}
+th {
+  background: var(--surface-alt);
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--surface-alt); }
+
+img { max-width: 100%; border-radius: 8px; }
+
+/* ---- header / nav ---- */
+header.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand {
+  font-family: "IBM Plex Serif", serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+nav.jump { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+nav.jump a {
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+nav.jump a:hover, nav.jump a.active { color: var(--accent-ink); }
+
+#theme-toggle {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1;
+}
+#theme-toggle:hover { border-color: var(--border-strong); color: var(--ink); }
+
+/* ---- masthead (used on the homepage / README) ---- */
+.masthead {
+  padding: 48px 0 8px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+footer.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 0 30px;
+  color: var(--ink-faint);
+  font-size: 12.5px;
+}
+footer.site-footer .wrap { padding-top: 24px; }
+footer.site-footer a { color: var(--ink-faint); }
+
+/* ---- mermaid diagrams (rendered client-side from fenced ```mermaid blocks) ---- */
+.mermaid {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 1.4em 0;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+/* kramdown/rouge wraps unrecognized-language code blocks like this;
+   hide the raw block once mermaid.js has rendered its replacement */
+.language-mermaid.highlighter-rouge { display: none; }
