@@ -1608,6 +1608,92 @@ run against v1; the v2
 cross-check was reference-vs-reference only (no Colombian variants
 factored in for v2).
 
+**Follow-up 2026-09-09, part 1 - explicit exon-membership check for
+BDNF/actb2, and a verified replacement rpl_13a_F.** User asked whether
+the RT-qPCR verification above was actually done against mRNA (spliced)
+sequence rather than raw genomic DNA - important because RT-qPCR must
+amplify mRNA/cDNA, unlike the CRISPR on-/off-target primers
+(`design_offtarget_primers.py`), which correctly and intentionally stay
+in genomic-DNA space since Cas9 cuts genomic DNA. Audit result: every
+primer that needed exon-junction handling (Beta_actin_R, rpl_13a_F/R,
+myosin - see part 2 below) was already checked via spliced-mRNA
+reconstruction. For BDNF_F/R and Beta_actin_F, which matched directly in
+raw genomic search, exon membership had never been explicitly confirmed
+(only implicitly assumed). Now confirmed: BDNF_F
+(`NC_024333.1:15921748-15921767`) and BDNF_R
+(`NC_024333.1:15921683-15921702`) both fall entirely inside bdnf's large
+terminal exon (`15920888-15922140`, 1253bp - the exon shared by
+essentially all annotated bdnf isoforms, also containing the sgRNA cut
+site); Beta_actin_F (`NC_024338.1:8809554-8809574`) falls entirely
+inside actb2's exon 6 (`8809512-8809602`). No conclusion changes, but the
+methodology gap (assuming vs. confirming exon membership) is now closed.
+
+Also produced, per user request, a **replacement rpl_13a_F** free of the
+Colombian SNP found in the original: `TCTGGAGAGGCTGAAGGTGT` (paired with
+the unchanged `rpl_13a_R`, product 122bp), designed by the user in
+Primer3Plus directly against the pseudogenome-derived spliced-mRNA
+sequence provided earlier in the session. Deliberately positioned
+upstream of the SNP site (not just avoiding it by chance) - since the
+whole design started from the region of the transcript where v1, v2,
+and the pseudogenome are already identical, this primer is functional
+for mRNA amplification regardless of which of the three genomes the
+template effectively derives from. Verified independently (exact
+substring search in v1 + v2, liftover to the pseudogenome): 100%
+identical in all three, and falls entirely within a single rpl13a exon
+(no junction, simpler than the original `rpl_13a_F`). Added as the
+recommended replacement in `analysis/reports/primer_design_report.html`
+(the original flagged as superseded, kept for the record).
+
+**Follow-up 2026-09-09, part 2 - miosina_guppy_F/R correction: real
+guppy gene, earlier "no match" was a search-coverage gap, not a true
+negative.** User ran an independent NCBI BLAST on a primer fragment and
+got 100%-identical hits to real *P. reticulata* myosin heavy chain
+mRNAs, contradicting the 2026-09-08 conclusion. Root cause of the
+original miss: that search only scanned genes whose GFF `gene=` symbol
+matched `myh*`/`myo*`/`myl*` - but guppy's fast-skeletal-muscle myosin
+heavy chain genes are annotated under generic `LOC########` IDs with no
+short symbol assigned, so the regex silently skipped the entire relevant
+gene family (confirmed by re-searching v1's GFF by product description
+instead of symbol: at least 9+ `LOC*` "myosin heavy chain, fast skeletal
+muscle(-like)" paralogs exist, none matching the earlier regex).
+
+Found a tandem cluster of 3 paralogous fast-skeletal myosin heavy chain
+genes in v2 (`LOC108166486`, `LOC108166487`, `LOC145552582`, ~60kb on
+`NC_088837.1`) - `LOC108166487` has the identical GeneID also present in
+v1 (`NC_024338.1:14209565-14290632`), confirming true orthology, not a
+different species. Proper indel-aware alignment (EMBOSS `water`, not the
+fixed-length Hamming-distance scan used on 2026-09-08, which cannot
+represent indels and had misrepresented this as "3 mismatches"):
+against v2's `LOC145552582` spliced mRNA, `miosina_guppy_F` is 19/20
+(95%) identical via a single clean 1bp indel; `miosina_guppy_R` is 18/20
+(90%) identical via 2 substitutions, no gaps. All 3 v2 paralogs show
+essentially the same pattern for F; R's mismatch count varies slightly
+by paralog (2-3bp). v1's copy of `LOC108166487` is a much shorter,
+apparently fragmentary transcript model (3,632bp vs v2's 6,033bp) with
+no good match for the F primer there (best available even allowing
+mismatches: 6/19, i.e. essentially unrelated) - consistent with v1's
+known lower assembly quality specifically affecting this repetitive,
+tandemly-duplicated locus; R still matches reasonably in v1 (3/20).
+
+Corrected conclusion: `miosina_guppy_F/R` are genuine *P. reticulata*
+myosin heavy chain (fast skeletal muscle) primers, not primers from
+another species as previously concluded - close to, but not a perfect
+match for, any single one of the 3 tandem paralogs (plausibly designed
+against a related transcript build/EST, or reflecting real paralog-to-
+paralog variation, common for recently duplicated genes). Likely still
+functional, possibly cross-amplifying more than one paralog (which may
+be intentional if the goal is a general fast-twitch-muscle marker rather
+than one specific transcript) - recommended empirical validation (melt
+curve, gel band size, or amplicon sequencing), and noted that v1-based
+amplification specifically may be less reliable given that genome's
+fragmentary assembly of this locus. **Methodological lesson generalized
+to the whole RT-qPCR verification method**: gene search must match by
+product/description as a fallback, not gene symbol alone, and near
+(non-0-mismatch) hits must be checked with an indel-aware aligner
+(`water`/`needle`) rather than a fixed-length Hamming scan, which can
+turn a single indel into a misleadingly large apparent mismatch count.
+Corrected in `analysis/reports/primer_design_report.html`.
+
 ---
 
 ## Pending Analyses
