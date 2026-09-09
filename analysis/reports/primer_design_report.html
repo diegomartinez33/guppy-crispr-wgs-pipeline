@@ -145,24 +145,24 @@
     <p class="section-sub">Consulta puntual (2026-09-08), fuera del pipeline automático de diseño: 4 pares de primers de RT-qPCR <b>ya en uso en el laboratorio</b> (no diseñados por este proyecto) — bdnf y 3 genes de referencia/housekeeping (miosina, beta-actina, rpl13a) — verificados contra el genoma v1 (genoma de diseño original), el genoma v2, y el pseudogenoma colombiano, para investigar resultados de RT-qPCR inconsistentes.</p>
 
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">pares con sitio confirmado en v1</div></div>
+      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">pares con sitio confirmado en v1 y v2</div></div>
       <div class="kpi"><div class="kpi-value">3/4</div><div class="kpi-label">genes correctamente identificados</div></div>
       <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">SNP colombiano encontrado (rpl_13a_F)</div></div>
-      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">par sin sitio localizable (miosina)</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">par sin sitio localizable, ni en v1 ni en v2 (miosina)</div></div>
     </div>
 
     <div class="table-scroll">
       <table class="rtqpcr-table">
         <thead><tr><th>Primer</th><th>Gen confirmado</th><th>¿Cruza unión exón-exón?</th><th>v1 (diseño)</th><th>v2 (macho)</th><th>Pseudogenoma colombiano</th></tr></thead>
         <tbody>
-          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code>)</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(no actb1)</span></td><td>No</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Sí (exón 5/6)</td><td><span class="pill pill-safe">100%</span></td><td>no evaluado</td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code> / <code>NC_088832.1</code>)</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(no actb1)</span></td><td>No</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
+          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Sí (exón 5/6)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
           <tr><td class="seq">rpl_13a_F</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-danger">1 SNP</span></td></tr>
           <tr><td class="seq">rpl_13a_R</td><td>rpl13a</td><td>Sí (exón 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDÉNTICO</span></td></tr>
-          <tr><td class="seq">miosina_guppy_F</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable — ver hallazgo abajo</td></tr>
-          <tr><td class="seq">miosina_guppy_R</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable — ver hallazgo abajo</td></tr>
+          <tr><td class="seq">miosina_guppy_F</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable en v1 ni en v2 — ver hallazgo abajo</td></tr>
+          <tr><td class="seq">miosina_guppy_R</td><td colspan="5" style="color:var(--ink-faint);">sin sitio localizable en v1 ni en v2 — ver hallazgo abajo</td></tr>
         </tbody>
       </table>
     </div>
@@ -178,8 +178,8 @@
     </div>
 
     <div class="finding-card danger">
-      <h3>⚠ miosina_guppy_F/R: sin sitio de unión identificable en el genoma de guppy</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Búsqueda exhaustiva en v1: 0 coincidencias exactas en todo el genoma; 0 coincidencias con hasta 2 mismatches contra los <b>58 genes</b> de la familia miosina (<code>myh*</code>/<code>myo*</code>/<code>myl*</code>, 156 transcritos, ARNm empalmado completo). No es un problema de variantes poblacionales — sugiere que estos primers se diseñaron contra la secuencia de otra especie o un modelo de transcrito que ya no coincide con este ensamblaje. Si el RT-qPCR falla de forma sistemática con este par, este es el motivo más probable, independiente de la población de origen de las muestras.</p>
+      <h3>⚠ miosina_guppy_F/R: sin sitio de unión identificable en ningún genoma de guppy</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Búsqueda exhaustiva: 0 coincidencias exactas en todo el genoma v1; 0 coincidencias con hasta 2 mismatches contra los <b>58 genes</b> de la familia miosina en v1 (<code>myh*</code>/<code>myo*</code>/<code>myl*</code>, 156 transcritos, ARNm empalmado completo). <b>Repetido de forma independiente contra v2</b> (macho, anotación más completa): <b>64 genes</b> candidatos, <b>199 transcritos</b> — de nuevo 0 coincidencias, incluso con 2 mismatches. Dos ensamblajes y anotaciones distintas coinciden en no tener ningún gen de la familia miosina compatible con estos primers, lo que descarta que sea un problema de anotación incompleta de un solo genoma. No es un problema de variantes poblacionales — sugiere que estos primers se diseñaron contra la secuencia de otra especie o un modelo de transcrito que nunca existió en <i>P. reticulata</i>. Si el RT-qPCR falla de forma sistemática con este par, este es el motivo más probable, independiente de la población de origen de las muestras.</p>
     </div>
 
     <p class="section-sub" style="margin-top:18px;">Metodología: localización por búsqueda de subcadena exacta (+ complemento reverso) contra el genoma completo; para primers sin coincidencia genómica contigua, reconstrucción del ARNm empalmado (exones concatenados según la anotación) para confirmar que cruzan una unión exón-exón real y ubicar el punto de corte; verificación poblacional por liftover exacto (<code>.chain</code>) de cada segmento genómico hacia el pseudogenoma colombiano y comparación directa de secuencia. Detalle completo de la sesión en <code>CLAUDE.md</code> ("RT-qPCR primer verification").</p>

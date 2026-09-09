@@ -1551,14 +1551,20 @@ then direct sequence comparison at the exact lifted coordinates.
 Findings:
 - **BDNF_F/BDNF_R**: exact single-locus match in v1 (`NC_024333.1`,
   within the gene body, upstream of the sgRNA cut site), 100% identical
-  in the pseudogenome. No issue.
+  in the pseudogenome. Also 100% exact match in v2 (`NC_088832.1`,
+  same `bdnf` gene, GeneID 103462396). No issue in any genome checked.
 - **Beta_actin_F/Beta_actin_R**: target is **actb2** (`NC_024338.1`), NOT
   actb1 (a different, unrelated actin paralog at `NC_024331.1`) -
   confirmed via the GFF's `gene_synonym=actb,beta-actin` tag on actb2.
   Beta_actin_R spans the exon5/exon6 junction (confirmed via spliced
   mRNA - a raw genomic substring search alone found a misleading 16bp
   partial match 2bp past the true exon boundary, coincidental). Both
-  100% identical in the pseudogenome.
+  100% identical in the pseudogenome. Also confirmed 100% exact in v2
+  (`NC_088837.1`, same `actb2` GeneID 103468476) using the SAME curated
+  transcript (`NM_001297475.1`, present under that identical accession in
+  both v1 and v2 annotations - v2 additionally has a newer computed
+  variant X1, `XM_081609546.1`, not used here) - identical spliced-mRNA
+  match positions (29-49, 85-105) in both genome versions.
 - **rpl_13a_R**: target is rpl13a (`NC_024352.1` in v1, `NC_088851.1` in
   v2, same GeneID 103458827 in both RefSeq annotations), spans the
   exon1/exon2 junction, 100% identical in the pseudogenome.
@@ -1579,17 +1585,26 @@ Findings:
 - **miosina_guppy_F/miosina_guppy_R**: **no binding site found anywhere**
   in the v1 genome - zero exact matches genome-wide, and zero matches
   within 2 mismatches against the spliced mRNA of all 58 `myh*`/`myo*`/
-  `myl*`-family genes (156 transcripts) in the v1 GFF. This is NOT a
-  population-variant issue - most likely these primers were designed
-  against a different species' sequence or a transcript model this
-  RefSeq build doesn't share; flagged as the probable real root cause if
-  RT-qPCR fails specifically with this pair, independent of sample
-  population. Recommended the user verify the primers' original source
-  and, if needed, redesign against a real *P. reticulata* myosin gene
-  using the existing primer-design pipeline (#9 above).
+  `myl*`-family genes (156 transcripts) in the v1 GFF. **Repeated
+  independently against v2** (2026-09-08, same day): 64 candidate
+  myh/myo/myl genes (more than v1, thanks to v2's more complete
+  annotation), 199 transcripts - again zero matches within 2 mismatches.
+  Two independent genome assemblies/annotations agreeing on a total miss
+  rules out "incomplete annotation of one specific genome" as the
+  explanation. This is NOT a population-variant issue - most likely
+  these primers were designed against a different species' sequence or a
+  transcript model that never existed for *P. reticulata*; flagged as
+  the probable real root cause if RT-qPCR fails specifically with this
+  pair, independent of sample population. Recommended the user verify
+  the primers' original source and, if needed, redesign against a real
+  *P. reticulata* myosin gene using the existing primer-design pipeline
+  (#9 above).
 
-No v2 pseudogenome exists yet (see item #8's migration status), so the
-population-variant check itself could only be run against v1; the v2
+BDNF and actb2 v2 checks used the same exact-substring / spliced-mRNA
+method as v1 (see Method above) - no new technique needed, just re-run
+against the v2 FASTA+GFF. No v2 pseudogenome exists yet (see item #8's
+migration status), so the population-variant check itself could only be
+run against v1; the v2
 cross-check was reference-vs-reference only (no Colombian variants
 factored in for v2).
 
