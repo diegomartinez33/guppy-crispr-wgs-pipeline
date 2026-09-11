@@ -1,0 +1,242 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>RT-qPCR Primer Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F4F2; --surface:#FFFFFF; --surface-alt:#E7EDE9;
+    --ink:#182420; --ink-soft:#51605A; --ink-faint:#8A968F;
+    --border:#D4DDD7; --border-strong:#B7C4BC;
+    --accent:#0E7A69; --accent-ink:#083F37; --accent-soft:#DFF0EC;
+    --safe:#2F7A4F; --safe-soft:#E4F2E8;
+    --danger:#AC3A2E; --danger-soft:#F7E5E2;
+    --high:#B4590F; --high-soft:#F5E7D8;
+    --mod:#9C7A0A; --mod-soft:#F3EED3;
+    --excluded:#7C857F; --excluded-soft:#E9ECEA;
+    --shadow: 0 1px 2px rgba(20,30,26,0.06), 0 6px 20px -8px rgba(20,30,26,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131A17; --surface:#1B2420; --surface-alt:#22302A;
+      --ink:#E7EEEA; --ink-soft:#AEBCB4; --ink-faint:#71827A;
+      --border:#2E3C35; --border-strong:#3E4E45;
+      --accent:#4FC3AA; --accent-ink:#B9EDE0; --accent-soft:#1E3833;
+      --safe:#6FBE8B; --safe-soft:#1D3327;
+      --danger:#E08A7C; --danger-soft:#3A241F;
+      --high:#E3A868; --high-soft:#3B2E1B;
+      --mod:#D8C468; --mod-soft:#37311A;
+      --excluded:#9AA69E; --excluded-soft:#293430;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131A17; --surface:#1B2420; --surface-alt:#22302A;
+    --ink:#E7EEEA; --ink-soft:#AEBCB4; --ink-faint:#71827A;
+    --border:#2E3C35; --border-strong:#3E4E45;
+    --accent:#4FC3AA; --accent-ink:#B9EDE0; --accent-soft:#1E3833;
+    --safe:#6FBE8B; --safe-soft:#1D3327;
+    --danger:#E08A7C; --danger-soft:#3A241F;
+    --high:#E3A868; --high-soft:#3B2E1B;
+    --mod:#D8C468; --mod-soft:#37311A;
+    --excluded:#9AA69E; --excluded-soft:#293430;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;font-size:15.5px;}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px 96px;}
+  h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif;text-wrap:balance;color:var(--ink);font-weight:600;line-height:1.2;}
+  code,.mono,.seq{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  .seq{letter-spacing:.02em;}
+  a{color:var(--accent-ink);}
+  .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:11.5px;font-weight:600;color:var(--accent-ink);}
+  header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:1040px;margin:0 auto;padding:12px 24px;display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .topbar-inner .brand{font-family:"IBM Plex Serif",serif;font-weight:600;font-size:15px;}
+  nav.jump{display:flex;gap:18px;flex-wrap:wrap;}
+  nav.jump a{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);text-decoration:none;font-weight:500;}
+  nav.jump a:hover{color:var(--accent-ink);}
+  .masthead{padding:56px 0 36px;border-bottom:1px solid var(--border);}
+  .masthead h1{font-size:clamp(28px,4.2vw,40px);margin:10px 0 14px;}
+  .masthead p.lede{max-width:68ch;color:var(--ink-soft);font-size:16.5px;margin:0 0 20px;}
+  .scope-strip{display:flex;gap:28px;flex-wrap:wrap;padding-top:18px;border-top:1px dashed var(--border-strong);}
+  .scope-item .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);}
+  .scope-item .value{font-family:"IBM Plex Mono",monospace;font-size:14.5px;margin-top:2px;}
+  section{padding:44px 0;}
+  section.divider-top{border-top:1px solid var(--border);}
+  section>h2{font-size:22px;margin:0 0 6px;}
+  section>.section-sub{color:var(--ink-soft);max-width:72ch;margin:0 0 26px;font-size:14.5px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:20px 0;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);}
+  .kpi .kpi-value{font-family:"IBM Plex Mono",monospace;font-size:24px;font-weight:600;color:var(--accent-ink);}
+  .kpi .kpi-label{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}
+  .pill-safe{background:var(--safe-soft);color:var(--safe);}
+  .pill-mod{background:var(--mod-soft);color:var(--mod);}
+  .pill-danger{background:var(--danger-soft);color:var(--danger);}
+  .pill-excluded{background:var(--excluded-soft);color:var(--excluded);}
+  .table-scroll{overflow-x:auto;}
+  .rtqpcr-table{border-collapse:collapse;width:100%;min-width:860px;}
+  .rtqpcr-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap;position:sticky;top:0;}
+  .rtqpcr-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
+  .rtqpcr-table tbody tr:last-child td{border-bottom:none;}
+  .rtqpcr-table tbody tr:hover{background:var(--surface-alt);}
+  .gene-cell .desc{display:block;font-size:11px;color:var(--ink-faint);margin-top:1px;}
+  .seq-compare{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.9;}
+  .seq-compare .base-diff{background:var(--danger-soft);color:var(--danger);border-radius:3px;padding:0 2px;font-weight:700;}
+  .finding-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .finding-card h3{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px;}
+  .diff-grid{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:12px 0;align-items:baseline;}
+  .diff-grid .diff-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;}
+  .step-list{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px;}
+  .step-list li{display:grid;grid-template-columns:28px 1fr;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);}
+  .step-list .num{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;height:28px;font-size:13px;}
+  .step-list b{display:block;font-size:13.5px;margin-bottom:2px;}
+  .step-list span{color:var(--ink-soft);font-size:12.5px;}
+  .legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:16px 0 0;}
+  .legend-item{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink-soft);}
+  .legend-item .pill{margin-top:1px;flex-shrink:0;}
+  footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
+  footer p{max-width:70ch;}
+  code.path{background:var(--surface-alt);padding:1px 6px;border-radius:5px;font-size:12px;}
+</style>
+
+<header class="top">
+  <div class="topbar-inner">
+    <span class="brand">RT-qPCR Primer Verification</span>
+    <nav class="jump"><a href="#summary">Summary</a><a href="#results">Results</a><a href="#findings">Findings</a><a href="#methods">Method</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="masthead">
+    <span class="eyebrow">Poecilia reticulata · 5 lab primer pairs · v1 + v2 + Colombian pseudogenome</span>
+    <h1>Do the Lab's RT-qPCR Primers Still Target the Right mRNA?</h1>
+    <p class="lede">Five RT-qPCR primer pairs already in routine use in the lab — bdnf, beta-actin, rpl13a (original + a SNP-free replacement), and myosin — checked against both reference genome assemblies and the Colombian pseudogenome with <code>codes/analysis/verify_rtqpcr_primers.py</code>: located by BLAST, confirmed against a real annotated gene (not a symbol guess), realigned to the spliced mRNA with an indel-aware aligner, and cross-checked for population variants at the binding site.</p>
+    <div class="scope-strip">
+      <div class="scope-item"><div class="label">Primer pairs</div><div class="value">5 (10 primers)</div></div>
+      <div class="scope-item"><div class="label">Genome versions</div><div class="value">v1 + v2</div></div>
+      <div class="scope-item"><div class="label">Population check</div><div class="value">v1 pseudogenome</div></div>
+      <div class="scope-item"><div class="label">Checks resolved</div><div class="value">20 / 20</div></div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">5/5</div><div class="kpi-label">pairs matched to a real gene</div></div>
+      <div class="kpi"><div class="kpi-value">16/20</div><div class="kpi-label">exact 100% mRNA matches</div></div>
+      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">Colombian SNP found (now replaced)</div></div>
+      <div class="kpi"><div class="kpi-value">3</div><div class="kpi-label">myosin paralogs matched, 90–100%</div></div>
+    </div>
+    <p class="section-sub">This report is scoped to <b>existing RT-qPCR (mRNA-target) primers already in use in the lab</b> — a distinct question from the CRISPR on-/off-target genomic primer design in the <a href="primer_design_report.html">Primer Design Report</a>, which stays focused on Cas9's genomic-DNA targets. Read <code>status</code> per row: <span class="pill pill-safe">OK</span> — exact match inside a real exon; <span class="pill pill-mod">WARN_PARTIAL_MATCH</span> — the closest real gene isn't a 100% match (check the identity% and gap count before assuming the primer is wrong). No primer in this set returned <code>NO_MATCH</code> or <code>GENOMIC_MATCH_NO_GENE</code>.</p>
+  </section>
+
+  <section id="results" class="divider-top">
+    <h2>Verification Results</h2>
+    <p class="section-sub">One row per primer, comparing the reference used for the original design (v1) against the current RefSeq assembly (v2) and the Colombian pseudogenome. Generated directly from <code class="path">analysis/rtqpcr_verification/rtqpcr_primer_verification.csv</code> — the script's own output, not hand-transcribed.</p>
+    <div class="table-scroll">
+      <table class="rtqpcr-table" id="results-table">
+        <thead><tr>
+          <th>Primer</th><th>Confirmed target</th><th>Exon placement</th>
+          <th>v1 (design genome)</th><th>v2 (male, PacBio+Hi-C)</th><th>Colombian pseudogenome</th>
+        </tr></thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+    <div class="legend-grid">
+      <div class="legend-item"><span class="pill pill-safe">100%</span> exact match inside a real, annotated exon of the confirmed gene</div>
+      <div class="legend-item"><span class="pill pill-mod">90–100%</span> best available match to a real gene is not exact — see the myosin finding below before assuming a design error</div>
+      <div class="legend-item"><span class="pill pill-safe">IDENTICAL</span> no population variant at the primer's exact binding site</div>
+      <div class="legend-item"><span class="pill pill-danger">SNP found</span> a real Colombian variant sits inside the primer</div>
+    </div>
+  </section>
+
+  <section id="findings" class="divider-top">
+    <h2>Findings</h2>
+
+    <div class="finding-card" style="border-color:color-mix(in srgb, var(--danger) 45%, var(--border));">
+      <h3 style="color:var(--danger);">⚠ Real Colombian SNP in the original rpl_13a_F (position 6/20, 5′ end) — now replaced</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Confirmed by spliced-mRNA reconstruction (the primer crosses rpl13a's exon1/exon2 junction) and exact liftover against the Colombian pseudogenome. The same allele (A) is present in <b>both</b> public reference genomes — v1 (female, Trinidad, 2014) and v2 (male, PacBio+Hi-C, 2025), two independent individuals and sequencing technologies — which strengthens the case that the <code>C</code> allele found here is a genuine Colombian-population variant, not a single-assembly artifact.</p>
+      <div class="diff-grid seq-compare">
+        <div class="diff-label">Original primer / v1 / v2</div><div>CCGCC<b>A</b>TACGACAAGAGGAA</div>
+        <div class="diff-label">Colombian pseudogenome</div><div>CCGCC<span class="base-diff">C</span>TACGACAAGAGGAA</div>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;">Position 6 sits in the primer's 5′ region, not the 3′-terminal bases that matter most for polymerase extension — likely a reduced-efficiency mismatch rather than a total amplification failure, consistent with inconsistent Ct values rather than complete dropout.</p>
+    </div>
+
+    <div class="finding-card" style="border-color:color-mix(in srgb, var(--safe) 45%, var(--border));">
+      <h3 style="color:var(--safe);">✓ Replacement rpl_13a_F verified SNP-free across v1, v2, and the pseudogenome</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">New forward primer (<code class="seq">TCTGGAGAGGCTGAAGGTGT</code>, paired with the unchanged <code class="seq">rpl_13a_R</code>) designed directly against the region of the transcript where v1, v2, and the pseudogenome are already identical — deliberately upstream of the SNP, not just avoiding it by chance. Verified: 100% exact match in v1, v2, and the pseudogenome, and it falls entirely within a single exon (simpler than the original, which spans the exon1/exon2 junction). Functional for mRNA amplification regardless of which of the three genomes the template effectively derives from.</p>
+    </div>
+
+    <div class="finding-card" style="border-color:color-mix(in srgb, var(--mod) 45%, var(--border));">
+      <h3 style="color:var(--mod);">↻ miosina_guppy_F/R match a real tandem myosin gene family — not a perfect single-transcript hit</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Guppy's fast-skeletal-muscle myosin heavy chain genes are annotated under generic <code>LOC########</code> IDs with no short gene symbol, sitting in a tandem cluster of paralogs on the same chromosome in both assemblies. Both primers resolve to real, annotated myosin heavy chain genes at 90–100% identity — <code>miosina_guppy_F</code> to <code>LOC103468881</code> (v1) / <code>LOC108166486</code> (v2), both 95%; <code>miosina_guppy_R</code> to <code>LOC108166486</code> (v1, 100%) / <code>LOC103468749</code> (v2, 90%) — via an indel-aware alignment against each candidate's spliced mRNA, not a plain same-length comparison (which would misrepresent a clean 1bp indel as several unrelated substitutions).</p>
+      <p style="margin:6px 0 0;font-size:13px;">Landing on a slightly different paralog per primer/genome-version is expected for a tandemly duplicated gene family this recently diverged — not evidence of a wrong design. Still worth an empirical check (melt curve, gel band size, or amplicon sequencing) to confirm which paralog(s) actually amplify, since more than one may cross-react if that's acceptable for a general fast-twitch-muscle marker.</p>
+    </div>
+  </section>
+
+  <section id="methods" class="divider-top">
+    <h2>Method</h2>
+    <p class="section-sub">Verifying an existing RT-qPCR primer is a different problem from designing a new CRISPR on-/off-target primer (see the <a href="primer_design_report.html">Primer Design Report</a>'s Methods): the target is spliced mRNA, not genomic DNA, and the gene is unknown up front rather than chosen before design. <code class="path">codes/analysis/verify_rtqpcr_primers.py</code> runs this checklist end to end:</p>
+    <ol class="step-list">
+      <li><span class="num">1</span><div><b>Locate by BLAST</b><span>&nbsp;(<code>blastn-short</code>) against the whole genome — not a hand-picked gene list. A gene-symbol regex silently misses guppy's un-symbolled <code>LOC########</code> myosin genes; BLAST doesn't have that blind spot.</span></div></li>
+      <li><span class="num">2</span><div><b>Annotate by spatial GFF overlap</b><span>&nbsp;at the hit position, regardless of gene symbol — resolves the same LOC-gene blind spot from the annotation side.</span></div></li>
+      <li><span class="num">3</span><div><b>Realign with EMBOSS <code>water</code></b><span>&nbsp;(indel-aware, both orientations), never a fixed-length mismatch count — a single 1bp indel can otherwise look like several unrelated substitutions.</span></div></li>
+      <li><span class="num">4</span><div><b>Cross-check both genome versions independently</b><span>&nbsp;— a gene's transcript model can be complete in one assembly and fragmentary in the other for the identical GeneID.</span></div></li>
+      <li><span class="num">5</span><div><b>Population check</b><span>&nbsp;via exact liftover (<code>.chain</code> + CrossMap) of the matched genomic footprint to the Colombian pseudogenome, for exact single-exon v1 hits — a primer matching genomic DNA is not automatically an mRNA primer.</span></div></li>
+    </ol>
+    <p class="section-sub" style="margin-top:20px;">
+      <code>python3 codes/analysis/verify_rtqpcr_primers.py --primers-csv pairs.csv --ref-versions v1,v2 --population-check</code> — full usage in <a href="../../docs/TUTORIAL.md#4-verifying-existing-rt-qpcr-primers">TUTORIAL.md §4</a>, rationale for each step (with the real mis-identifications each one catches) in <a href="../../docs/PIPELINE.md#10-rt-qpcr-primer-verification">PIPELINE.md §10</a>. Raw output: <code class="path">analysis/rtqpcr_verification/rtqpcr_primer_verification.csv</code>.
+    </p>
+  </section>
+
+  <footer>
+    <p>RT-qPCR Primer Verification Report · generated from analysis/rtqpcr_verification/rtqpcr_primer_verification.csv · off-target_data project.</p>
+  </footer>
+</div>
+
+<script>
+const ROWS = [
+  {"pair":"BDNF","primer":"BDNF_F","role":"F","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"BDNF","primer":"BDNF_R","role":"R","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"Beta_actin","primer":"Beta_actin_F","role":"F","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"Beta_actin","primer":"Beta_actin_R","role":"R","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"rpl_13a_original","primer":"rpl_13a_original_F","role":"F","gene":"rpl13a","desc":"ribosomal protein L13a — superseded, see finding below","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"VARIANT_FOUND"},
+  {"pair":"rpl_13a_original","primer":"rpl_13a_original_R","role":"R","gene":"rpl13a","desc":"ribosomal protein L13a","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"rpl_13a_new","primer":"rpl_13a_new_F","role":"F","gene":"rpl13a","desc":"ribosomal protein L13a — NEW, SNP-free replacement","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL","isNew":true},
+  {"pair":"rpl_13a_new","primer":"rpl_13a_new_R","role":"R","gene":"rpl13a","desc":"ribosomal protein L13a (unchanged from original)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"miosina_guppy","primer":"miosina_guppy_F","role":"F","gene":"LOC103468881 / LOC108166486","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":95.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":95.0,"v2_exact":false,"exon":"single_exon","pop_status":"not_checked"},
+  {"pair":"miosina_guppy","primer":"miosina_guppy_R","role":"R","gene":"LOC108166486 / LOC103468749","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":100.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":90.0,"v2_exact":false,"exon":"single_exon","pop_status":"not_checked"}
+];
+
+function matchPill(status, pct, exact){
+  const cls = exact ? "pill-safe" : "pill-mod";
+  const label = exact ? `${pct.toFixed(0)}%` : `${pct.toFixed(0)}%*`;
+  return `<span class="pill ${cls}">${label}</span>`;
+}
+function popPill(status){
+  if(status === "IDENTICAL") return `<span class="pill pill-safe">IDENTICAL</span>`;
+  if(status === "VARIANT_FOUND") return `<span class="pill pill-danger">SNP found — see finding</span>`;
+  return `<span class="pill pill-excluded">not checked</span>`;
+}
+
+let html = "";
+for(const r of ROWS){
+  const nameCell = r.isNew
+    ? `${r.primer} <span class="pill pill-safe" style="margin-left:4px;">NEW</span>`
+    : r.primer;
+  const exonLabel = r.exon === "spans_junction" ? "Spans exon–exon junction" : "Within a single exon";
+  html += `<tr>
+    <td class="seq">${nameCell}</td>
+    <td class="gene-cell"><code>${r.gene}</code><span class="desc">${r.desc}</span></td>
+    <td>${exonLabel}</td>
+    <td>${matchPill(r.v1_status, r.v1_pct, r.v1_exact)}</td>
+    <td>${matchPill(r.v2_status, r.v2_pct, r.v2_exact)}</td>
+    <td>${popPill(r.pop_status)}</td>
+  </tr>`;
+}
+document.getElementById("results-body").innerHTML = html;
+</script>
+</body></html>

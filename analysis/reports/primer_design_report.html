@@ -90,24 +90,12 @@
   table.data td.num{text-align:right;}
   footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
   footer p{max-width:70ch;}
-  .rtqpcr-table{border-collapse:collapse;width:100%;min-width:820px;}
-  .rtqpcr-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap;}
-  .rtqpcr-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
-  .rtqpcr-table tbody tr:last-child td{border-bottom:none;}
-  .seq-compare{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.9;}
-  .seq-compare .base-diff{background:var(--danger-soft);color:var(--danger);border-radius:3px;padding:0 2px;font-weight:700;}
-  .finding-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow);}
-  .finding-card.warn{border-color:color-mix(in srgb, var(--mod) 45%, var(--border));}
-  .finding-card.danger{border-color:color-mix(in srgb, var(--danger) 45%, var(--border));}
-  .finding-card h3{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px;}
-  .diff-grid{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:12px 0;align-items:baseline;}
-  .diff-grid .diff-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;}
 </style>
 
 <header class="top">
   <div class="topbar-inner">
     <span class="brand">Primer Design Report</span>
-    <nav class="jump"><a href="#summary">Summary</a><a href="#sites">Sites</a><a href="#rtqpcr">RT-qPCR</a><a href="#methods">Methods</a></nav>
+    <nav class="jump"><a href="#summary">Summary</a><a href="#sites">Sites</a><a href="#methods">Methods</a></nav>
   </div>
 </header>
 
@@ -140,59 +128,11 @@
     <div id="site-cards"></div>
   </section>
 
-  <section id="rtqpcr" class="divider-top">
-    <h2>Verification of Existing RT-qPCR Primers</h2>
-    <p class="section-sub">One-off query (2026-09-08), outside the automated design pipeline: 4 RT-qPCR primer pairs <b>already in use in the lab</b> (not designed by this project) — bdnf and 3 reference/housekeeping genes (myosin, beta-actin, rpl13a) — verified against the v1 genome (the original design genome), the v2 genome, and the Colombian pseudogenome, to investigate inconsistent RT-qPCR results.</p>
-
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">4/4</div><div class="kpi-label">genes correctly identified</div></div>
-      <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">Colombian SNP found (rpl_13a_F, now replaced)</div></div>
-      <div class="kpi"><div class="kpi-value">3</div><div class="kpi-label">tandem myosin paralogs matched (95%/90% identity)</div></div>
-      <div class="kpi"><div class="kpi-value">9</div><div class="kpi-label">primers verified end-to-end (incl. rpl_13a_F replacement)</div></div>
+  <div class="wrap" style="padding:0;">
+    <div class="blocked-note" style="max-width:none;margin:0 0 8px;">
+      ↪ Verification of existing lab RT-qPCR primers (bdnf, beta-actin, rpl13a, myosin) now lives in its own report — it targets spliced mRNA and starts from an unknown gene, a different problem from the genomic on-/off-target primer design below. See the <a href="rtqpcr_primer_verification_report.html">RT-qPCR Primer Verification Report</a>.
     </div>
-
-    <div class="table-scroll">
-      <table class="rtqpcr-table">
-        <thead><tr><th>Primer</th><th>Confirmed gene</th><th>Crosses exon-exon junction?</th><th>v1 (design)</th><th>v2 (male)</th><th>Colombian pseudogenome</th></tr></thead>
-        <tbody>
-          <tr><td class="seq">BDNF_F</td><td rowspan="1">bdnf (<code>NC_024333.1</code> / <code>NC_088832.1</code>)</td><td>No <span style="color:var(--ink-faint);font-size:11px;">(confirmed within the terminal exon)</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">BDNF_R</td><td>bdnf</td><td>No <span style="color:var(--ink-faint);font-size:11px;">(same exon)</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">Beta_actin_F</td><td>actb2 <span style="color:var(--ink-faint);font-size:11px;">(not actb1)</span></td><td>No <span style="color:var(--ink-faint);font-size:11px;">(confirmed within exon 6)</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">Beta_actin_R</td><td>actb2</td><td>Yes (exon 5/6)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">rpl_13a_F <span style="color:var(--ink-faint);">(original)</span></td><td>rpl13a</td><td>Yes (exon 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-danger">1 SNP — superseded, see below</span></td></tr>
-          <tr style="background:var(--accent-soft);"><td class="seq">rpl_13a_F <span class="pill pill-safe" style="margin-left:4px;">NEW</span></td><td>rpl13a</td><td>No <span style="color:var(--ink-faint);font-size:11px;">(single exon, avoids the junction too)</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">rpl_13a_R</td><td>rpl13a</td><td>Yes (exon 1/2)</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
-          <tr><td class="seq">miosina_guppy_F</td><td>myosin heavy chain, fast skeletal muscle <span style="color:var(--ink-faint);font-size:11px;">(3 tandem paralogs)</span></td><td colspan="4" style="color:var(--ink-faint);">real gene, ~95% identity (1bp indel) — see finding below</td></tr>
-          <tr><td class="seq">miosina_guppy_R</td><td>same gene family</td><td colspan="4" style="color:var(--ink-faint);">real gene, ~90% identity (2 substitutions) — see finding below</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="finding-card danger" style="margin-top:22px;">
-      <h3>⚠ Real Colombian SNP in original rpl_13a_F (position 6/20, 5' end) — now replaced</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Confirmed by spliced-mRNA reconstruction (the primer crosses rpl13a's exon1/exon2 junction) + exact liftover against the Colombian pseudogenome. The same primer allele (A) is present in <b>both</b> public reference genomes (v1 female Trinidad and v2 male PacBio+Hi-C, two independent individuals and assemblies) — making it more likely the variant is genuinely specific to the Colombian population, not an artifact of a single assembly.</p>
-      <div class="diff-grid seq-compare">
-        <div class="diff-label">Original primer / v1 / v2</div><div>CCGCC<b>A</b>TACGACAAGAGGAA</div>
-        <div class="diff-label">Colombian pseudogenome</div><div>CCGCC<span class="base-diff">C</span>TACGACAAGAGGAA</div>
-      </div>
-      <p style="margin:6px 0 0;font-size:13px;">Position 6 is in the primer's 5' region (not the last 3' bases, which matter most for polymerase extension) — likely reducing efficiency/Tm rather than abolishing amplification entirely, consistent with inconsistent Ct values rather than total failure.</p>
-    </div>
-
-    <div class="finding-card" style="margin-top:16px; border-color:color-mix(in srgb, var(--safe) 45%, var(--border));">
-      <h3 style="color:var(--safe);">✓ Replacement rpl_13a_F designed — verified SNP-free across v1, v2, and the pseudogenome</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">New forward primer (<code class="seq">TCTGGAGAGGCTGAAGGTGT</code>, paired with the same unchanged <code class="seq">rpl_13a_R</code>, product 122bp) designed in Primer3Plus directly against the pseudogenome's own spliced-mRNA sequence, deliberately positioned <b>upstream of the SNP site</b> found in the original primer (rather than simply avoiding it by chance). Because the design already starts from the region of the transcript where v1, v2, and the Colombian pseudogenome are identical, this primer is functional for mRNA amplification <b>independent of which of the three genomes the template DNA/cDNA effectively derives from</b> — verified directly: 100% exact match in v1, v2, and the pseudogenome, and it falls entirely within a single exon (no exon-exon junction, simpler than the original design).</p>
-    </div>
-
-    <div class="finding-card" style="margin-top:16px; border-color:color-mix(in srgb, var(--mod) 45%, var(--border));">
-      <h3 style="color:var(--mod);">↻ Correction: miosina_guppy_F/R DO match a real guppy gene family — earlier "no site found" was a search gap</h3>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">The original search (2026-09-08) only scanned genes whose GFF <code>gene=</code> symbol matched <code>myh*</code>/<code>myo*</code>/<code>myl*</code> — but guppy's myosin heavy chain, fast skeletal muscle genes are annotated as generic <code>LOC########</code> IDs with no short symbol, so that regex silently skipped the entire relevant gene family. A user-run NCBI BLAST of a primer fragment surfaced real 100%-identical hits to guppy myosin heavy chain mRNAs, which led to re-checking with gene descriptions instead of symbols and finding a tandem cluster of <b>3 paralogous fast-skeletal myosin heavy chain genes</b> in v2 (<code>LOC108166486</code>, <code>LOC108166487</code>, <code>LOC145552582</code>, ~60kb region on <code>NC_088837.1</code>) — with <b>the exact same GeneIDs also present in v1</b> (confirming true orthology, e.g. <code>LOC108166487</code> at <code>NC_024338.1:14209565-14290632</code>).</p>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Proper indel-aware alignment (EMBOSS <code>water</code>, not simple fixed-length Hamming distance) against v2's <code>LOC145552582</code> spliced mRNA: <b>miosina_guppy_F is 19/20 (95%) identical via a single 1bp indel</b> (not 3 substitutions, as a naive same-length comparison misleadingly suggested), and <b>miosina_guppy_R is 18/20 (90%) identical via 2 substitutions</b>, no gaps — both mismatch clusters near, but not at, the 3' end. All 3 v2 paralogs show an essentially identical pattern for the F primer; R's mismatch count varies slightly by paralog (2-3bp).</p>
-      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">v1's copy of the same gene (<code>LOC108166487</code>) is a much shorter transcript model (3,632bp vs v2's 6,033bp) and shows no good match for the F primer there (best available: 6/19 mismatches, i.e. essentially unrelated) — consistent with v1's known lower assembly quality specifically affecting this repetitive, tandemly-duplicated locus; the R primer still matches reasonably in v1 (3/20).</p>
-      <p style="margin:6px 0 0;font-size:13px;">Conclusion: these are genuine guppy myosin heavy chain (fast skeletal muscle) primers, not primers from another species. They are close to, but not a perfect match for, any single one of the 3 tandem paralogs — plausibly because they were designed against a related transcript build, an EST, or because of real paralog-to-paralog sequence variation (common for recently duplicated genes). They likely still amplify, possibly across more than one paralog simultaneously (which may be acceptable or even intended, if the goal is a general fast-twitch-muscle marker rather than one specific transcript) — but should be validated empirically (melt curve, gel band size, or amplicon sequencing) given the primer isn't a perfect match to a single template, and v1-based amplification specifically may be less reliable given that genome's fragmentary assembly of this locus.</p>
-    </div>
-
-    <p class="section-sub" style="margin-top:18px;">Methodology: localization via exact substring search (+ reverse complement) against the whole genome; for primers with no contiguous genomic match, spliced-mRNA reconstruction (exons concatenated per the annotation) to confirm they cross a real exon-exon junction and pinpoint the breakpoint; for near-but-imperfect matches, indel-aware pairwise alignment (EMBOSS <code>water</code>) rather than fixed-length Hamming distance, which can misrepresent a single indel as multiple substitutions; population verification via exact liftover (<code>.chain</code>) of each genomic segment to the Colombian pseudogenome and direct sequence comparison. Full session detail in <code>CLAUDE.md</code> ("RT-qPCR primer verification").</p>
-  </section>
+  </div>
 
   <section id="methods" class="divider-top">
     <h2>Methods (On-/Off-Target Primer Design)</h2>

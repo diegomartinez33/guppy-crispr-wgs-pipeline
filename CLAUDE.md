@@ -1694,6 +1694,89 @@ product/description as a fallback, not gene symbol alone, and near
 turn a single indel into a misleadingly large apparent mismatch count.
 Corrected in `analysis/reports/primer_design_report.html`.
 
+**Formalized into a reusable script - DONE 2026-09-09.**
+`codes/analysis/verify_rtqpcr_primers.py` (+ `run_rtqpcr_primer_verification.sh`)
+turns the 5-step checklist above (BLAST locate -> GFF overlap annotate ->
+`water` realign -> cross-version check -> population liftover) into a
+parameterized tool: `--primers-csv pairs.csv --ref-versions v1,v2
+--population-check`. Full usage in
+[TUTORIAL.md §4](../docs/TUTORIAL.md#4-verifying-existing-rt-qpcr-primers),
+method rationale in
+[PIPELINE.md §10](../docs/PIPELINE.md#10-rt-qpcr-primer-verification).
+Validated by re-running the same 5 pairs from this session (BDNF,
+Beta_actin, rpl_13a_original, rpl_13a_new, miosina_guppy) against v1+v2
+and confirming the output CSV exactly reproduces every finding documented
+above (gene, mRNA identity%, population status) - see
+`analysis/rtqpcr_verification/rtqpcr_primer_verification.csv`.
+
+Three real bugs found and fixed while building/validating the script
+(none present in the original by-hand session analysis above, since that
+was done interactively with manual checks at each step - these are
+automation bugs, not re-derivations of the earlier findings):
+
+1. **GFF re-scanned from disk on every lookup - the actual runtime
+   bottleneck (hours, not the `water` alignments).** `genes_overlapping()`
+   and `representative_transcript()` each opened and linearly scanned the
+   WHOLE GFF file (1.3-1.6M lines, 350-470MB for v1/v2) on every call - and
+   both are called once per BLAST hit / candidate gene (up to
+   `MAX_GENE_CANDIDATES=30` per primer). A primer with many scattered BLAST
+   hits (e.g. a junction-spanning primer with no clean genomic match) could
+   trigger hundreds of full-file re-reads. Confirmed via `wc -l`/`ls -la`
+   on both GFFs before assuming - this is exactly the kind of claim this
+   project's convention is to verify against real data, not guess. Fix:
+   parse each GFF into an in-memory index (`genes_by_chrom`,
+   `mrna_by_gene`, `exons_by_tx`) ONCE per file via `load_gff_index()`,
+   cached module-level for the life of the process. Reduced a single
+   BDNF-only test from unmeasured-but-still-running-after-30-minutes on a
+   SLURM job (719317, killed) to full 5-pair/2-version runs completing in
+   ~4 minutes (job 719324).
+
+2. **Revcomp orientation was never actually tried for `water` alignment.**
+   `aln = water_align(seq, mrna) or water_align(revcomp(seq), mrna)` -
+   EMBOSS `water` (Smith-Waterman) almost always returns SOME local
+   alignment even between unrelated sequences (it doesn't have a "no
+   significant hit" failure mode like BLAST), so the forward call's dict is
+   always truthy and the revcomp branch never executes. Found via direct
+   debugging: `miosina_guppy_R` against its own true, already-documented
+   target (v2's `LOC145552582`) scored only 56.0% forward but 90.0%
+   reverse-complemented (matching the earlier by-hand session finding
+   exactly) - the automated script was silently keeping the wrong 56.0%
+   result and mis-resolving the gene to unrelated candidates (`cspg5a`,
+   `stk26`). Fix: always compute both orientations, keep whichever scores
+   higher.
+
+3. **Ranking metric for candidate genes was unsound in BOTH directions
+   tried.** After fixing #2, `miosina_guppy_R` resolved correctly, but
+   `miosina_guppy_F` in v2 then mis-resolved to `sgsm2` (an unrelated gene)
+   at "100%" identity. Root cause: neither `identity_n` (absolute identical
+   bases) nor `identity_pct` alone is a safe ranking key.
+   `identity_n`-first lets `water` stitch a long, heavily gapped "identity
+   block" (e.g. 19/39=48.7%, 19 gaps) that racks up more raw identical
+   bases than a short, clean, real match (e.g. 18/20=90%, 0 gaps) -
+   confirmed `stk26` beat the true myosin target this way.
+   `identity_pct`-first lets a short coincidental fragment be a "perfect"
+   match over only PART of the primer (e.g. 12/12=100%, covering just 12 of
+   19bp) and outrank a real match covering nearly the whole primer with one
+   indel (e.g. 19/20=95%) - confirmed `sgsm2` beat the true myosin target
+   this way. Fix: rank by `identity_n / max(identity_len, len(primer))` -
+   the fraction of the PRIMER's own length correctly, non-redundantly
+   explained by the alignment. This denominator floors at the primer
+   length (penalizing alignments shorter than the primer) and switches to
+   the alignment's own length when longer (penalizing gap-padded
+   alignments) - robust to both failure modes simultaneously. Verified by
+   re-running both miosina primers against both genome versions: all 4
+   results now resolve to a real myosin LOC gene at 90-100% identity,
+   matching the by-hand session findings above exactly.
+
+**Lesson generalized**: automating a checklist that was validated by hand
+doesn't inherit that validation for free - each of these 3 bugs would have
+silently produced a plausible-looking but WRONG result (a real gene name,
+a real percentage) rather than crashing, so the automated script had to be
+independently re-validated against the same known-correct answers before
+being trusted, exactly as this project's standing practice already
+requires for any claim (see the many "verified via..." notes throughout
+this file).
+
 ---
 
 ## Pending Analyses

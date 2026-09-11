@@ -77,14 +77,28 @@ reference crash `crispor.py`) — will be repeated against v2 once available. De
 and the v2 version — the script is already parameterized (`--gene`/`--ref-version`), it just
 needs to be run (see [TUTORIAL.md §3](TUTORIAL.md#3-primer-design-for-a-new-gene)).
 
-**Verification of existing RT-qPCR primers (2026-09-08)** — a one-off query, not part of the
-automated pipeline: 4 primer pairs already in use in the lab (bdnf + housekeeping
-myosin/beta-actin/rpl13a) verified against v1, v2, and the Colombian pseudogenome. Main finding:
-**a real Colombian SNP in `rpl_13a_F`** (also confirmed against v2, which matches the primer's
-original allele) and **`miosina_guppy_F/R` with no identifiable binding site** in the guppy genome
-(possibly a primer designed for a different species). Full detail in the "RT-qPCR" section of the
-[primer report](../analysis/reports/primer_design_report.html) and in `CLAUDE.md`
-("RT-qPCR Primer Verification").
+## 6b. RT-qPCR Primer Verification — ✅ complete (formalized script)
+
+Verification of existing lab RT-qPCR primers is a separate objective from #6 above — the primers
+are already in use (not designed by this project), the target is spliced mRNA rather than genomic
+DNA, and the gene is confirmed rather than known up front. Originally a one-off query
+(2026-09-08); formalized into a reusable, parameterized script (2026-09-09):
+
+| What | Path |
+|---|---|
+| Verification script | `codes/analysis/verify_rtqpcr_primers.py` (+ `run_rtqpcr_primer_verification.sh`) |
+| Result table (5 pairs × v1/v2) | `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` |
+| **Visual report** | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |
+
+5 primer pairs checked (bdnf, beta-actin, rpl13a original, rpl13a replacement, myosin) against v1,
+v2, and the Colombian pseudogenome. Main findings: **a real Colombian SNP in the original
+`rpl_13a_F`** (also confirmed against v2, which matches the primer's original allele — since
+replaced by a verified SNP-free primer) and **`miosina_guppy_F/R` matching a real tandem myosin
+heavy chain gene family at 90-100% identity** (the original 2026-09-08 conclusion of "no
+identifiable binding site" was a search-coverage gap — guppy's myosin genes carry no short gene
+symbol — corrected once BLAST/GFF-overlap-based search replaced the symbol-regex search). Full
+detail in the visual report above, in `CLAUDE.md` ("RT-qPCR Primer Verification"), and in method
+form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 
 ## 7. Migration to the v2 Reference Genome — 🔄 in progress
 
@@ -120,3 +134,4 @@ directly to a colleague without needing a claude.ai account).
 | Variant Hotspots Report | Variant hotspots | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
 | Colombian Genome Resources | Pseudogenome + de novo assembly | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |
 | Primer Design Report | Primer design (bdnf/v1) | [link](https://claude.ai/code/artifact/eb740fdb-261b-41a5-b44b-e8530a82c215) | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
+| RT-qPCR Primer Verification Report | RT-qPCR primer verification (5 pairs) | [link](https://claude.ai/code/artifact/7b447aed-e947-42b6-96e5-085bfdaea0e9) | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |

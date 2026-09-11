@@ -126,7 +126,48 @@ could be designed (see the limitation in [PIPELINE.md §9](PIPELINE.md#9-pcr-pri
 `NO_CANDIDATES_FOUND` = a search was run but no candidate met the parameters (try relaxing
 `--min-tm`/`--max-tm`/`--min-gc`/`--max-gc`).
 
-## 4. Frequently Asked Questions
+## 4. Verifying Existing RT-qPCR Primers
+
+If you already have RT-qPCR primers (from a paper, a colleague, or a primer-design tool like
+Primer3Plus) and want to check they still work correctly for the Colombian population — and
+that they actually target real mRNA, not just genomic DNA — use
+`codes/analysis/verify_rtqpcr_primers.py`. Full method and rationale:
+[PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
+
+```bash
+module load blast/2.14.1+ emboss/6.6.0 samtools/1.16.1
+
+# 1. Create a CSV with your primer pairs
+cat > my_primers.csv << 'EOF'
+pair_name,forward_seq,reverse_seq
+my_gene,ACGT...,ACGT...
+EOF
+
+# 2. Run the checklist against both genome versions + the pseudogenome
+python3 codes/analysis/verify_rtqpcr_primers.py \
+  --primers-csv my_primers.csv \
+  --ref-versions v1,v2 \
+  --population-check
+```
+
+**Output:** `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv`, one row per
+primer×genome-version. Read the `status` column: `OK` = exact match inside a real exon in this
+genome version; `WARN_PARTIAL_MATCH` = the closest real gene match isn't 100% identical (check
+`mrna_identity_pct`/`mrna_gaps` — a handful of bp off, especially away from the 3' end, may still
+amplify but is worth flagging); `GENOMIC_MATCH_NO_GENE` = the primer matches genomic DNA but not
+inside any annotated gene (will not amplify from cDNA); `NO_MATCH` = no usable hit at all in that
+genome version. For any `OK` row from v1, check `population_status`: `IDENTICAL` = safe;
+`VARIANT_FOUND` = a Colombian population variant sits inside this primer's binding site (see
+`population_note` for the exact position/base change).
+
+**If you get `GENOMIC_MATCH_NO_GENE` or a low `mrna_identity_pct`, don't assume the primer is
+wrong before checking the gene it landed on** — genes can be missing or fragmented in one genome
+version and fine in the other (re-run with `--ref-versions v2` alone, or vice versa), and a
+primer designed from a slightly different transcript build can still be a real, usable match to
+the intended gene despite a few bp of difference (see the myosin heavy chain finding in
+`CLAUDE.md` for a worked example).
+
+## 5. Frequently Asked Questions
 
 **Can I run this on a CRISPR guide I already picked, instead of a whole gene?** Both pipelines
 work at the gene level (they search for candidates themselves within the CDS/TSS window). If you
