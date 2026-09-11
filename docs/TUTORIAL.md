@@ -156,9 +156,13 @@ genome version; `WARN_PARTIAL_MATCH` = the closest real gene match isn't 100% id
 `mrna_identity_pct`/`mrna_gaps` — a handful of bp off, especially away from the 3' end, may still
 amplify but is worth flagging); `GENOMIC_MATCH_NO_GENE` = the primer matches genomic DNA but not
 inside any annotated gene (will not amplify from cDNA); `NO_MATCH` = no usable hit at all in that
-genome version. For any `OK` row from v1, check `population_status`: `IDENTICAL` = safe;
-`VARIANT_FOUND` = a Colombian population variant sits inside this primer's binding site (see
-`population_note` for the exact position/base change).
+genome version. For any `OK` or `WARN_PARTIAL_MATCH` row from v1, check `population_status`:
+`IDENTICAL` = safe; `VARIANT_FOUND` = a Colombian population variant sits inside this primer's
+binding site (see `population_note` for the exact position/base change). For a `WARN_PARTIAL_MATCH`
+row this check only covers the primer's exact-matched CORE (shorter than the full primer —
+`population_note` states exactly how many bp), not its whole footprint — `IDENTICAL` there means no
+*additional* population variant on top of the already-flagged partial-match difference, not that
+the whole primer is population-safe.
 
 **If you get `GENOMIC_MATCH_NO_GENE` or a low `mrna_identity_pct`, don't assume the primer is
 wrong before checking the gene it landed on** — genes can be missing or fragmented in one genome

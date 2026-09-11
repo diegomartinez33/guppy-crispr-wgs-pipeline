@@ -534,9 +534,13 @@ python3 codes/analysis/verify_rtqpcr_primers.py \
   every BLAST hit and every candidate gene (as an earlier version of this script did) turned a run
   into hours of disk I/O; indexing once and serving all lookups from memory brought a full 5-pair,
   2-version run down to ~4 minutes.
-- **Population check only applies to exact, single-exon hits.** Liftover-and-compare is only
-  meaningful once the exact genomic footprint within a real exon is known; a `PARTIAL` (near-
-  match) result isn't liftover-checked, since there's no single exact coordinate range to lift.
+- **Population check also runs for `PARTIAL` matches, over the exact-matched core only.** A
+  `PARTIAL` result has no single coordinate range covering the WHOLE primer (that's what makes it
+  partial), but it still has an exact BLAST-matched core with real genomic coordinates - that core
+  gets lifted over and compared, flagged in `population_note` as covering only that shorter core
+  rather than the full primer. This answers a narrower but still useful question: is there an
+  additional Colombian-population variant on top of the already-known reference-vs-primer
+  difference, within the part of the primer that does match exactly.
 
 **Output:** `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` — one row per
 primer×genome-version, with the matched gene, transcript, exon-membership, indel-aware identity%,

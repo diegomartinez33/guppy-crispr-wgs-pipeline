@@ -376,15 +376,32 @@ def verify_primer(name, seq, ref_version, tmp_prefix):
 
 
 def population_check(row, tmp_prefix):
-    """Only meaningful for exact, single-exon, v1 hits (pseudogenome_v2
-    doesn't exist yet - see CLAUDE.md item #8 migration status)."""
-    if row.get("ref_version") != "v1" or row.get("mrna_match") != "EXACT":
+    """v1 hits only (pseudogenome_v2 doesn't exist yet - see CLAUDE.md item
+    #8 migration status). Runs for both EXACT and PARTIAL matches - for
+    PARTIAL (e.g. the myosin primers, no single paralog is a perfect
+    match), `hit_start`/`hit_end` are only the raw BLAST-matched core of
+    the primer (shorter than the full primer - see `blast_length` vs the
+    primer's own length), not its whole footprint, since the exact
+    aligned span within the mRNA isn't recovered by `water_align()`. This
+    still answers a real question - whether a Colombian-specific variant
+    sits on top of the already-known reference-vs-primer differences in
+    that core - just not over the full primer length; flagged explicitly
+    in `population_note` so it isn't confused with the exact, whole-primer
+    check used for EXACT matches."""
+    if row.get("ref_version") != "v1" or row.get("mrna_match") not in ("EXACT", "PARTIAL"):
         row["population_status"] = "not_checked"
         return
+    partial_coverage_note = ""
+    if row["mrna_match"] == "PARTIAL":
+        partial_coverage_note = (
+            f"covers only the {row['blast_length']}bp exact BLAST core of the "
+            f"{len(row['sequence'])}bp primer, not its full footprint; "
+        )
     chain = CHAIN_BY_VERSION["v1"]
     lifted = liftover_region(chain, row["chrom"], row["hit_start"], row["hit_end"], Path(tmp_prefix))
     if lifted is None:
         row["population_status"] = "liftover_failed"
+        row["population_note"] = partial_coverage_note.rstrip("; ")
         return
     pg_chrom, pg_start, pg_end = lifted
     v1_seq = faidx_seq(REF_BY_VERSION["v1"], row["chrom"], row["hit_start"], row["hit_end"])
@@ -393,7 +410,9 @@ def population_check(row, tmp_prefix):
     row["population_status"] = "IDENTICAL" if v1_seq == pg_seq else "VARIANT_FOUND"
     if v1_seq != pg_seq:
         diffs = [f"{i+1}:{a}>{b}" for i, (a, b) in enumerate(zip(v1_seq, pg_seq)) if a != b]
-        row["population_note"] = "; ".join(diffs)
+        row["population_note"] = partial_coverage_note + "; ".join(diffs)
+    elif partial_coverage_note:
+        row["population_note"] = partial_coverage_note.rstrip("; ")
 
 
 def main():

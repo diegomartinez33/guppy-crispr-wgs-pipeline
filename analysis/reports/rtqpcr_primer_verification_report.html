@@ -76,7 +76,7 @@
   .pill-danger{background:var(--danger-soft);color:var(--danger);}
   .pill-excluded{background:var(--excluded-soft);color:var(--excluded);}
   .table-scroll{overflow-x:auto;}
-  .rtqpcr-table{border-collapse:collapse;width:100%;min-width:860px;}
+  .rtqpcr-table{border-collapse:collapse;width:100%;min-width:1020px;}
   .rtqpcr-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface-alt);white-space:nowrap;position:sticky;top:0;}
   .rtqpcr-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
   .rtqpcr-table tbody tr:last-child td{border-bottom:none;}
@@ -138,7 +138,7 @@
     <div class="table-scroll">
       <table class="rtqpcr-table" id="results-table">
         <thead><tr>
-          <th>Primer</th><th>Confirmed target</th><th>Exon placement</th>
+          <th>Primer</th><th>Sequence (5′→3′)</th><th>Confirmed target</th><th>Exon placement</th>
           <th>v1 (design genome)</th><th>v2 (male, PacBio+Hi-C)</th><th>Colombian pseudogenome</th>
         </tr></thead>
         <tbody id="results-body"></tbody>
@@ -148,6 +148,7 @@
       <div class="legend-item"><span class="pill pill-safe">100%</span> exact match inside a real, annotated exon of the confirmed gene</div>
       <div class="legend-item"><span class="pill pill-mod">90–100%</span> best available match to a real gene is not exact — see the myosin finding below before assuming a design error</div>
       <div class="legend-item"><span class="pill pill-safe">IDENTICAL</span> no population variant at the primer's exact binding site</div>
+      <div class="legend-item"><span class="pill pill-safe">IDENTICAL*</span> same, but checked only over the primer's exact-matched core (hover for coverage) — see the myosin finding below</div>
       <div class="legend-item"><span class="pill pill-danger">SNP found</span> a real Colombian variant sits inside the primer</div>
     </div>
   </section>
@@ -173,7 +174,8 @@
     <div class="finding-card" style="border-color:color-mix(in srgb, var(--mod) 45%, var(--border));">
       <h3 style="color:var(--mod);">↻ miosina_guppy_F/R match a real tandem myosin gene family — not a perfect single-transcript hit</h3>
       <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Guppy's fast-skeletal-muscle myosin heavy chain genes are annotated under generic <code>LOC########</code> IDs with no short gene symbol, sitting in a tandem cluster of paralogs on the same chromosome in both assemblies. Both primers resolve to real, annotated myosin heavy chain genes at 90–100% identity — <code>miosina_guppy_F</code> to <code>LOC103468881</code> (v1) / <code>LOC108166486</code> (v2), both 95%; <code>miosina_guppy_R</code> to <code>LOC108166486</code> (v1, 100%) / <code>LOC103468749</code> (v2, 90%) — via an indel-aware alignment against each candidate's spliced mRNA, not a plain same-length comparison (which would misrepresent a clean 1bp indel as several unrelated substitutions).</p>
-      <p style="margin:6px 0 0;font-size:13px;">Landing on a slightly different paralog per primer/genome-version is expected for a tandemly duplicated gene family this recently diverged — not evidence of a wrong design. Still worth an empirical check (melt curve, gel band size, or amplicon sequencing) to confirm which paralog(s) actually amplify, since more than one may cross-react if that's acceptable for a general fast-twitch-muscle marker.</p>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Landing on a slightly different paralog per primer/genome-version is expected for a tandemly duplicated gene family this recently diverged — not evidence of a wrong design. Still worth an empirical check (melt curve, gel band size, or amplicon sequencing) to confirm which paralog(s) actually amplify, since more than one may cross-react if that's acceptable for a general fast-twitch-muscle marker.</p>
+      <p style="margin:6px 0 0;font-size:13px;"><b>Colombian pseudogenome check (added 2026-09-11):</b> both primers are <span class="pill pill-safe">IDENTICAL</span> against the pseudogenome — no additional Colombian-population variant on top of the paralog differences already described above. This check is necessarily partial: since neither primer has a single exact whole-length genomic match, only the exact-matched core BLAST recovers (15/19bp for the F primer, 16/20bp for R) could be lifted over and compared — not the full primer footprint. Within that core, though, v1 and the pseudogenome agree exactly, so whatever is already known about these primers (the paralog-level mismatches above) is what limits them, not a population-specific issue on top of it.</p>
     </div>
   </section>
 
@@ -199,16 +201,16 @@
 
 <script>
 const ROWS = [
-  {"pair":"BDNF","primer":"BDNF_F","role":"F","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
-  {"pair":"BDNF","primer":"BDNF_R","role":"R","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
-  {"pair":"Beta_actin","primer":"Beta_actin_F","role":"F","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
-  {"pair":"Beta_actin","primer":"Beta_actin_R","role":"R","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
-  {"pair":"rpl_13a_original","primer":"rpl_13a_original_F","role":"F","gene":"rpl13a","desc":"ribosomal protein L13a — superseded, see finding below","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"VARIANT_FOUND"},
-  {"pair":"rpl_13a_original","primer":"rpl_13a_original_R","role":"R","gene":"rpl13a","desc":"ribosomal protein L13a","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
-  {"pair":"rpl_13a_new","primer":"rpl_13a_new_F","role":"F","gene":"rpl13a","desc":"ribosomal protein L13a — NEW, SNP-free replacement","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL","isNew":true},
-  {"pair":"rpl_13a_new","primer":"rpl_13a_new_R","role":"R","gene":"rpl13a","desc":"ribosomal protein L13a (unchanged from original)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
-  {"pair":"miosina_guppy","primer":"miosina_guppy_F","role":"F","gene":"LOC103468881 / LOC108166486","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":95.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":95.0,"v2_exact":false,"exon":"single_exon","pop_status":"not_checked"},
-  {"pair":"miosina_guppy","primer":"miosina_guppy_R","role":"R","gene":"LOC108166486 / LOC103468749","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":100.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":90.0,"v2_exact":false,"exon":"single_exon","pop_status":"not_checked"}
+  {"pair":"BDNF","primer":"BDNF_F","role":"F","seq":"TCAGCAACCAAGTGCCTTTG","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"BDNF","primer":"BDNF_R","role":"R","seq":"ATGGACATGTTCGCAGCATC","gene":"bdnf","desc":"brain-derived neurotrophic factor","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"Beta_actin","primer":"Beta_actin_F","role":"F","seq":"GTGCGGGATATCATTTGCCTG","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL"},
+  {"pair":"Beta_actin","primer":"Beta_actin_R","role":"R","seq":"CTTCCATGGCTGAACTTTGGG","gene":"actb2","desc":"actin, beta 2 (not actb1)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"rpl_13a_original","primer":"rpl_13a_original_F","role":"F","seq":"CCGCCATACGACAAGAGGAA","gene":"rpl13a","desc":"ribosomal protein L13a — superseded, see finding below","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"VARIANT_FOUND"},
+  {"pair":"rpl_13a_original","primer":"rpl_13a_original_R","role":"R","seq":"CCAGGAGGGCAAACTTACGA","gene":"rpl13a","desc":"ribosomal protein L13a","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"rpl_13a_new","primer":"rpl_13a_new_F","role":"F","seq":"TCTGGAGAGGCTGAAGGTGT","gene":"rpl13a","desc":"ribosomal protein L13a — NEW, SNP-free replacement","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"single_exon","pop_status":"IDENTICAL","isNew":true},
+  {"pair":"rpl_13a_new","primer":"rpl_13a_new_R","role":"R","seq":"CCAGGAGGGCAAACTTACGA","gene":"rpl13a","desc":"ribosomal protein L13a (unchanged from original)","v1_status":"OK","v1_pct":100.0,"v1_exact":true,"v2_status":"OK","v2_pct":100.0,"v2_exact":true,"exon":"spans_junction","pop_status":"IDENTICAL"},
+  {"pair":"miosina_guppy","primer":"miosina_guppy_F","role":"F","seq":"ACACCAGCCTTCTGACACC","gene":"LOC103468881 / LOC108166486","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":95.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":95.0,"v2_exact":false,"exon":"single_exon","pop_status":"IDENTICAL","pop_note":"Covers only the 15bp exact BLAST core of the 19bp primer, not its full footprint — see finding below."},
+  {"pair":"miosina_guppy","primer":"miosina_guppy_R","role":"R","seq":"CTCGGCCTGTCTCTTGATGG","gene":"LOC108166486 / LOC103468749","desc":"myosin heavy chain, fast skeletal muscle — tandem paralog cluster","v1_status":"WARN_PARTIAL_MATCH","v1_pct":100.0,"v1_exact":false,"v2_status":"WARN_PARTIAL_MATCH","v2_pct":90.0,"v2_exact":false,"exon":"single_exon","pop_status":"IDENTICAL","pop_note":"Covers only the 16bp exact BLAST core of the 20bp primer, not its full footprint — see finding below."}
 ];
 
 function matchPill(status, pct, exact){
@@ -216,10 +218,13 @@ function matchPill(status, pct, exact){
   const label = exact ? `${pct.toFixed(0)}%` : `${pct.toFixed(0)}%*`;
   return `<span class="pill ${cls}">${label}</span>`;
 }
-function popPill(status){
-  if(status === "IDENTICAL") return `<span class="pill pill-safe">IDENTICAL</span>`;
-  if(status === "VARIANT_FOUND") return `<span class="pill pill-danger">SNP found — see finding</span>`;
-  return `<span class="pill pill-excluded">not checked</span>`;
+function popPill(status, note){
+  const title = note ? ` title="${note.replace(/"/g,'&quot;')}"` : "";
+  const label = note ? "IDENTICAL*" : "IDENTICAL";
+  if(status === "IDENTICAL") return `<span class="pill pill-safe"${title}>${label}</span>`;
+  if(status === "VARIANT_FOUND") return `<span class="pill pill-danger"${title}>SNP found — see finding</span>`;
+  if(status === "not_checked") return `<span class="pill pill-excluded">not checked</span>`;
+  return `<span class="pill pill-excluded"${title}>${status}</span>`;
 }
 
 let html = "";
@@ -229,12 +234,13 @@ for(const r of ROWS){
     : r.primer;
   const exonLabel = r.exon === "spans_junction" ? "Spans exon–exon junction" : "Within a single exon";
   html += `<tr>
-    <td class="seq">${nameCell}</td>
+    <td>${nameCell}</td>
+    <td class="seq">${r.seq}</td>
     <td class="gene-cell"><code>${r.gene}</code><span class="desc">${r.desc}</span></td>
     <td>${exonLabel}</td>
     <td>${matchPill(r.v1_status, r.v1_pct, r.v1_exact)}</td>
     <td>${matchPill(r.v2_status, r.v2_pct, r.v2_exact)}</td>
-    <td>${popPill(r.pop_status)}</td>
+    <td>${popPill(r.pop_status, r.pop_note)}</td>
   </tr>`;
 }
 document.getElementById("results-body").innerHTML = html;

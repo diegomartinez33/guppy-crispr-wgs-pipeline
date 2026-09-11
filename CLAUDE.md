@@ -1777,6 +1777,38 @@ being trusted, exactly as this project's standing practice already
 requires for any claim (see the many "verified via..." notes throughout
 this file).
 
+**Follow-up 2026-09-11 - myosin primers checked against the Colombian
+pseudogenome (previously skipped); primer sequences added to the visual
+report for ordering.** User asked whether the myosin primers still needed
+a population check against the pseudogenome, since `population_check()`
+only ran for `mrna_match == "EXACT"` - both myosin primers are `PARTIAL`
+(no single paralog is a perfect match, see above), so this check had been
+silently skipped for them in every prior run.
+
+Extended `population_check()` to also run for `PARTIAL` matches, using the
+same BLAST-hit genomic coordinates already recorded for the resolved
+candidate gene. Important caveat, stated explicitly in the code and in the
+report: for a `PARTIAL` match, `hit_start`/`hit_end` are only the exact
+BLAST-matched CORE of the primer (shorter than the full primer -
+`water_align()` doesn't recover the exact aligned span within the mRNA),
+not its whole footprint. So this answers "is there an additional
+Colombian-population variant on top of the already-known paralog-level
+differences in this partial core" - not "is the whole primer confirmed
+population-safe".
+
+Result (job 722218): both myosin primers are **IDENTICAL** between v1 and
+the pseudogenome in their exact-matched core -
+`miosina_guppy_F` (15/19bp core, `NC_024338.1:14197666-14197680` lifted)
+and `miosina_guppy_R` (16/20bp core, `NC_024338.1:14196886-14196901`
+lifted) both show zero difference. No new population-specific concern
+found; whatever limits these primers is the already-described paralog-
+level mismatch, not something the Colombian population adds on top.
+
+Also added a primer-sequence column to
+`analysis/reports/rtqpcr_primer_verification_report.html` (all 10
+primers, 5'->3') so the lab has them on hand to reorder from a supplier
+without digging through the CSV.
+
 ---
 
 ## Pending Analyses
