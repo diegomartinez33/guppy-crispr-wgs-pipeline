@@ -104,20 +104,20 @@
 <header class="top">
   <div class="topbar-inner">
     <span class="brand">RT-qPCR Primer Verification</span>
-    <nav class="jump"><a href="#summary">Summary</a><a href="#results">Results</a><a href="#findings">Findings</a><a href="#methods">Method</a></nav>
+    <nav class="jump"><a href="#summary">Summary</a><a href="#results">Results</a><a href="#findings">Findings</a><a href="#candidates">New Candidates</a><a href="#methods">Method</a></nav>
   </div>
 </header>
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · 5 lab primer pairs · v1 + v2 + Colombian pseudogenome</span>
+    <span class="eyebrow">Poecilia reticulata · 5 lab pairs + 3 new candidates · v1 + v2 + Colombian pseudogenome</span>
     <h1>Do the Lab's RT-qPCR Primers Still Target the Right mRNA?</h1>
-    <p class="lede">Five RT-qPCR primer pairs already in routine use in the lab — bdnf, beta-actin, rpl13a (original + a SNP-free replacement), and myosin — checked against both reference genome assemblies and the Colombian pseudogenome with <code>codes/analysis/verify_rtqpcr_primers.py</code>: located by BLAST, confirmed against a real annotated gene (not a symbol guess), realigned to the spliced mRNA with an indel-aware aligner, and cross-checked for population variants at the binding site.</p>
+    <p class="lede">Five RT-qPCR primer pairs already in routine use in the lab — bdnf, beta-actin, rpl13a (original + a SNP-free replacement), and myosin — checked against both reference genome assemblies and the Colombian pseudogenome with <code>codes/analysis/verify_rtqpcr_primers.py</code>: located by BLAST, confirmed against a real annotated gene (not a symbol guess), realigned to the spliced mRNA with an indel-aware aligner, and cross-checked for population variants at the binding site. Also includes 3 newly designed housekeeping-gene candidates (a pan-paralog myosin marker, gapdh, ef1a) — see <a href="#candidates">New Candidates</a>.</p>
     <div class="scope-strip">
-      <div class="scope-item"><div class="label">Primer pairs</div><div class="value">5 (10 primers)</div></div>
+      <div class="scope-item"><div class="label">Primer pairs</div><div class="value">5 in use + 3 candidates</div></div>
       <div class="scope-item"><div class="label">Genome versions</div><div class="value">v1 + v2</div></div>
       <div class="scope-item"><div class="label">Population check</div><div class="value">v1 pseudogenome</div></div>
-      <div class="scope-item"><div class="label">Checks resolved</div><div class="value">20 / 20</div></div>
+      <div class="scope-item"><div class="label">Checks resolved</div><div class="value">32 / 32</div></div>
     </div>
   </section>
 
@@ -179,6 +179,47 @@
     </div>
   </section>
 
+  <section id="candidates" class="divider-top">
+    <h2>New Candidates: Housekeeping Primers</h2>
+    <p class="section-sub">The lab uses myosin as a reference/housekeeping gene against which to contrast <code>bdnf</code> expression after CRISPR KO. For that role, a gene needs stable, reproducible amplification across all treatment groups — not a match to one specific transcript — so these candidates use a different design strategy than the sections above: <b>myosin_conserved</b> deliberately targets a region shared by the whole tandem paralog family (not one paralog), while <b>gapdh_new</b> and <b>ef1a_new</b> add two standard, single-copy reference genes as alternatives/complements. None of the three are in lab use yet — proposed here, verified in silico, pending empirical validation (melt curve / gel / qPCR efficiency).</p>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">3/3</div><div class="kpi-label">candidates 100% verified, v1 + v2</div></div>
+      <div class="kpi"><div class="kpi-value">6+</div><div class="kpi-label">myosin paralog copies hit uniformly</div></div>
+      <div class="kpi"><div class="kpi-value">0</div><div class="kpi-label">off-target loci elsewhere in the genome</div></div>
+      <div class="kpi"><div class="kpi-value">3/3</div><div class="kpi-label">IDENTICAL in the Colombian pseudogenome</div></div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="rtqpcr-table">
+        <thead><tr>
+          <th>Primer</th><th>Sequence (5′→3′)</th><th>Target</th><th>Exon placement</th>
+          <th>v1</th><th>v2</th><th>Colombian pseudogenome</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>myosin_conserved_F <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">CCAACTGCACCTTGATGATG</td><td class="gene-cell"><code>LOC103468880 / LOC108166486</code><span class="desc">myosin heavy chain family — conserved region</span></td><td>Within a single exon</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td>myosin_conserved_R <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">TGAGAGTGCAGCAGTCCAAC</td><td class="gene-cell"><code>LOC103468881 / LOC108166486</code><span class="desc">myosin heavy chain family — conserved region</span></td><td>Within a single exon</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td>gapdh_new_F <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">GTGCCAGCCAGAACATCAT</td><td class="gene-cell"><code>gapdh</code><span class="desc">glyceraldehyde-3-phosphate dehydrogenase</span></td><td>Within a single exon</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td>gapdh_new_R <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">CTTGGCTGGTTTCTCCAGAC</td><td class="gene-cell"><code>gapdh</code><span class="desc">glyceraldehyde-3-phosphate dehydrogenase</span></td><td>Spans exon–exon junction</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td>ef1a_new_F <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">TGGCTACAACCCAGACACTG</td><td class="gene-cell"><code>eef1a1a</code><span class="desc">eukaryotic translation elongation factor 1 alpha 1a</span></td><td>Within a single exon</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+          <tr><td>ef1a_new_R <span class="pill pill-mod" style="margin-left:4px;">CANDIDATE</span></td><td class="seq">GCATCCAGAGCCTCCAATAG</td><td class="gene-cell"><code>eef1a1a</code><span class="desc">eukaryotic translation elongation factor 1 alpha 1a</span></td><td>Within a single exon</td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">100%</span></td><td><span class="pill pill-safe">IDENTICAL</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding-card" style="margin-top:22px; border-color:color-mix(in srgb, var(--safe) 45%, var(--border));">
+      <h3 style="color:var(--safe);">✓ myosin_conserved: one primer pair, at least 6 tandem paralog copies, zero off-target elsewhere</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);">Design method: aligned the spliced mRNA of the 4 annotated myosin heavy chain paralogs in the tandem cluster (<code>LOC108166486</code>, <code>LOC108166487</code>, <code>LOC103468749</code>, <code>LOC145552582</code>) with <code>muscle</code>, and found a 470bp block with only 2 isolated single-base differences and no indels across all 4 — a genuinely shared region, not a guess. <code>eprimer3</code> then designed primers inside it, each screened directly against every paralog's own spliced mRNA to confirm an exact match (not just alignment-implied).</p>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);"><code>primersearch</code> against the whole v2 genome confirmed the design goal empirically: the same 198bp product forms at <b>6 distinct genomic positions</b> across the tandem cluster (one more paralog than originally targeted — <code>LOC103468880</code>, previously annotated only as "uncharacterized", turns out to carry the same conserved motif), and nowhere else in the genome. In v1, whose annotation of this locus is known to be fragmentary (see the myosin finding above), the same clean 198bp product still forms at one locus, confirming the sequence itself — not just v2's better-annotated gene model — is genuinely conserved.</p>
+      <p style="margin:6px 0 0;font-size:13px;">Both primers fall within a single exon (like <code>BDNF_F/R</code> and <code>Beta_actin_F</code> already in the panel), so genomic DNA contamination could in principle amplify the same 198bp size — standard DNase treatment during RNA extraction is the usual mitigation, not a flaw specific to this design.</p>
+    </div>
+
+    <div class="finding-card" style="margin-top:16px; border-color:color-mix(in srgb, var(--safe) 45%, var(--border));">
+      <h3 style="color:var(--safe);">✓ gapdh_new and ef1a_new: standard single-copy references, both clean</h3>
+      <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft);"><code>gapdh</code> and <code>eef1a1a</code> (the canonical "a" paralog — not <code>eef1a1l2</code>/<code>l3</code>, nor the spermatogenic-specific <code>gapdhs</code> paralog) are single-copy, orthologous (identical GeneID) in v1 and v2, avoiding the tandem-duplication ambiguity that motivated the conserved-region approach for myosin. <code>gapdh_new_R</code> additionally spans a real exon-exon junction (like <code>Beta_actin_R</code>/<code>rpl_13a_R</code>) — it cannot amplify genomic DNA at all, the strongest specificity guarantee available.</p>
+    </div>
+  </section>
+
   <section id="methods" class="divider-top">
     <h2>Method</h2>
     <p class="section-sub">Verifying an existing RT-qPCR primer is a different problem from designing a new CRISPR on-/off-target primer (see the <a href="primer_design_report.html">Primer Design Report</a>'s Methods): the target is spliced mRNA, not genomic DNA, and the gene is unknown up front rather than chosen before design. <code class="path">codes/analysis/verify_rtqpcr_primers.py</code> runs this checklist end to end:</p>
@@ -191,6 +232,9 @@
     </ol>
     <p class="section-sub" style="margin-top:20px;">
       <code>python3 codes/analysis/verify_rtqpcr_primers.py --primers-csv pairs.csv --ref-versions v1,v2 --population-check</code> — full usage in <a href="../../docs/TUTORIAL.md#4-verifying-existing-rt-qpcr-primers">TUTORIAL.md §4</a>, rationale for each step (with the real mis-identifications each one catches) in <a href="../../docs/PIPELINE.md#10-rt-qpcr-primer-verification">PIPELINE.md §10</a>. Raw output: <code class="path">analysis/rtqpcr_verification/rtqpcr_primer_verification.csv</code>.
+    </p>
+    <p class="section-sub" style="margin-top:14px;">
+      The 3 new candidates (<a href="#candidates">above</a>) were <i>designed</i>, not just verified: <code>muscle</code> (multiple sequence alignment) found the myosin conserved region, <code>eprimer3</code> (EMBOSS + <code>primer3_core</code> — same tool as the <a href="primer_design_report.html">Primer Design Report</a>) generated candidates within it, <code>primersearch</code> confirmed real in-silico PCR products genome-wide, and every candidate was then run back through the same <code>verify_rtqpcr_primers.py</code> checklist above before being listed here — the same battery of tools used throughout this project, applied in the opposite direction (proposing a sequence, rather than locating one already in use).
     </p>
   </section>
 

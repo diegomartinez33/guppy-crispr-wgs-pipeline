@@ -1809,6 +1809,121 @@ Also added a primer-sequence column to
 primers, 5'->3') so the lab has them on hand to reorder from a supplier
 without digging through the CSV.
 
+**Follow-up 2026-09-11 - new housekeeping primer candidates designed
+(myosin conserved-region, gapdh, ef1a).** User clarified the actual
+purpose of the myosin primer: it's the reference/housekeeping gene
+against which `bdnf` expression is contrasted after CRISPR KO - not a
+gene of specific biological interest itself. This reframes the design
+goal entirely: a housekeeping gene needs stable, reproducible
+amplification across ALL treatment groups (Control, Only_MNP, Plasmid_Ko,
+RNP_Cas), not identity to one specific transcript. Also flagged as worth
+checking: muscle myosin heavy chain is an atypical choice for a
+housekeeping gene in the RT-qPCR literature (usually ubiquitously-
+expressed genes like actb/gapdh/ef1a/rpl13a are used, not a contractile,
+tissue-specific structural gene) - user agreed to also design gapdh and
+ef1a as standard alternatives/complements. None of these 3 are in lab use
+yet - proposed here, verified in silico, pending empirical validation.
+
+**myosin_conserved** (pan-paralog design, ad-hoc analysis - no new script,
+reused existing functions from `verify_rtqpcr_primers.py` and
+`design_offtarget_primers.py`):
+1. Found the FULL tandem cluster of myosin heavy chain paralogs on
+   `NC_088837.1` (v2) via GFF description search (not symbol): 4 genes
+   with "myosin heavy chain" in their description - `LOC108166486`
+   (myosin-8-like, 1897bp transcript - much shorter, likely fragmentary),
+   `LOC108166487`, `LOC103468749`, `LOC145552582` (~6000bp each, 41-42
+   exons). A second, unrelated 2-gene myosin cluster exists on
+   `NC_088834.1` - not used here since the original `miosina_guppy_F/R`
+   primers were already confirmed (this session, earlier) to target the
+   `NC_088837.1` cluster specifically.
+2. Extracted each paralog's spliced mRNA (`build_spliced_mrna()`, reused)
+   and aligned all 4 with `muscle/5.1` (module, actual binary is v3.8.1551
+   despite the module name). Found a 470bp block (alignment columns
+   4950-5420) with only 2 isolated single-base differences and ZERO
+   indels across all 4 sequences, including the much-shorter
+   `LOC108166486` - a genuinely conserved region, not assumed from just 2-3
+   sequences.
+3. Extracted that 470bp window from `LOC145552582`'s mRNA, ran `eprimer3`
+   inside it (same `primer3_env`/`EMBOSS_PRIMER3_CORE` setup as
+   `design_offtarget_primers.py`), got 8 candidates.
+4. **Critical validation step - checked each candidate directly against
+   every paralog's own real mRNA sequence** (exact substring, not just
+   trusting the alignment): 4 of 8 candidates failed at a position just
+   outside the strictly-verified 470bp core (the buffer zone added for
+   `eprimer3`'s flexibility was NOT independently verified base-by-base
+   and turned out to have an undetected mismatch in `LOC108166487`) - this
+   step caught it. Lesson: an alignment-derived "conserved region" must
+   still be checked candidate-by-candidate against the real target
+   sequences, not trusted as fully conserved just because it scored well
+   in a coarse per-column scan.
+5. Of the 4 surviving candidates, picked the pair confirmed by
+   `primersearch` (reused `run_primersearch()`/`parse_primersearch()` from
+   `design_offtarget_primers.py`, run against the WHOLE v1 and v2 genomes)
+   to give the cleanest result: `CCAACTGCACCTTGATGATG` /
+   `TGAGAGTGCAGCAGTCCAAC`, product 198bp. In v2, the identical 198bp
+   product forms at **6 distinct genomic positions** across the tandem
+   cluster - one more than the 4 originally identified, because
+   `LOC103468880` (annotated only as "uncharacterized LOC103468880", no
+   myosin-related description at all) turns out to carry the same
+   conserved motif - found only because `primersearch` checks the whole
+   genome, not just the pre-selected candidate gene list. Zero amplimers
+   under ~1000bp anywhere else in the genome (all other primersearch hits
+   were 8kb-97kb - not realistically amplifiable under standard qPCR
+   extension times, and easily distinguished from the true 198bp product
+   even if they were). In v1 (fragmentary annotation at this locus, see
+   the miosina_guppy finding above), BLAST confirmed the underlying
+   GENOMIC sequence still matches exactly at multiple positions even
+   though v1's truncated gene models don't capture it - re-confirming v1's
+   problem here is annotation completeness, not sequence divergence.
+6. Fed the final pair through `verify_rtqpcr_primers.py` (the standard,
+   already-validated checklist) as the final, authoritative check: OK,
+   100% identity, single-exon, in BOTH v1 and v2, and **IDENTICAL** in the
+   Colombian pseudogenome (no population variant on top of the design).
+
+**gapdh_new / ef1a_new** (standard single-copy genes, much simpler):
+`gapdh` and `eef1a1a` (confirmed as the canonical, ubiquitously-expressed
+"a" paralog - not `eef1a1l2`/`eef1a1l3`, nor the spermatogenic-specific
+`gapdhs` paralog found nearby) are single-copy with identical GeneIDs in
+v1/v2 (103478010, 103476462) - no tandem-duplication ambiguity, so no MSA
+step needed. Extracted each gene's v1 spliced mRNA, ran `eprimer3` in a
+window centered on a mid-CDS exon-exon junction (to try for the stronger,
+junction-spanning specificity already used for `Beta_actin_R`/`rpl_13a_R`
+elsewhere in this panel). Neither gene's individual candidate primers
+ended up straddling the intended junction position by design (`eprimer3`
+just optimizes Tm/GC/size, doesn't target a specific position without
+extra flags not used here) - but `verify_rtqpcr_primers.py`'s own
+authoritative exon-membership check found `gapdh_new_R` DOES span a real
+junction anyway (a different, nearby boundary than the one targeted) -
+this was a validated result from the tool, not a design assumption.
+`ef1a_new_F/R` are both single-exon (like `BDNF_F/R`). Both pairs: OK,
+100% identity in v1 and v2, IDENTICAL in the pseudogenome.
+
+**Result**: added all 3 new candidates (`myosin_conserved`, `gapdh_new`,
+`ef1a_new`) to
+`analysis/rtqpcr_verification/rtqpcr_primers.csv`/`_verification.csv` and
+to a new "New Candidates" section in
+`analysis/reports/rtqpcr_primer_verification_report.html`, clearly marked
+as proposed/not-yet-in-lab-use pending empirical validation (melt curve,
+gel, or qPCR efficiency testing) - in-silico verification confirms
+sequence identity and specificity, not actual amplification efficiency or
+expression stability across treatment groups.
+
+**SLURM `--export` gotcha hit while running this**: `sbatch
+--export=ALL,REF_VERSIONS=v1,v2 ...` silently truncated `REF_VERSIONS` to
+just `v1` - `sbatch --export` splits on commas between variable
+assignments, so a comma-containing VALUE like `v1,v2` gets cut at the
+comma regardless of intent. Compounded by a second issue: the primers CSV
+was written to `/tmp/`, which is NODE-LOCAL and not visible from whichever
+compute node the job landed on (same class of issue as the TGS-GapCloser
+`/tmp` staging bug from 2026-08-20, different manifestation - there it was
+same-node persistence across jobs, here it's total non-sharing between
+login and compute nodes) - `FileNotFoundError` on the compute node for a
+file that existed fine on the login node. Fixed by appending the new
+primers directly to the tracked
+`analysis/rtqpcr_verification/rtqpcr_primers.csv` (a real project path, on
+shared storage) and resubmitting with no `--export` overrides at all
+(relying on the script's own default `REF_VERSIONS=v1,v2`).
+
 ---
 
 ## Pending Analyses

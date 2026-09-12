@@ -87,8 +87,16 @@ DNA, and the gene is confirmed rather than known up front. Originally a one-off 
 | What | Path |
 |---|---|
 | Verification script | `codes/analysis/verify_rtqpcr_primers.py` (+ `run_rtqpcr_primer_verification.sh`) |
-| Result table (5 pairs × v1/v2) | `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` |
+| Result table (8 pairs × v1/v2) | `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` |
 | **Visual report** | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |
+
+**New housekeeping primer candidates (2026-09-11, not yet in lab use):** since myosin's actual role
+is as the reference/housekeeping gene contrasted against `bdnf` expression after KO, 3 new
+candidates were designed and verified: `myosin_conserved` (targets a region shared by ≥6 tandem
+myosin paralog copies, found via `muscle` MSA + `eprimer3` + `primersearch`, rather than one
+specific transcript), and standard single-copy alternatives `gapdh_new`/`ef1a_new`. All 3: 100%
+identity in v1 and v2, IDENTICAL in the Colombian pseudogenome. Full design methodology in
+`CLAUDE.md` ("RT-qPCR Primer Verification", follow-up 2026-09-11).
 
 5 primer pairs checked (bdnf, beta-actin, rpl13a original, rpl13a replacement, myosin) against v1,
 v2, and the Colombian pseudogenome. Main findings: **a real Colombian SNP in the original
