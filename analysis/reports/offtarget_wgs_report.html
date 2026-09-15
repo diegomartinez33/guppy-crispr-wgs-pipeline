@@ -120,7 +120,7 @@
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-value">0/8</div><div class="kpi-label">sites with induced indel</div></div>
       <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">background SNPs (OT4, pre-existing)</div></div>
-      <div class="kpi"><div class="kpi-value">~1.42M</div><div class="kpi-label">SNPs / sample (genome-wide)</div></div>
+      <div class="kpi"><div class="kpi-value">~7.66M</div><div class="kpi-label">SNPs / sample (genome-wide)</div></div>
       <div class="kpi"><div class="kpi-value">1.37</div><div class="kpi-label">average Ti/Tv (expected quality)</div></div>
     </div>
   </section>
@@ -161,7 +161,7 @@
 
   <section id="variants" class="divider-top">
     <h2>Genome-Wide Variant Summary</h2>
-    <p class="section-sub">Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites.</p>
+    <p class="section-sub">Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites. <i>Refreshed 2026-09-15: the previous version of this table was computed from an incomplete snapshot of the filtered VCF, predating the final VariantFiltration run — counts here are ~5.5× higher and reflect the complete, final joint VCF (11,083,611 SNP records across all 24 chromosomes). The genotypes/editing tables above were unaffected (verified byte-identical to the prior version).</i></p>
     <div class="table-scroll">
       <table class="data" id="var-table">
         <thead><tr><th>Sample</th><th>Group</th><th class="num">SNPs</th><th class="num">Het</th><th class="num">Hom</th><th class="num">Ti/Tv</th><th class="num">INDELs</th><th class="num">Mean depth</th></tr></thead>
@@ -209,21 +209,21 @@ const EDIT = [
   {s:"RNP_Cas4",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,null,0.0]},
 ];
 const VARS = [
-  {s:"Control_MNP_I",g:"Control",snps:1448608,het:194107,hom:1254501,titv:1.3657,indels:372463,dp:46.1},
-  {s:"Control_MNP_II",g:"Control",snps:1409045,het:182524,hom:1226521,titv:1.3694,indels:361804,dp:46.8},
-  {s:"Control_MNP_III",g:"Control",snps:1393792,het:190271,hom:1203521,titv:1.3714,indels:357174,dp:48.9},
-  {s:"Only_MNP_C1",g:"Only_MNP",snps:1459036,het:199080,hom:1259956,titv:1.3666,indels:373418,dp:42.0},
-  {s:"Only_MNP_C2",g:"Only_MNP",snps:1407215,het:218287,hom:1188928,titv:1.3656,indels:361877,dp:44.9},
-  {s:"Only_MNP_C3",g:"Only_MNP",snps:1610820,het:245166,hom:1365654,titv:1.3685,indels:418452,dp:45.3},
-  {s:"Only_MNP_C4",g:"Only_MNP",snps:1454948,het:195586,hom:1259362,titv:1.3648,indels:372945,dp:44.9},
-  {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",snps:1343889,het:162153,hom:1181736,titv:1.3750,indels:343156,dp:46.2},
-  {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",snps:1501980,het:233491,hom:1268489,titv:1.3670,indels:388747,dp:45.4},
-  {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",snps:1544390,het:254982,hom:1289408,titv:1.3665,indels:398904,dp:40.5},
-  {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",snps:1506338,het:228051,hom:1278287,titv:1.3654,indels:387607,dp:44.3},
-  {s:"RNP_Cas1",g:"RNP_Cas",snps:1337343,het:173125,hom:1164218,titv:1.3764,indels:341927,dp:58.1},
-  {s:"RNP_Cas2",g:"RNP_Cas",snps:1422268,het:210423,hom:1211845,titv:1.3663,indels:368157,dp:53.0},
-  {s:"RNP_Cas3",g:"RNP_Cas",snps:1341844,het:194055,hom:1147789,titv:1.3687,indels:349407,dp:65.1},
-  {s:"RNP_Cas4",g:"RNP_Cas",snps:1392109,het:235965,hom:1156144,titv:1.3614,indels:359093,dp:59.2},
+  {s:"Control_MNP_I",g:"Control",snps:7806737,het:1089947,hom:6716790,titv:1.3710,indels:2010705,dp:46.8},
+  {s:"Control_MNP_II",g:"Control",snps:7925384,het:1086450,hom:6838934,titv:1.3703,indels:2036917,dp:47.4},
+  {s:"Control_MNP_III",g:"Control",snps:7812818,het:1117678,hom:6695140,titv:1.3716,indels:2011610,dp:49.6},
+  {s:"Only_MNP_C1",g:"Only_MNP",snps:7859581,het:1093021,hom:6766560,titv:1.3705,indels:2017533,dp:42.6},
+  {s:"Only_MNP_C2",g:"Only_MNP",snps:7453443,het:1247679,hom:6205764,titv:1.3705,indels:1923648,dp:45.5},
+  {s:"Only_MNP_C3",g:"Only_MNP",snps:7354393,het:1274134,hom:6080259,titv:1.3708,indels:1906043,dp:45.7},
+  {s:"Only_MNP_C4",g:"Only_MNP",snps:7807719,het:1097200,hom:6710519,titv:1.3709,indels:2006563,dp:45.6},
+  {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",snps:7943660,het:1064382,hom:6879278,titv:1.3723,indels:2039343,dp:46.8},
+  {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",snps:7573730,het:1173770,hom:6399960,titv:1.3698,indels:1957517,dp:46.1},
+  {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",snps:7454570,het:1217439,hom:6237131,titv:1.3692,indels:1922689,dp:41.1},
+  {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",snps:7568538,het:1207158,hom:6361380,titv:1.3682,indels:1953578,dp:44.8},
+  {s:"RNP_Cas1",g:"RNP_Cas",snps:8012787,het:1075690,hom:6937097,titv:1.3706,indels:2061259,dp:58.7},
+  {s:"RNP_Cas2",g:"RNP_Cas",snps:7507932,het:1215389,hom:6292543,titv:1.3697,indels:1948835,dp:53.6},
+  {s:"RNP_Cas3",g:"RNP_Cas",snps:7728078,het:1149818,hom:6578260,titv:1.3701,indels:2009864,dp:66.0},
+  {s:"RNP_Cas4",g:"RNP_Cas",snps:7127987,het:1335182,hom:5792805,titv:1.3684,indels:1851923,dp:59.8},
 ];
 
 function fmt(n){ return n===null||n===undefined ? "—" : (typeof n==="number" ? n.toLocaleString("en-US") : n); }

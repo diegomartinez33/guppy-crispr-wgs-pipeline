@@ -8,8 +8,13 @@ parses per-sample counts, and produces:
   - gatk_summary_barplot.png   — SNP + INDEL counts per sample (grouped)
   - gatk_titv_boxplot.png      — Ti/Tv ratio per group
 
+Dual-genome (v1/v2, see codes/genome_versions.sh): set REF_VERSION=v2 to run
+against the GCF_904066995.2 hard-filtered VCFs instead. Output goes to a
+version-suffixed OUT_DIR so v1 and v2 results never overwrite each other.
+
 Usage (requires module load bcftools/1.15.1):
     python codes/analysis/gatk_variant_summary.py
+    REF_VERSION=v2 python codes/analysis/gatk_variant_summary.py
 """
 
 import subprocess
@@ -24,9 +29,18 @@ import matplotlib.patches as mpatches
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
-VCF_DIR     = os.path.join(PROJECT_DIR, "gatk/trimmomatic/vcf_filtered")
-OUT_DIR     = os.path.join(PROJECT_DIR, "codes/analysis/gatk_summary")
+REF_VERSION = os.environ.get("REF_VERSION", "v1")
+OUT_SUFFIX  = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
+VCF_DIR     = os.path.join(PROJECT_DIR, f"gatk/trimmomatic{OUT_SUFFIX}/vcf_filtered")
+OUT_DIR     = os.path.join(PROJECT_DIR, f"codes/analysis/gatk_summary{OUT_SUFFIX}")
 os.makedirs(OUT_DIR, exist_ok=True)
+print(f"REF_VERSION={REF_VERSION}  VCF_DIR={VCF_DIR}  OUT_DIR={OUT_DIR}")
+
+REF_LABEL_BY_VERSION = {
+    "v1": "GCF_000633615.1 (Guanapo, female)",
+    "v2": "GCF_904066995.2 (P_reticulata-male-v2)",
+}
+REF_LABEL = REF_LABEL_BY_VERSION[REF_VERSION]
 
 SNP_VCF   = os.path.join(VCF_DIR, "snps_filtered.vcf.gz")
 INDEL_VCF = os.path.join(VCF_DIR, "indels_filtered.vcf.gz")
@@ -216,7 +230,7 @@ fig.legend(handles=patches, loc="lower center", ncol=4, fontsize=9,
 
 fig.suptitle(
     "GATK variant counts — Guppy WGS (Poecilia reticulata, Colombian population)\n"
-    f"Reference: GCF_000633615.1 (Guanapo)  ·  Genome-wide Ti/Tv = {titv_all:.2f}",
+    f"Reference: {REF_LABEL}  ·  Genome-wide Ti/Tv = {titv_all:.2f}",
     fontsize=10, fontweight="bold",
 )
 plt.savefig(os.path.join(OUT_DIR, "gatk_summary_barplot.png"), dpi=150, bbox_inches="tight")

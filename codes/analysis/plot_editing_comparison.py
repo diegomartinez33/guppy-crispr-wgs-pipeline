@@ -5,16 +5,22 @@ On-target vs off-target CRISPR editing efficiency comparison.
 Reads CRISPResso2 on-target and CRISPRessoWGS off-target quantification
 outputs and produces three figures + one summary CSV.
 
+Dual-genome (v1/v2, see codes/genome_versions.sh): set REF_VERSION=v2 to read
+crispresso_v2/ instead of crispresso/ (GCF_904066995.2 mapping/CRISPResso
+results). Output goes to a version-suffixed OUT_DIR so v1 and v2 results
+never overwrite each other.
+
 Usage (from any directory):
     python codes/analysis/plot_editing_comparison.py
+    REF_VERSION=v2 python codes/analysis/plot_editing_comparison.py
 
 Inputs:
-    crispresso/ontarget/trimmomatic/{SAMPLE}/CRISPResso_on_{SAMPLE}/
+    crispresso{,_v2}/ontarget/trimmomatic/{SAMPLE}/CRISPResso_on_{SAMPLE}/
         CRISPResso_quantification_of_editing_frequency.txt
-    crispresso/wgs/trimmomatic/{SAMPLE}/CRISPRessoWGS_on_{SAMPLE}/
+    crispresso{,_v2}/wgs/trimmomatic/{SAMPLE}/CRISPRessoWGS_on_{SAMPLE}/
         SAMPLES_QUANTIFICATION_SUMMARY.txt
 
-Outputs (codes/analysis/editing_comparison/):
+Outputs (codes/analysis/editing_comparison{,_v2}/):
     editing_summary.csv       — combined Modified% table (all samples × sites)
     editing_heatmap.png       — heatmap: on-target (left) + off-target (right)
     ontarget_barplot.png      — on-target editing efficiency per group
@@ -35,10 +41,14 @@ warnings.filterwarnings("ignore")
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR  = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
-ONTARGET_DIR = os.path.join(PROJECT_DIR, "crispresso/ontarget/trimmomatic")
-WGS_DIR      = os.path.join(PROJECT_DIR, "crispresso/wgs/trimmomatic")
-OUT_DIR      = os.path.join(PROJECT_DIR, "codes/analysis/editing_comparison")
+REF_VERSION  = os.environ.get("REF_VERSION", "v1")
+OUT_SUFFIX   = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
+CRISPRESSO_DIR = f"crispresso{OUT_SUFFIX}"
+ONTARGET_DIR = os.path.join(PROJECT_DIR, f"{CRISPRESSO_DIR}/ontarget/trimmomatic")
+WGS_DIR      = os.path.join(PROJECT_DIR, f"{CRISPRESSO_DIR}/wgs/trimmomatic")
+OUT_DIR      = os.path.join(PROJECT_DIR, f"codes/analysis/editing_comparison{OUT_SUFFIX}")
 os.makedirs(OUT_DIR, exist_ok=True)
+print(f"REF_VERSION={REF_VERSION}  ONTARGET_DIR={ONTARGET_DIR}  WGS_DIR={WGS_DIR}  OUT_DIR={OUT_DIR}")
 
 # ── Samples and groups ─────────────────────────────────────────────────────────
 GROUPS = {
@@ -60,17 +70,44 @@ GROUP_COLORS  = {
 # ── Off-target sites (name as in SAMPLES_QUANTIFICATION_SUMMARY.txt) ──────────
 # Key  : site name used by CRISPRessoWGS
 # Value: short label for plots
-OT_SITES = {
-    "NC_024331.1_5708724_3mm_CRISPOR":  "OT1\nNC_024331.1:5708724\n3mm · exon",
-    "NC_024331.1_13951199_4mm_CRISPOR": "OT2\nNC_024331.1:13951199\n4mm · exon",
-    "NC_024331.1_26228796_4mm_CRISPOR": "OT3\nNC_024331.1:26228796\n4mm · intergenic",
-    "NC_024332.1_5810651_4mm_CRISPOR":  "OT4\nNC_024332.1:5810651\n4mm · intron",
-    "NC_024338.1_20512932_4mm_CRISPOR": "OT5\nNC_024338.1:20512932\n4mm · intergenic",
-    "NC_024339.1_7034820_4mm_CRISPOR":  "OT6\nNC_024339.1:7034820\n4mm · intron",
-    "NC_024340.1_12200655_4mm_CRISPOR": "OT7\nNC_024340.1:12200655\n4mm · intergenic",
-    "NC_024349.1_24882037_4mm_CRISPOR": "OT8\nNC_024349.1:24882037\n4mm · intron",
+# Same 8 predicted sites in both versions, remapped to each reference
+# assembly's own coordinates (crispresso{,_v2}/offtargets/combined/
+# combined_offtargets.csv). v1's label carries an exon/intron/intergenic
+# classification against the Guanapo annotation; that classification hasn't
+# been computed for v2 yet, so its label is left without one rather than
+# guessing.
+OT_SITES_BY_VERSION = {
+    "v1": {
+        "NC_024331.1_5708724_3mm_CRISPOR":  "OT1\nNC_024331.1:5708724\n3mm · exon",
+        "NC_024331.1_13951199_4mm_CRISPOR": "OT2\nNC_024331.1:13951199\n4mm · exon",
+        "NC_024331.1_26228796_4mm_CRISPOR": "OT3\nNC_024331.1:26228796\n4mm · intergenic",
+        "NC_024332.1_5810651_4mm_CRISPOR":  "OT4\nNC_024332.1:5810651\n4mm · intron",
+        "NC_024338.1_20512932_4mm_CRISPOR": "OT5\nNC_024338.1:20512932\n4mm · intergenic",
+        "NC_024339.1_7034820_4mm_CRISPOR":  "OT6\nNC_024339.1:7034820\n4mm · intron",
+        "NC_024340.1_12200655_4mm_CRISPOR": "OT7\nNC_024340.1:12200655\n4mm · intergenic",
+        "NC_024349.1_24882037_4mm_CRISPOR": "OT8\nNC_024349.1:24882037\n4mm · intron",
+    },
+    "v2": {
+        "NC_088830.1_7340936_3mm_CRISPOR":  "OT1\nNC_088830.1:7340936\n3mm",
+        "NC_088830.1_14098839_4mm_CRISPOR": "OT2\nNC_088830.1:14098839\n4mm",
+        "NC_088830.1_26619950_4mm_CRISPOR": "OT3\nNC_088830.1:26619950\n4mm",
+        "NC_088831.1_6154659_4mm_CRISPOR":  "OT4\nNC_088831.1:6154659\n4mm",
+        "NC_088837.1_25867890_4mm_CRISPOR": "OT5\nNC_088837.1:25867890\n4mm",
+        "NC_088838.1_8510394_4mm_CRISPOR":  "OT6\nNC_088838.1:8510394\n4mm",
+        "NC_088839.1_3391653_4mm_CRISPOR":  "OT7\nNC_088839.1:3391653\n4mm",
+        "NC_088848.1_20545705_4mm_CRISPOR": "OT8\nNC_088848.1:20545705\n4mm",
+    },
 }
+OT_SITES = OT_SITES_BY_VERSION[REF_VERSION]
 OT_NAMES = list(OT_SITES.keys())
+
+# bdnf on-target sgRNA site — same guide sequence, remapped coordinates.
+BDNF_SITE_BY_VERSION = {
+    "v1": {"chrom": "NC_024333.1", "start": 15922039, "end": 15922058},
+    "v2": {"chrom": "NC_088832.1", "start": 15849694, "end": 15849713},
+}
+BDNF_SITE = BDNF_SITE_BY_VERSION[REF_VERSION]
+BDNF_LABEL = f"{BDNF_SITE['chrom']}:{BDNF_SITE['start']}–{BDNF_SITE['end']}"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -184,7 +221,7 @@ on_vals = ontarget_df.loc[SAMPLES, "modified_pct"].astype(float).values.reshape(
 im_on   = ax_on.imshow(on_vals, aspect="auto", cmap="Reds", vmin=0, vmax=100)
 
 ax_on.set_xticks([0])
-ax_on.set_xticklabels(["On-target\nbdnf (NC_024333.1)\n:15922039–15922058"], fontsize=8)
+ax_on.set_xticklabels([f"On-target\nbdnf ({BDNF_SITE['chrom']})\n:{BDNF_SITE['start']}–{BDNF_SITE['end']}"], fontsize=8)
 ax_on.set_yticks(range(len(SAMPLES)))
 ax_on.set_yticklabels(ylabels, fontsize=8)
 
@@ -255,7 +292,7 @@ fig.legend(handles=patches, loc="lower center", ncol=4, fontsize=9,
 
 fig.suptitle(
     "CRISPR-Cas9 editing: on-target (bdnf) vs predicted off-target sites\n"
-    "Guppy (Poecilia reticulata) · SpCas9 · sgRNA: TGAGAGACGCCCCGGGCATG (− strand)",
+    f"Guppy (Poecilia reticulata) · SpCas9 · sgRNA: TGAGAGACGCCCCGGGCATG (− strand) · {REF_VERSION}",
     fontsize=10, fontweight="bold", y=1.02,
 )
 plt.tight_layout()
@@ -294,7 +331,7 @@ ax.set_xticklabels(xtick_labels, rotation=40, ha="right", fontsize=8)
 ax.set_ylabel("Modified reads (%)", fontsize=10)
 ax.set_title(
     "On-target editing efficiency per sample\n"
-    "bdnf sgRNA site · NC_024333.1:15922039–15922058",
+    f"bdnf sgRNA site · {BDNF_LABEL}",
     fontsize=10,
 )
 ax.set_xlim(-0.5, x - 0.5)

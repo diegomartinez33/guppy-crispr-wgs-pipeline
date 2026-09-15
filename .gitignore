@@ -15,6 +15,15 @@ multiqc_report/
 /assembly*/
 intermediate_files/
 
+# gatk*/ above is meant for the heavy top-level gatk{,_v2}/ variant-calling
+# dirs, but as an unanchored glob it also matches codes/analysis/gatk_summary{,_v2}/
+# - small report CSVs/PNGs that should be tracked like their v1 sibling
+# already is. Un-ignore explicitly (found 2026-09-15 when gatk_summary_v2/
+# came back untracked-but-ignored after parameterizing the GATK report
+# scripts for v2).
+!codes/analysis/gatk_summary/
+!codes/analysis/gatk_summary_v2/
+
 # GenomicsDB workspace — thousands of TileDB binary segment files
 gatk/trimmomatic/genomicsdb/
 gatk/fastp/genomicsdb/

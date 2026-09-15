@@ -8,7 +8,7 @@ produces:
   - offtarget_genotypes.csv          — per-variant, per-sample genotype table
   - offtarget_genotype_heatmap.png   — genotype heatmap (0/0, 0/1, 1/1)
 
-Key result: GATK found only 2 SNPs at OT4 (NC_024332.1:5810651-5810674),
+Key result (v1): GATK found only 2 SNPs at OT4 (NC_024332.1:5810651-5810674),
 both present in the Control group → pre-existing Colombian-population polymorphisms,
 not CRISPR-induced variants. The other 7 off-target protospacer windows have
 no germline variants detectable against the Guanapo reference.
@@ -17,8 +17,13 @@ Note: the VCF was extracted from the raw joint-genotype VCF (all_samples.vcf.gz)
 before VariantFiltration, so FILTER shows "." (unannotated). Both variants pass
 all hard-filter thresholds (QD>2, FS<60, MQ>40) and would be PASS if re-filtered.
 
+Dual-genome (v1/v2, see codes/genome_versions.sh): set REF_VERSION=v2 to run
+against the GCF_904066995.2 off-target genotype VCF instead. Output goes to a
+version-suffixed OUT_DIR so v1 and v2 results never overwrite each other.
+
 Usage:
     python codes/analysis/gatk_offtarget_genotypes.py
+    REF_VERSION=v2 python codes/analysis/gatk_offtarget_genotypes.py
 """
 
 import gzip
@@ -34,22 +39,44 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
+REF_VERSION = os.environ.get("REF_VERSION", "v1")
+OUT_SUFFIX  = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
 VCF_PATH    = os.path.join(PROJECT_DIR,
-              "gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz")
-OUT_DIR     = os.path.join(PROJECT_DIR, "codes/analysis/gatk_summary")
+              f"gatk/trimmomatic{OUT_SUFFIX}/vcf_offtargets/offtarget_variants.vcf.gz")
+OUT_DIR     = os.path.join(PROJECT_DIR, f"codes/analysis/gatk_summary{OUT_SUFFIX}")
 os.makedirs(OUT_DIR, exist_ok=True)
+print(f"REF_VERSION={REF_VERSION}  VCF_PATH={VCF_PATH}  OUT_DIR={OUT_DIR}")
 
 # ── Off-target site protospacer windows (23 bp, from offtargets_intervals.list)
-OT_SITES = {
-    "OT1": {"chrom": "NC_024331.1", "start": 5708724,  "end": 5708747,  "mm": 3, "locus": "exon"},
-    "OT2": {"chrom": "NC_024331.1", "start": 13951199, "end": 13951222, "mm": 4, "locus": "exon"},
-    "OT3": {"chrom": "NC_024331.1", "start": 26228796, "end": 26228819, "mm": 4, "locus": "intergenic"},
-    "OT4": {"chrom": "NC_024332.1", "start": 5810651,  "end": 5810674,  "mm": 4, "locus": "intron"},
-    "OT5": {"chrom": "NC_024338.1", "start": 20512932, "end": 20512955, "mm": 4, "locus": "intergenic"},
-    "OT6": {"chrom": "NC_024339.1", "start": 7034820,  "end": 7034843,  "mm": 4, "locus": "intron"},
-    "OT7": {"chrom": "NC_024340.1", "start": 12200655, "end": 12200678, "mm": 4, "locus": "intergenic"},
-    "OT8": {"chrom": "NC_024349.1", "start": 24882037, "end": 24882060, "mm": 4, "locus": "intron"},
+# Same 8 predicted sites (identical guide/mismatch design), remapped to each
+# reference assembly's own coordinates (crispresso{,_v2}/offtargets/combined/
+# combined_offtargets.csv). v1's "locus" is an exon/intron/intergenic
+# classification against the Guanapo annotation; v2's combine_offtargets run
+# only recorded a distance label (no equivalent classification computed yet),
+# so its "locus" is left as that same descriptive string instead of guessing.
+OT_SITES_BY_VERSION = {
+    "v1": {
+        "OT1": {"chrom": "NC_024331.1", "start": 5708724,  "end": 5708747,  "mm": 3, "locus": "exon"},
+        "OT2": {"chrom": "NC_024331.1", "start": 13951199, "end": 13951222, "mm": 4, "locus": "exon"},
+        "OT3": {"chrom": "NC_024331.1", "start": 26228796, "end": 26228819, "mm": 4, "locus": "intergenic"},
+        "OT4": {"chrom": "NC_024332.1", "start": 5810651,  "end": 5810674,  "mm": 4, "locus": "intron"},
+        "OT5": {"chrom": "NC_024338.1", "start": 20512932, "end": 20512955, "mm": 4, "locus": "intergenic"},
+        "OT6": {"chrom": "NC_024339.1", "start": 7034820,  "end": 7034843,  "mm": 4, "locus": "intron"},
+        "OT7": {"chrom": "NC_024340.1", "start": 12200655, "end": 12200678, "mm": 4, "locus": "intergenic"},
+        "OT8": {"chrom": "NC_024349.1", "start": 24882037, "end": 24882060, "mm": 4, "locus": "intron"},
+    },
+    "v2": {
+        "OT1": {"chrom": "NC_088830.1", "start": 7340936,  "end": 7340959,  "mm": 3, "locus": "NC_088830.1 7.34 Mbp"},
+        "OT2": {"chrom": "NC_088830.1", "start": 14098839, "end": 14098862, "mm": 4, "locus": "NC_088830.1 14.10 Mbp"},
+        "OT3": {"chrom": "NC_088830.1", "start": 26619950, "end": 26619973, "mm": 4, "locus": "NC_088830.1 26.62 Mbp"},
+        "OT4": {"chrom": "NC_088831.1", "start": 6154659,  "end": 6154682,  "mm": 4, "locus": "NC_088831.1 6.15 Mbp"},
+        "OT5": {"chrom": "NC_088837.1", "start": 25867890, "end": 25867913, "mm": 4, "locus": "NC_088837.1 25.87 Mbp"},
+        "OT6": {"chrom": "NC_088838.1", "start": 8510394,  "end": 8510417,  "mm": 4, "locus": "NC_088838.1 8.51 Mbp"},
+        "OT7": {"chrom": "NC_088839.1", "start": 3391653,  "end": 3391676,  "mm": 4, "locus": "NC_088839.1 3.39 Mbp"},
+        "OT8": {"chrom": "NC_088848.1", "start": 20545705, "end": 20545728, "mm": 4, "locus": "NC_088848.1 20.55 Mbp"},
+    },
 }
+OT_SITES = OT_SITES_BY_VERSION[REF_VERSION]
 
 GROUPS = {
     "Control":    ["Control_MNP_I_S54_L002",  "Control_MNP_II_S55_L002",  "Control_MNP_III_S56_L002"],
@@ -354,11 +381,22 @@ plt.close()
 print(f"✅ Genotype heatmap → {os.path.join(OUT_DIR, 'offtarget_genotype_heatmap.png')}")
 
 print("\n=== Interpretation ===")
+print(f"  REF_VERSION: {REF_VERSION}")
 print(f"  Total variants at 8 off-target protospacer windows: {len(records)}")
 bg = (df["classification"] == "background_variant").sum()
 ce = (df["classification"] == "candidate_edit").sum()
 print(f"  Background (present in Control): {bg}")
 print(f"  Candidate edits (absent in Control): {ce}")
-print("  OT1, OT2, OT3, OT5, OT6, OT7, OT8: 0 variants → no confounding germline SNPs")
-print("  OT4 (NC_024332.1, intron): 2 linked SNPs in phase, present in Control_MNP_II")
-print("       → pre-existing Colombian-population haplotype, NOT CRISPR-induced")
+
+sites_with_variants = sorted(set(df["site"]) - {"unknown"})
+sites_without = [s for s in OT_SITES if s not in sites_with_variants]
+if sites_without:
+    print(f"  {', '.join(sites_without)}: 0 variants → no confounding germline SNPs")
+for s in sites_with_variants:
+    sub = df[df["site"] == s]
+    control_gt_cols = [f"{SAMPLE_LABEL[x]}_gt" for x in GROUPS["Control"]]
+    carriers = [c for c in ["Control_AF", "Only_MNP_AF", "Plasmid_Ko_AF", "RNP_Cas_AF"]
+                if (sub[c] > 0).any()]
+    cls = sorted(sub["classification"].unique())
+    print(f"  {s} ({OT_SITES[s]['chrom']}): {len(sub)} variant(s), "
+          f"classification={cls}, AF>0 in groups={[c.replace('_AF','') for c in carriers]}")

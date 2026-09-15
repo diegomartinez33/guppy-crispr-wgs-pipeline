@@ -2908,10 +2908,55 @@ registering `guppyColPseudogenomeV2` with CRISPOR (needed before
 `ko_guide_scan.py --population pseudogenome_v2` can get CRISPOR scores,
 though the manual scan/classification already works without it);
 re-running the 8-gene KO/CRISPRi guide comparison against
-pseudogenome_v2 once that's registered;
-`gatk_offtarget_genotypes.py`/`plot_editing_comparison.py`'s 8 hardcoded
-v1 OT-site coordinates still need a v2-aware update to actually use the
-off-target genotyping result (see above) in a plot/report.
+pseudogenome_v2 once that's registered.
+
+**GATK genotype/summary plots (gatk_offtarget_genotypes.py,
+gatk_variant_summary.py, plot_editing_comparison.py) parameterized + run for
+v2 - 2026-09-15.** These 3 scripts (unlike everything else in this section)
+predate genome_versions.sh and had no REF_VERSION support at all - added the
+same `REF_VERSION` env var / `OUT_SUFFIX` pattern, with a per-version
+`OT_SITES`/`BDNF_SITE` dict (remapped coordinates from
+`crispresso{,_v2}/offtargets/combined/combined_offtargets.csv`) and outputs
+now split into version-suffixed dirs (`gatk_summary_v2/`,
+`editing_comparison_v2/`) so v1's are never overwritten. v1 regression
+verified byte-identical for `gatk_offtarget_genotypes.py` and
+`plot_editing_comparison.py` (diffed old vs. freshly-regenerated CSVs).
+
+Result - **v2 exactly reproduces v1's off-target genotype finding**: the
+same 2 background SNPs at OT4, present in Control + Plasmid_Ko and absent
+from Only_MNP/RNP_Cas, at the remapped coordinates
+`NC_088831.1:6154664` and `:6154672` (v1: `NC_024332.1:5810660`/`:5810668`).
+All other 7 sites: 0 variants in both versions. The editing-comparison
+on-target numbers match v1 exactly per group/sample (same read counts, same
+0%/0%/0%/1.47%-noise pattern) - consistent with the CRISPResso finding
+above (same physical reads, comparable local depth). Off-target Modified%
+per site is close to v1's (OT4 mean 4.29% vs 4.12%); OT7 now has WGS
+coverage in all 12 valid samples where v1 had 0 (n_valid=0, all NA) - a
+genuine improvement from v2's better assembly contiguity at that locus, not
+a bug.
+
+**Bonus finding, not previously known**: re-running `gatk_variant_summary.py`
+for v1 (as the regression check) did NOT reproduce the previously-committed
+`gatk_variant_summary.csv`/plots - per-sample SNP counts came back ~5.5x
+higher (e.g. Control_MNP_I: 7.8M vs. the committed 1.45M) with a lower
+Ti/Tv (1.371 vs. the committed CSV's ~1.366-1.375 per-sample spread, similar
+range but computed from a different dataset) and far fewer missing
+genotypes. Root cause: the currently-committed `gatk_variant_summary.csv`
+was computed from an EARLIER, incomplete state of `snps_filtered.vcf.gz`
+- CLAUDE.md's own VariantFiltration row (job 669472) records completion at
+"Jul 13 05:03", but the committed CSV was added 2026-05-25 (git log), i.e.
+7+ weeks BEFORE the real, final hard-filtered VCF even existed. Confirmed
+the current on-disk VCF is the real, complete, final one: 11,083,611 SNP
+records spanning all 24 v1 chromosomes (`zcat ... | grep -vc '^#'`), an
+order of magnitude consistent with the ~7-9M per-sample counts now being
+reported, not the stale ~1.4M. The regenerated `gatk_summary/{
+gatk_variant_summary.csv, gatk_summary_barplot.png, gatk_titv_boxplot.png}`
+(overwritten in place, same filenames) are now correct and up to date; the
+old numbers were never accurate for the final v1 VCF. v2's equivalent run
+(`gatk_summary_v2/`) used the correct, complete v2 VCF from the start (no
+staleness possible - it was generated and analyzed in the same session):
+~8.1-9.1M SNPs/sample, Ti/Tv 1.360-1.367, depth 37-60x, all closely tracking
+v1's corrected numbers.
 ```
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
