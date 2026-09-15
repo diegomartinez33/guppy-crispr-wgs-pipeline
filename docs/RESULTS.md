@@ -59,11 +59,32 @@ raw TSVs where available.
 
 **Consolidated report (Guppy CRISPR Atlas):**
 [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html)
-— also published as an Artifact (shareable link on request).
+— also published as an Artifact: [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856).
 
 **Limitation:** agap3, grin1a, gria1a have no CRISPOR scores (ambiguous IUPAC codes in the v1
 reference crash `crispor.py`) — will be repeated against v2 once available. Detail in
 [PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene).
+
+**Isoform constitutivity (2026-09-12):** CRISPRko candidates are now checked for whether their
+genomic footprint is present in EVERY annotated isoform of the gene, not just the one
+`ko_guide_scan.py` designs against — surfaced as `isoform_coverage_n`/`isoform_coverage_total`/
+`is_constitutive` in each `*_guide_comparison.csv`, and used as the top ranking criterion for the
+Atlas's recommended candidates. Mostly a minor correction (6/8 genes have an 80-96% constitutive
+core), but critical for **agap3**: only 19% of its guide candidates are constitutive across its 7
+very differently-structured isoforms — the Atlas's top-5 picks for agap3 now guarantee full
+isoform coverage, which the previous position-only ranking did not. Full methodology in
+`CLAUDE.md`, item #6, "Isoform constitutivity check".
+
+**CRISPRi TSS coverage (2026-09-14):** same question, extended to CRISPRi — does the chosen
+-50/+300bp window around the TSS actually reach every isoform's own transcription start? Most
+genes cluster tightly (one window covers all), but **bdnf** (3.8kb TSS spread) and **agap3**
+(63.8kb spread) have real, independently RNA-seq-supported alternative promoters, not annotation
+noise. The CRISPRi representative transcript is now chosen by strongest RNA-seq support for its
+own TSS (not CDS length, which is meaningless for a promoter question) — this changed agap3's
+CRISPRi representative to a transcript 63.8kb upstream of the one CRISPRko uses, since it has the
+strongest support of all 7 isoforms (44 RNA-seq samples). The Atlas now shows an explicit
+coverage note per gene (e.g. "covers only 1/7 isoforms — real alternative promoter, not
+addressed"). Full methodology in `CLAUDE.md`, item #6, "Same process extended to CRISPRi".
 
 ## 6. PCR Primer Design — 🔄 partial (bdnf/v1 only)
 
@@ -137,7 +158,7 @@ directly to a colleague without needing a claude.ai account).
 
 | Report | Objective | Artifact | Local copy |
 |---|---|---|---|
-| Guppy CRISPR Atlas | KO/CRISPRi guide design, 8 genes | (share on request) | [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html) |
+| Guppy CRISPR Atlas | KO/CRISPRi guide design, 8 genes | [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856) | [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html) |
 | Off-Target WGS Report | Off-target WGS (GATK + CRISPResso) | [link](https://claude.ai/code/artifact/3290263b-0f56-4d76-84fe-825d4d98110c) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
 | Variant Hotspots Report | Variant hotspots | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
 | Colombian Genome Resources | Pseudogenome + de novo assembly | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |

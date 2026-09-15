@@ -2301,6 +2301,159 @@ gria1a KO context only - the known IUPAC-ambiguity CRISPOR crash, see #7)
 still shows manual-scan candidates ranked by position only, clearly
 labeled per-row ("sin datos de CRISPOR para esta guía").
 
+**Isoform constitutivity check added - DONE 2026-09-12** (user question:
+does the manual scan verify a guide works against ALL isoforms a gene can
+produce, or just one?). Answer was no: ko_guide_scan.py only ever designs
+against ONE representative isoform (the longest CDS shared with the
+population genome, see item #6's original results section) - a candidate
+can be a perfect IDENTICAL match to the population there while sitting in
+a region absent from the gene's other isoforms, so cutting it might not
+disrupt every protein the gene actually makes. This directly matches this
+project's own already-documented ideal criterion ("early, CONSTITUTIVE
+exon" in the Guppy CRISPR Atlas's own Criteria section) which was never
+actually enforced by the code.
+
+Investigated first (before touching code, per user's explicit two-step
+request): computed, for each of the 8 genes, the genomic-position
+intersection across ALL annotated isoforms' CDS (not just those shared
+with the pseudogenome) in the v1 reference GFF. Result - mostly fine, one
+sharp exception:
+
+| Gene | Isoforms | Constitutive core (all isoforms) | % of longest CDS |
+|---|---|---|---|
+| bdnf | 8 | 810bp | 91.5% |
+| **agap3** | **7** | **794bp** | **20.0%** |
+| grin1a | 16 | 2574bp | 88.2% |
+| grin1b | 5 | 2628bp | 93.3% |
+| gria1a | 1 | (trivial) | 100% |
+| gria1b | 6 | 2411bp | 83.8% |
+| gria2b | 6 | 2276bp | 84.6% |
+| nlgn1 | 4 | 2529bp | 95.5% |
+
+agap3 stands out: 7 CDS structures ranging 2412-3966bp (9-18 exons) with
+only a 794bp core shared by all of them - the scan's chosen (longest,
+3966bp) isoform is ~80% NOT present in most of the gene's real isoforms.
+
+Implementation (ko_guide_scan.py): added `cds_positions_genomic()` (all
+genomic bp an isoform's CDS covers, order-independent) and
+`cds_window_to_genomic()` (maps a 0-based window in the concatenated,
+5'->3' CDS of ONE isoform back to genomic bp positions - handles "-"
+strand's segment-reversal-and-revcomp correctly, the same logic
+extract_cds()/exon_junction_boundaries() already rely on). For every NGG
+candidate, computes its genomic footprint and counts how many of the
+gene's OTHER annotated isoforms (ref_mrnas, ALL of them, not just
+shared_tids) fully contain that footprint in their own CDS - added
+`isoform_coverage_n`/`isoform_coverage_total`/`is_constitutive` columns to
+`<gene>_pseudogenome_guide_comparison.csv`. Verified directly against the
+table above: agap3 scan reports 105/557 (18.9%) constitutive candidates,
+bdnf reports 142/150 (94.7%) - both match the independent bp-based
+estimate closely (candidate-count % differs slightly from raw-bp % since
+candidates are 23bp windows, not single bases - expected, not a bug).
+
+Re-ran all 8 genes (`bash codes/analysis/run_ko_guide_scan.sh`, CRISPOR
+enabled) to regenerate every guide_comparison.csv with the new columns.
+
+**Wired into ranking - DONE 2026-09-12** (user confirmed): `is_constitutive`
+added as the FIRST tiebreak in build_guide_report.py's `top_ko_candidates`
+sort - ahead of last-exon avoidance, CRISPOR mitSpecScore, offtargetCount,
+Doench'16 - for both the CRISPOR-available path and the position-only
+fallback (which is what agap3, the critical case, actually uses, since it
+has no CRISPOR scores at all - see above). Verified: agap3's new top-5
+KO candidates are now ALL is_constitutive=true (7/7) - previously ranked
+by position alone, with no guarantee of this. Re-ran build_guide_report.py
+to regenerate report_data.json, then re-embedded it into
+`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`'s `const DATA`
+(no separate template/generator script exists for this file - it's a
+static HTML with the JSON embedded directly, edited in place) and added a
+new "Isoforms" column (green pill `n/total` when fully constitutive, amber
+otherwise) to the CRISPRko candidate table. Not applied to CRISPRi at this
+point (the TSS window's relationship to alternative isoforms/promoters is
+a different question - addressed next, see below). Republished as the
+same Guppy CRISPR Atlas artifact (favicon 🧬).
+
+**Same process extended to CRISPRi - DONE 2026-09-14** (user: "haz el mismo
+proceso para las guias de CRISPRi?"). Investigated first, as requested,
+before touching code: computed every annotated isoform's own TSS position
+(mRNA feature's own 5' end - strand-aware) for all 8 genes. Most cluster
+within a few bp of each other (irrelevant - one -50/+300bp window already
+covers them all trivially: grin1a 16/16, gria1b 6/6, gria2b 6/6, nlgn1
+4/4, grin1b 4/5). Two genes don't:
+
+| Gene | Isoforms | Distinct TSS | Spread |
+|---|---|---|---|
+| bdnf | 8 | 6 | 3,815bp |
+| agap3 | 7 | 6 | 63,770bp |
+
+Checked whether this is real biology or Gnomon prediction noise before
+building anything (user asked what "Gnomon predictions" means: NCBI's
+automated eukaryotic gene-prediction pipeline, combining ab initio models
+with RNA-seq/EST/protein alignment evidence - used here since guppy has no
+manually-curated annotation; XM_/XR_ accessions are Gnomon "model" RefSeq,
+vs curated NM_/NR_ records like actb2's NM_001297475.1). Checked each
+isoform's own `model_evidence=` GFF attribute: EVERY bdnf and agap3
+isoform has "100% coverage of the annotated genomic feature by RNAseq
+alignments" with 5-44 independent supporting samples - strong, real
+evidence, not a fragmentary single-EST guess. For bdnf this also matches
+the gene's own well-documented multi-promoter architecture in other
+vertebrates (Aid et al. 2007, mouse/rat Bdnf). For agap3, closer
+inspection revealed the isoforms cluster into essentially 2 groups: 5
+isoforms sharing a tight TSS cluster (~21068186-21068199, 13bp spread,
+13-22 samples support each) and 2 isoforms with a far-upstream TSS
+(21099367, 5 samples; 21131956, **44 samples - the strongest support of
+all 7 isoforms**). The gene's own longest-CDS transcript (what
+ko_guide_scan.py's CDS scan and, previously, crispri_tss_scan.py both
+used as "the" representative) sits in the tight cluster - the far-upstream,
+best-evidenced promoter was never even considered for CRISPRi before this.
+
+Implementation (`codes/analysis/crispri_tss_scan.py`): added
+`rnaseq_sample_support()` (regex on `model_evidence=` for "N samples with
+support for all annotated introns"), and a NEW, CRISPRi-specific
+representative-transcript chooser, `choose_tss_representative()` - picks
+the shared transcript with the strongest RNA-seq support for ITS OWN TSS,
+not longest CDS (CDS length is meaningless for a promoter-usage question;
+kept ko_guide_scan.py's own CDS-based choice unchanged, since these are
+legitimately different, independent choices for two different questions
+about the same gene). Also added `tss_isoform_coverage()`: for the chosen
+window, checks every OTHER annotated isoform's own TSS and reports which
+are covered vs which sit outside the window (a real, uncovered alternative
+promoter) - printed to stdout and written as
+`tss_window_isoform_coverage_n`/`_total` columns (constant per gene, since
+the window itself doesn't vary per candidate the way CDS position does).
+
+Verified: agap3's CRISPRi representative is now `XM_008434265.2` (the
+44-sample, far-upstream one) instead of the CDS-scan's `XM_008434264.2` -
+explicitly reports "TSS window covers 1/7 annotated isoform(s)' own TSS"
+with the other 6 listed by distance/support. bdnf similarly drops to 1/8 -
+every isoform effectively uses its own distinct promoter region at this
+gene. Re-ran all 8 genes
+(`crispri_tss_scan.py --gene X --population pseudogenome`, CRISPOR
+enabled) to regenerate every `*_crispri_candidates.csv`.
+
+`build_guide_report.py`: reads `tss_window_isoform_coverage_n`/`_total`
+from the CRISPRi CSV (same value in every row for a gene, since the
+window is fixed - not a per-candidate ranking criterion the way KO's
+`is_constitutive` is, since there is nothing to rank between: every
+candidate in one gene's CRISPRi table shares the identical window and
+therefore the identical coverage number). Surfaced in `report_data.json`
+under `crispri.tss_isoform_coverage_n`/`_total`. Guppy CRISPR Atlas HTML:
+added a gene-level note above the CRISPRi candidate table (green "covers
+all N isoforms" or amber "covers only N/M... real alternative promoter...
+not addressed" with the reasoning), a Methods paragraph explaining the
+whole approach, and re-embedded the regenerated `report_data.json`.
+Republished as the same artifact. Also fixed one leftover Spanish string
+("no disponible" -> "not available") noticed in the same summary table
+while editing.
+
+**Bonus side effect noticed while re-running:** agap3's CRISPRi now gets
+real CRISPOR scores (57/57 guides) for the first time - previously it was
+one of the CRISPOR-crash cases (see item #7's IUPAC-ambiguity-code bug).
+Not a deliberate fix: agap3's NEW CRISPRi representative transcript sits
+63.8kb away from the old one, and that new genomic window simply doesn't
+contain the ambiguous base that was crashing crispor.py before. Updated
+the Atlas's own methods note (previously said "CRISPRi - only agap3 has
+the same problem") to reflect that CRISPRi is now unaffected for all 8
+genes.
+
 ### 7. CRISPOR Integration into ko_guide_scan.py — DONE 2026-09-05
 ```
 Goal: complement (not replace) the manual PAM-scan/variant-classification

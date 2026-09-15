@@ -350,6 +350,66 @@ def crosses_exon_junction(start0, boundaries):
     return any(start1 <= b <= end1 - 1 for b in boundaries)
 
 
+# ── Isoform constitutivity (found 2026-09-11) ────────────────────────────
+#
+# A KO guide should ideally sit in a CONSTITUTIVE exon - one present in
+# EVERY isoform the gene can produce - so the edit disrupts the protein
+# regardless of which isoform is actually made. The scan above only ever
+# designs against ONE representative isoform (the longest CDS shared with
+# the population genome), so a candidate can look perfectly IDENTICAL/
+# unaffected by population variants while still sitting in a region that
+# doesn't exist in most of the gene's other isoforms. Checked across the 8
+# candidate genes: usually a minor concern (84-95% of the chosen isoform's
+# CDS is shared by ALL its isoforms) but a serious one for agap3, where
+# only 20% (794/3966bp) is shared across its 7 very different isoform
+# structures (2412-3966bp, 9-18 exons) - most of the longest isoform's CDS
+# the scan designs against simply isn't part of most agap3 transcripts.
+
+
+def cds_lines_5to3(cds_lines, strand):
+    """cds_lines sorted ascending by genomic start; returns them in
+    transcript 5'->3' order (matches extract_cds()'s segment order)."""
+    return list(reversed(cds_lines)) if strand == "-" else list(cds_lines)
+
+
+def cds_positions_genomic(cds_lines):
+    """All genomic 1-based positions covered by an isoform's CDS, as a
+    frozenset - order-independent, so no strand argument needed here."""
+    positions = set()
+    for f in cds_lines:
+        start, end = int(f[3]), int(f[4])
+        positions.update(range(start, end + 1))
+    return frozenset(positions)
+
+
+def cds_window_to_genomic(start0, length, cds_lines, strand):
+    """Map a 0-based [start0, start0+length) window in the CONCATENATED
+    (5'->3', intron-free) CDS sequence of ONE isoform back to the genomic
+    1-based positions it covers. Used to test whether a candidate guide's
+    genomic footprint - found in the chosen representative isoform - also
+    falls entirely within a DIFFERENT isoform's own CDS (i.e. is
+    constitutive), regardless of that other isoform's own exon layout."""
+    ordered = cds_lines_5to3(cds_lines, strand)
+    genomic_positions = []
+    cum = 0
+    for f in ordered:
+        ex_start, ex_end = int(f[3]), int(f[4])
+        ex_len = ex_end - ex_start + 1
+        lo = max(start0, cum)
+        hi = min(start0 + length, cum + ex_len)
+        if lo < hi:
+            local_lo, local_hi = lo - cum, hi - cum
+            if strand == "-":
+                g_hi = ex_end - local_lo
+                g_lo = ex_end - local_hi + 1
+            else:
+                g_lo = ex_start + local_lo
+                g_hi = ex_start + local_hi - 1
+            genomic_positions.extend(range(g_lo, g_hi + 1))
+        cum += ex_len
+    return genomic_positions
+
+
 def classify_candidate(ref_start0, ref_spacer, pos_map, variants_by_pos, qry_seq, junction_boundaries_set=frozenset()):
     """ref_start0: 0-based start of the 23bp window (spacer+PAM) in the
     reference CDS. Returns (classification, qry_window_or_None, note)."""
@@ -548,6 +608,14 @@ def main():
             print(f"NOTE: no CRISPOR genome registered for '{args.population}' yet - "
                   "skipping population-side CRISPOR scoring")
 
+    # --- isoform constitutivity: does each candidate's genomic footprint
+    # exist in EVERY annotated isoform of the gene (reference genome), not
+    # just the one the scan designs against? See "Isoform constitutivity"
+    # note above cds_lines_5to3() for why this matters. ---
+    all_isoform_cds = {tid: cds_lines for tid, (_, cds_lines) in ref_mrnas.items()}
+    all_isoform_positions = {tid: cds_positions_genomic(cds_lines) for tid, cds_lines in all_isoform_cds.items()}
+    n_total_isoforms = len(all_isoform_positions)
+
     # --- enumerate + classify guide candidates ---
     ref_candidates = find_ngg_candidates(ref_cds_seq)
     rows = []
@@ -558,6 +626,8 @@ def main():
         target = spacer + pam
         ref_c = crispor_ref_scores.get(target, {})
         pop_c = crispor_pop_scores.get(qwin, {}) if qwin else {}
+        window_genomic = set(cds_window_to_genomic(start0, 23, ref_cds, ref_strand))
+        n_covering = sum(1 for pos_set in all_isoform_positions.values() if window_genomic <= pos_set)
         rows.append(
             {
                 "gene": gene,
@@ -568,6 +638,9 @@ def main():
                 "classification": cls,
                 "pop_window": qwin if qwin else "",
                 "note": note,
+                "isoform_coverage_n": n_covering,
+                "isoform_coverage_total": n_total_isoforms,
+                "is_constitutive": n_covering == n_total_isoforms,
                 "ref_crispor_mitSpecScore": ref_c.get("mitSpecScore", ""),
                 "ref_crispor_offtargetCount": ref_c.get("offtargetCount", ""),
                 "ref_crispor_doench16_score": ref_c.get("Doench '16-Score", ""),
@@ -624,6 +697,9 @@ def main():
     print(f"Total NGG candidates in reference CDS: {len(rows)}")
     for cls in ["IDENTICAL", "PAM_BROKEN", "SEED_VARIANT", "DISTAL_VARIANT", "NO_ALIGNMENT", "EXON_JUNCTION_ARTIFACT"]:
         print(f"  {cls}: {counts.get(cls, 0)}")
+    n_constitutive = sum(1 for r in rows if r["is_constitutive"])
+    print(f"Candidates in a region present in ALL {n_total_isoforms} annotated isoform(s): "
+          f"{n_constitutive}/{len(rows)}")
     print(f"Population-only novel PAM sites (not present in reference): {len(novel_rows)}")
     if crispor_ref_scores:
         matched = sum(1 for r in rows if r["ref_crispor_mitSpecScore"] != "")

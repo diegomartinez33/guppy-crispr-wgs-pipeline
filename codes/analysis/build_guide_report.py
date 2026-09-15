@@ -178,6 +178,15 @@ def main():
                 "frac_cds": round(pos / cds_len, 3),
                 "strand": manual_row["strand"],
                 "in_last_exon": last_start <= pos <= last_end,
+                # Added 2026-09-12: is this candidate's genomic footprint
+                # present in EVERY annotated isoform of the gene, not just
+                # the one ko_guide_scan.py designs against? Critical for
+                # agap3, where only ~19% of candidates in the (longest)
+                # representative isoform are actually constitutive - see
+                # CLAUDE.md, "Isoform constitutivity" follow-up.
+                "is_constitutive": manual_row["is_constitutive"] == "True",
+                "isoform_coverage_n": int(manual_row["isoform_coverage_n"]),
+                "isoform_coverage_total": int(manual_row["isoform_coverage_total"]),
             }
 
         ko_candidates, ko_crispor_available = build_crispor_candidates(
@@ -186,6 +195,7 @@ def main():
         if ko_crispor_available:
             ko_identical = [c for c in ko_candidates if c["classification"] == "IDENTICAL"]
             ko_identical.sort(key=lambda c: (
+                not c["is_constitutive"],
                 c["in_last_exon"],
                 -(c["mit_spec_score"] if c["mit_spec_score"] is not None else -1),
                 c["offtarget_count"] if c["offtarget_count"] is not None else 9999,
@@ -195,7 +205,11 @@ def main():
         else:
             fallback = sorted(
                 (r for r in ko_rows if r["classification"] == "IDENTICAL"),
-                key=lambda r: (last_start <= int(r["cds_pos_1based"]) <= last_end, int(r["cds_pos_1based"]))
+                key=lambda r: (
+                    r["is_constitutive"] != "True",
+                    last_start <= int(r["cds_pos_1based"]) <= last_end,
+                    int(r["cds_pos_1based"]),
+                )
             )[:TOP_N]
             ko_top = [{
                 "target_seq": r["ref_spacer"] + r["ref_pam"], "spacer": r["ref_spacer"], "pam": r["ref_pam"],
@@ -208,6 +222,14 @@ def main():
         # ---- CRISPRi (TSS window) ----
         ci_csv = OUT_DIR / f"{gene}_{POPULATION}_crispri_candidates.csv"
         ci_rows = list(csv.DictReader(open(ci_csv)))
+        # Constant across all rows for this gene (the window is fixed once
+        # a representative TSS is chosen) - see crispri_tss_scan.py's
+        # "TSS representative choice + isoform coverage" note (2026-09-14):
+        # some genes (bdnf, agap3) have isoforms with real, independently
+        # RNA-seq-supported alternative transcription start sites far
+        # outside this window - not addressed by any guide reported here.
+        ci_tss_coverage_n = int(ci_rows[0]["tss_window_isoform_coverage_n"]) if ci_rows else None
+        ci_tss_coverage_total = int(ci_rows[0]["tss_window_isoform_coverage_total"]) if ci_rows else None
         ci_counts = {}
         for r in ci_rows:
             ci_counts[r["classification"]] = ci_counts.get(r["classification"], 0) + 1
@@ -262,6 +284,8 @@ def main():
                 "total_guides": len(ci_rows),
                 "classification_counts": ci_counts,
                 "variant_affected_guides": ci_variant_rows,
+                "tss_isoform_coverage_n": ci_tss_coverage_n,
+                "tss_isoform_coverage_total": ci_tss_coverage_total,
                 "top_candidates": ci_top,
                 "crispor_available": ci_crispor_available,
             },
