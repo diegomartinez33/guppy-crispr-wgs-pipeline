@@ -2766,6 +2766,80 @@ subsetting, regardless of cohort size, so edited/treatment samples' unique
 CRISPR-induced variants cannot leak into the Control consensus through this
 path. Decision: keep joint-genotyping all 15 together, subset to Controls
 only at the very end, same as v1.
+
+**GATK v2 chain COMPLETE - 2026-09-14/15.** All 15 HaplotypeCaller tasks
+finished (job 716490, ~2.5-3.2 days each once running - matches v1's
+known per-sample runtime). GenomicsDBImport (716491, ~12h),
+GenotypeGVCFs (716492, ~6h), VariantFiltration (716493, ~25min) all
+COMPLETED. Verified against real output, not just SLURM state: 15
+samples in the VCF header, all 23 v2 chromosomes represented with
+comparable variant density (364K-804K SNPs each, no truncated-chromosome
+gap like v1's early HaplotypeCaller history) - 12,890,620 total SNPs
+(11,497,653 PASS), 3,399,812 total indels (3,209,086 PASS) in
+`gatk/trimmomatic_v2/vcf_filtered/`.
+
+**v2 pseudogenome built and verified - DONE 2026-09-15**
+(`make_pseudogenome.sh --export=REF_VERSION=v2`, no code changes needed,
+already parameterized). 1,258,283 Control-consensus variants applied
+(1,064,071 SNPs + 194,212 indels, same AF>=0.667/3-Control-sample method
+as v1) -> `reference/pseudogenome_v2/colombian_pseudogenome.fna` (182
+contigs, 757MB). Indexed: samtools/BWA (by the script itself), plus GATK
+`.dict`, minimap2 `.mmi`, and a BLAST db (`blast_db/`) added manually
+afterward (mirroring v1's setup - no tracked script does these three, same
+as v1's history). Liftoff annotation transfer (job 724600,
+`liftoff_pseudogenome.sh --export=REF_VERSION=v2`): 99.6% transfer,
+31,226 genes (reference has 31,231, so exactly 5 unmapped - matches
+`liftoff_unmapped_genes.txt`), bdnf transferred correctly
+(`NC_088832.1:15851100-15865643`, 24 exons). Note: `liftoff` itself
+writes `unmapped_features.txt` into the CURRENT WORKING DIRECTORY, not
+the script's output dir - undocumented, same class of issue as
+TGS-GapCloser's `done_step*_tag` files (see that Known Issue above).
+Moved it to `reference/pseudogenome_v2/liftoff_unmapped_genes.txt`
+manually (matching v1's naming) - not yet automated in the script.
+
+**Two real bugs found and fixed while verifying this build:**
+1. `liftoff_pseudogenome.sh`'s own orphan-gene hierarchy check reported
+   "62,452 gene records with no children" - impossible, since the GFF
+   only has 31,226 gene records total. Root cause:
+   `grep -oP 'ID=[^;]+'` over the whole line isn't anchored to the start
+   of an attribute, so it also matches `sequence_ID=` and `copy_num_ID=`
+   (real Liftoff attributes on partial/low-identity transfers) as if they
+   were `ID=` - inflating the "gene ID" count 3x (93,678 vs the real
+   31,226) and producing a nonsense orphan count. Independently verified
+   in Python: the TRUE orphan count is 0 (matches v1's "0 orphaned
+   records"). Fixed with `grep -oP '(?:^|;)ID=\K[^;]+'` applied to the
+   attributes column in isolation (not the whole tab-separated line, since
+   `^` needs to mean "start of the attributes field", not "start of the
+   9-column line" - an earlier attempted fix using `(?:^|;)` directly on
+   full lines still failed for the same reason). This bug was latent in
+   v1's run too, just didn't happen to produce a visibly wrong number
+   there.
+2. `verify_pseudogenome.sh`'s "Gene count reasonable" check had a
+   hardcoded 5,000-15,000 range that matched neither v1 (26,264
+   transferred genes) nor v2 (31,226) - always a real, working
+   pseudogenome failing a stale/never-correct threshold. Fixed to compare
+   against the REFERENCE GFF's own gene count instead (should be close to
+   it, never exceed it): now passes for both versions (v1 reference has
+   26,268 genes vs 26,264 transferred; v2 reference has 31,231 vs 31,226).
+
+Re-ran `verify_pseudogenome.sh --export=REF_VERSION=v2` after both fixes:
+**12/12 checks passed** (job 724607) - genome integrity, annotation
+integrity (incl. the now-fixed gene-count check), bdnf gene/exon
+structure, no out-of-bounds/inverted features. The "variant application
+spot check" section still prints 3 cosmetic ❌ lines (comparing against
+the all-15-sample VCF instead of the Control-only subset actually used -
+same already-documented, non-counting false-negative pattern as v1, see
+"Pseudogenome Verification — Spot Check False Negatives" Known Issue
+above) - expected, not a new problem.
+
+Still pending for the v2 migration: `select_offtargets` genotyping for
+the 8 v2 off-target sites against this new VCF; CRISPResso on-target/WGS
+under v2; hotspots under v2; RagTag Phase 2 (re-scaffold the Colombian
+assembly against v2 - can start now); registering `guppyColPseudogenomeV2`
+with CRISPOR (needed before `ko_guide_scan.py --population pseudogenome_v2`
+can get CRISPOR scores, though the manual scan/classification already
+works without it); re-running the 8-gene KO/CRISPRi guide comparison
+against pseudogenome_v2 once that's registered.
 ```
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08

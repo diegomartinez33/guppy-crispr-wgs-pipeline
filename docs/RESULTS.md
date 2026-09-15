@@ -134,13 +134,14 @@ form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 | Stage | Status |
 |---|---|
 | Off-target discovery (Cas-OFFinder + CRISPOR) for bdnf | ✅ done, cross-validated (8/8 match) — `crispresso_v2/offtargets/combined/combined_offtargets.csv` |
-| Mapping (BWA) + MarkDuplicates + HaplotypeCaller (15 samples) | 🔄 in progress — `gatk/trimmomatic_v2/{markdup,gvcf}/` exist; HaplotypeCaller running |
-| GenomicsDBImport / GenotypeGVCFs / VariantFiltration | ⏳ pending (depends on the above) |
-| v2 pseudogenome | ⏳ pending (needs the filtered VCF from above) |
-| De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ⏳ pending (deliberately postponed until the above finishes) |
+| Mapping (BWA) + MarkDuplicates + HaplotypeCaller (15 samples) | ✅ done — all 15 samples completed |
+| GenomicsDBImport / GenotypeGVCFs / VariantFiltration | ✅ done — `gatk/trimmomatic_v2/vcf_filtered/` (12.9M SNPs, 3.4M indels, all 23 chromosomes) |
+| v2 pseudogenome | ✅ done, 12/12 verification checks passed — `reference/pseudogenome_v2/` (fna + chain + BWA/GATK/minimap2/BLAST indices + Liftoff annotation, 31,226 genes, 99.6% transfer) |
+| De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ⏳ pending — can start now (no longer blocked) |
 | CRISPResso on-target/off-target under v2 | ⏳ pending — neither `crispresso_v2/ontarget/` nor `wgs/` exist yet |
 | Hotspots under v2 | ⏳ pending |
-| bdnf guide/primer design already supports `--ref-version v2`/`--population pseudogenome_v2` | ✅ code ready, waiting on the v2 pseudogenome |
+| `select_offtargets` genotyping for the 8 v2 off-target sites | ⏳ pending (needs the filtered VCF, now ready) |
+| bdnf guide/primer design already supports `--ref-version v2`/`--population pseudogenome_v2` | ✅ code ready and pseudogenome now exists — CRISPOR scoring still needs `guppyColPseudogenomeV2` registered in the container |
 
 ## 8. IGV Files — ✅ complete, v1 only
 

@@ -32,6 +32,13 @@ liftoff \
     "$PSEUDO" \
     "$REF"
 
+# liftoff writes this into the CURRENT WORKING DIRECTORY, not next to
+# $OUT_GFF - undocumented (found 2026-09-15 on the v2 run). Relocate it
+# next to the annotation it describes, matching v1's naming convention.
+if [ -f "unmapped_features.txt" ]; then
+    mv "unmapped_features.txt" "$(dirname "$OUT_GFF")/liftoff_unmapped_genes.txt"
+fi
+
 echo ""
 echo "=== Transfer statistics ==="
 TOTAL_IN=$(grep -v "^#" "$TRINIDAD_GFF" | wc -l)
@@ -58,9 +65,19 @@ fi
 echo ""
 echo "=== Hierarchy integrity check ==="
 echo "  Genes without children (orphan gene records):"
-GENE_IDS=$(grep -v "^#" "$OUT_GFF" | awk '$3=="gene"' | grep -oP 'ID=[^;]+' | sort)
-PARENT_IDS=$(grep -v "^#" "$OUT_GFF" | grep -oP 'Parent=[^;]+' | sed 's/Parent=//' | sort -u)
-ORPHAN_GENES=$(comm -23 <(echo "$GENE_IDS" | sed 's/ID=//') <(echo "$PARENT_IDS") | wc -l)
+# Match ID=/Parent= only at the start of the (tab-isolated) attributes
+# column, not anywhere in the line - a naive `grep -oP 'ID=[^;]+'` over
+# the whole line also matches substrings like `sequence_ID=` and
+# `copy_num_ID=` (both real Liftoff attributes on partial/low-identity
+# transfers), inflating the "gene ID" count 3x and producing a nonsense
+# orphan count exceeding the total gene count. Found 2026-09-15 on the v2
+# pseudogenome run (93,678 false "gene IDs" vs the real 31,226; reported
+# 62,452 "orphans" when the true count, verified independently in Python,
+# is 0) - v1's run didn't trigger this as visibly, but the bug was latent
+# there too.
+GENE_IDS=$(grep -v "^#" "$OUT_GFF" | awk -F'\t' '$3=="gene"{print $9}' | grep -oP '(?:^|;)ID=\K[^;]+' | sort)
+PARENT_IDS=$(grep -v "^#" "$OUT_GFF" | awk -F'\t' '{print $9}' | grep -oP '(?:^|;)Parent=\K[^;]+' | sort -u)
+ORPHAN_GENES=$(comm -23 <(echo "$GENE_IDS") <(echo "$PARENT_IDS") | wc -l)
 echo "  $ORPHAN_GENES gene records with no children"
 
 echo ""

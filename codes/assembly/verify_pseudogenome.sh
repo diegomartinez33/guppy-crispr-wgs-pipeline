@@ -92,8 +92,15 @@ echo ""
 echo "[ 2. ANNOTATION INTEGRITY ]"
 
 GFF_GENES=$(grep -v "^#" "$GFF" | awk '$3=="gene"' | wc -l)
-check_range "Gene count reasonable (>5000)" "$GFF_GENES" 5000 15000
-echo "  Total genes: $GFF_GENES"
+# Sanity range derived from the REFERENCE GFF's own gene count (Liftoff
+# should transfer close to, and never more than, that many) rather than a
+# hardcoded 5000-15000 - that range matched neither v1 (26,264 transferred
+# genes, reference has 26,268) nor v2 (31,226 transferred, reference has
+# 31,231), so it was failing this check for a real, working pseudogenome.
+# Found 2026-09-15 on the v2 run.
+REF_GENES=$(grep -v "^#" "$REF_GFF" | awk -F'\t' '$3=="gene"' | wc -l)
+check_range "Gene count reasonable (close to the $REF_GENES in the reference GFF)" "$GFF_GENES" $((REF_GENES * 90 / 100)) "$REF_GENES"
+echo "  Total genes: $GFF_GENES (reference has $REF_GENES)"
 
 GFF_MRNA=$(grep -v "^#" "$GFF" | awk '$3=="mRNA"' | wc -l)
 GFF_EXON=$(grep -v "^#" "$GFF" | awk '$3=="exon"' | wc -l)
