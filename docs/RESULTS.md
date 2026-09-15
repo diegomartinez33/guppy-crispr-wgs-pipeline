@@ -140,7 +140,7 @@ form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 | De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ⏳ pending — can start now (no longer blocked) |
 | CRISPResso on-target/off-target under v2 | ⏳ pending — neither `crispresso_v2/ontarget/` nor `wgs/` exist yet |
 | Hotspots under v2 | ⏳ pending |
-| `select_offtargets` genotyping for the 8 v2 off-target sites | ⏳ pending (needs the filtered VCF, now ready) |
+| `select_offtargets` genotyping for the 8 v2 off-target sites | ✅ done — 2 SNPs at off_target_4, present in Control (pre-existing, not CRISPR-induced), reproducing v1's exact finding — `gatk/trimmomatic_v2/vcf_offtargets/` |
 | bdnf guide/primer design already supports `--ref-version v2`/`--population pseudogenome_v2` | ✅ code ready and pseudogenome now exists — CRISPOR scoring still needs `guppyColPseudogenomeV2` registered in the container |
 
 ## 8. IGV Files — ✅ complete, v1 only

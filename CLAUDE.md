@@ -2832,14 +2832,35 @@ same already-documented, non-counting false-negative pattern as v1, see
 "Pseudogenome Verification — Spot Check False Negatives" Known Issue
 above) - expected, not a new problem.
 
-Still pending for the v2 migration: `select_offtargets` genotyping for
-the 8 v2 off-target sites against this new VCF; CRISPResso on-target/WGS
-under v2; hotspots under v2; RagTag Phase 2 (re-scaffold the Colombian
-assembly against v2 - can start now); registering `guppyColPseudogenomeV2`
-with CRISPOR (needed before `ko_guide_scan.py --population pseudogenome_v2`
+**`select_offtargets` for v2 - DONE 2026-09-15** (job 724610,
+`select_offtargets.sh --export=REF_VERSION=v2`, no code changes needed -
+already parameterized). Note: GATK's own `ProgressMeter` log line said
+"Processed 0 total variants" - misleading, NOT trusted at face value (per
+this project's standing practice of checking real output over log/status
+lines) - the actual output VCF has 2 real variant records once checked
+with `bcftools view -H`. Both are at `NC_088831.1:6154659-6154682` -
+off_target_4 (4 mismatches, MIT 0.113159, CFD 0.011988 - identical scores
+to v1's off_target_4 on `NC_024332.1`, confirming it's the same
+biological site under the new assembly's own coordinates). Genotypes:
+heterozygous in `Control_MNP_II` and 2 of the 4 `Plasmid_Ko` samples,
+homozygous-reference everywhere else - present in Control, not exclusive
+to an edited group, so pre-existing population variation, not a
+CRISPR-induced off-target edit - **independently reproduces the exact
+same conclusion already reached for v1's off_target_4** using a
+completely different reference assembly and a separate joint-genotyping
+run. Output: `gatk/trimmomatic_v2/vcf_offtargets/{offtarget_variants,offtarget_indels}.vcf.gz`
+(the indels file is empty - both real variants here are SNPs).
+
+Still pending for the v2 migration: CRISPResso on-target/WGS under v2;
+hotspots under v2; RagTag Phase 2 (re-scaffold the Colombian assembly
+against v2 - can start now); registering `guppyColPseudogenomeV2` with
+CRISPOR (needed before `ko_guide_scan.py --population pseudogenome_v2`
 can get CRISPOR scores, though the manual scan/classification already
 works without it); re-running the 8-gene KO/CRISPRi guide comparison
-against pseudogenome_v2 once that's registered.
+against pseudogenome_v2 once that's registered;
+`gatk_offtarget_genotypes.py`/`plot_editing_comparison.py`'s 8 hardcoded
+v1 OT-site coordinates still need a v2-aware update to actually use this
+new result in a plot/report.
 ```
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
