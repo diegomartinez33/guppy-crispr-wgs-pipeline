@@ -138,7 +138,7 @@ form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 | GenomicsDBImport / GenotypeGVCFs / VariantFiltration | ✅ done — `gatk/trimmomatic_v2/vcf_filtered/` (12.9M SNPs, 3.4M indels, all 23 chromosomes) |
 | v2 pseudogenome | ✅ done, 12/12 verification checks passed — `reference/pseudogenome_v2/` (fna + chain + BWA/GATK/minimap2/BLAST indices + Liftoff annotation, 31,226 genes, 99.6% transfer) |
 | De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ⏳ pending — can start now (no longer blocked) |
-| CRISPResso on-target/off-target under v2 | ⏳ pending — neither `crispresso_v2/ontarget/` nor `wgs/` exist yet |
+| CRISPResso on-target/off-target under v2 | ✅ done — individual (15), WGS (15×8 sites), and merged (4 groups, authoritative) all completed; merged track exactly reproduces v1's historical editing numbers (Control/RNP_Cas/Plasmid_Ko 0%, Only_MNP 1.47% noise) — `crispresso_v2/ontarget/`, `crispresso_v2/wgs/` |
 | Hotspots under v2 | ⏳ pending |
 | `select_offtargets` genotyping for the 8 v2 off-target sites | ✅ done — 2 SNPs at off_target_4, present in Control (pre-existing, not CRISPR-induced), reproducing v1's exact finding — `gatk/trimmomatic_v2/vcf_offtargets/` |
 | bdnf guide/primer design already supports `--ref-version v2`/`--population pseudogenome_v2` | ✅ code ready and pseudogenome now exists — CRISPOR scoring still needs `guppyColPseudogenomeV2` registered in the container |

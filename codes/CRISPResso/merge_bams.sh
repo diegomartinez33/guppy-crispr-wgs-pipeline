@@ -2,7 +2,7 @@
 #SBATCH --job-name=merge_bams
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=04:00:00
+#SBATCH --time=10:00:00
 #SBATCH --output=logs/merge_bams.out
 #SBATCH --error=logs/merge_bams.err
 #SBATCH --partition=short
@@ -11,8 +11,9 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-BAM_DIR=${PROJECT_DIR}/gatk/trimmomatic/markdup
-MERGE_DIR=${PROJECT_DIR}/mapping/trimmomatic/merged
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+BAM_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
+MERGE_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}/merged
 
 mkdir -p "$MERGE_DIR" logs/
 
@@ -26,12 +27,22 @@ merge_group() {
     shift
     local BAMS=("$@")
 
+    SORTED_BAM="${MERGE_DIR}/${GROUP_NAME}_merged.sorted.bam"
+    TMP_BAM="${MERGE_DIR}/${GROUP_NAME}_merged_tmp.bam"
+
+    # Idempotent: skip a group that already has a complete, indexed
+    # output - added 2026-09-15 after a v2 run timed out mid-Only_MNP with
+    # Control/RNP_Cas/Plasmid_Ko already done; without this, a resubmit
+    # would re-merge/re-sort ~140GB of already-correct output for nothing.
+    if [ -f "$SORTED_BAM" ] && [ -f "${SORTED_BAM}.bai" ]; then
+        echo "=== Skipping group: $GROUP_NAME (already merged: $SORTED_BAM) ==="
+        echo ""
+        return 0
+    fi
+
     echo "=== Merging group: $GROUP_NAME ==="
     echo "Input BAMs:"
     for b in "${BAMS[@]}"; do echo "  $b"; done
-
-    SORTED_BAM="${MERGE_DIR}/${GROUP_NAME}_merged.sorted.bam"
-    TMP_BAM="${MERGE_DIR}/${GROUP_NAME}_merged_tmp.bam"
 
     # Verificar que todos los BAMs existen
     for b in "${BAMS[@]}"; do

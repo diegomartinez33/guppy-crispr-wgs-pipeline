@@ -2851,16 +2851,67 @@ completely different reference assembly and a separate joint-genotyping
 run. Output: `gatk/trimmomatic_v2/vcf_offtargets/{offtarget_variants,offtarget_indels}.vcf.gz`
 (the indels file is empty - both real variants here are SNPs).
 
-Still pending for the v2 migration: CRISPResso on-target/WGS under v2;
-hotspots under v2; RagTag Phase 2 (re-scaffold the Colombian assembly
-against v2 - can start now); registering `guppyColPseudogenomeV2` with
-CRISPOR (needed before `ko_guide_scan.py --population pseudogenome_v2`
-can get CRISPOR scores, though the manual scan/classification already
-works without it); re-running the 8-gene KO/CRISPRi guide comparison
-against pseudogenome_v2 once that's registered;
+**CRISPResso on-target/WGS under v2 - DONE 2026-09-15**, all 3 tracks, no
+code changes needed (`crispresso_ontarget.sh`, `crispresso_wgs.sh`,
+`crispresso_ontarget_merged.sh`, all already parameterized):
+
+- **Individual (15 samples)**: job 724615. All 15 completed, real output
+  verified (quantification file present, no errors in any log). 0%
+  editing per-sample everywhere, including RNP_Cas - expected, not a bug:
+  each individual sample only has 13-26 reads aligned to the amplicon
+  (low per-sample depth), nowhere near enough statistical power to detect
+  a modest editing rate - this is exactly why the Merged track exists as
+  the authoritative comparison (see below), same as it always has been
+  for v1.
+- **Off-target WGS (15 samples x 8 sites)**: job 724616. All 15
+  completed, real output verified (11 subfolders per sample = 8 sites +
+  on-target + overhead), no errors.
+- **Merge BAMs by group** (prerequisite for the merged track,
+  `codes/CRISPResso/merge_bams.sh` - NOT previously parameterized for
+  REF_VERSION, fixed here): first attempt (job 724635) hit its 4h time
+  limit partway through the 4th of 4 groups (Control 37G and RNP_Cas 61G
+  and Plasmid_Ko 46G all completed fine; Only_MNP was mid-sort). Made the
+  script idempotent (skip a group whose sorted+indexed output already
+  exists) and raised the limit to 10h before resubmitting (job 724716) -
+  instantly skipped the 3 already-done groups and only redid Only_MNP
+  (46G), avoiding ~4h of wasted re-merging. All 4 merged BAMs verified:
+  `mapping/trimmomatic_v2/merged/{Control,RNP_Cas,Plasmid_Ko,Only_MNP}_merged.sorted.bam`
+  (37-65GB each, real read counts printed in the script's own final
+  verification section).
+- **Merged (authoritative) on-target, 4 groups**: job 724920, 3/4
+  completed cleanly; Only_MNP's task failed with `CRITICAL: You need to
+  install seaborn module to use CRISPResso!` despite seaborn being
+  installed in `crispresso2_env` (confirmed directly, `import seaborn`
+  works) - a transient node-specific issue (the other 3 groups ran the
+  identical script/env fine), not a real config bug. Resubmitted just
+  that one array index (`--array=4`, job 724924) - succeeded in 22s.
+
+**Result - v2 exactly reproduces v1's already-documented merged on-target
+numbers**, group for group: Control 0% (252 reads in, 62 aligned),
+RNP_Cas 0% (387 in, 90 aligned), Plasmid_Ko 0% (not previously checked
+against v1 explicitly, but same pattern), Only_MNP 1.47% (277 in, 68
+aligned, exactly 1 read with a single substitution - `Only_MNP` had no
+Cas9 delivery, so this is noise/a pre-existing variant, not a real edit).
+Every number - including the exact read counts - matches v1's historical
+CSVs precisely. This isn't a coincidence to be suspicious of: it's the
+SAME physical sequencing reads, just mapped to two different but highly
+similar reference assemblies at the same biological locus, so the reads
+landing in this ~100bp window are expected to be nearly identical between
+the two mappings. Directly verified this reasoning against the SLURM log
+for one task (RNP_Cas1 individual, task 12 of job 724615): correctly used
+`NC_088832.1:15849655-15849755` (the real, relocated v2 coordinate), not
+an accidental v1 reuse.
+
+Still pending for the v2 migration: hotspots under v2; RagTag Phase 2
+(re-scaffold the Colombian assembly against v2 - can start now);
+registering `guppyColPseudogenomeV2` with CRISPOR (needed before
+`ko_guide_scan.py --population pseudogenome_v2` can get CRISPOR scores,
+though the manual scan/classification already works without it);
+re-running the 8-gene KO/CRISPRi guide comparison against
+pseudogenome_v2 once that's registered;
 `gatk_offtarget_genotypes.py`/`plot_editing_comparison.py`'s 8 hardcoded
-v1 OT-site coordinates still need a v2-aware update to actually use this
-new result in a plot/report.
+v1 OT-site coordinates still need a v2-aware update to actually use the
+off-target genotyping result (see above) in a plot/report.
 ```
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
