@@ -24,22 +24,28 @@ intermediate data.
 
 | Directory | Approx. size | What it contains / generates it | Copied? |
 |---|---|---|---|
-| `reference/` | 15G | v1+v2 genomes + indices, Colombian pseudogenome, de novo assembled genome, BLAST dbs — the baseline for every possible analysis; the pseudogenome and assembly already carry the Colombian population's variant information | ✅ **Yes** |
-| `codes/analysis/crispor_singularity/` | 6.5G | CRISPOR Singularity container + registered genomes — required by `ko_guide_scan.py`/`crispri_tss_scan.py` ([PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene)) | ✅ **Yes** |
+| `reference/` | 23G | v1+v2 genomes + indices, Colombian pseudogenome (both versions), de novo assembled genome, BLAST dbs — the baseline for every possible analysis; the pseudogenome and assembly already carry the Colombian population's variant information | ✅ **Yes** |
+| `codes/analysis/crispor_singularity/` | 7.9G | CRISPOR Singularity container + registered genomes (now 5: `guppyRefTrinidad`, `guppyRefMaleV2`, `guppyColPseudogenome`, `guppyColPseudogenomeV2`, plus the bdnf-specific one) — required by `ko_guide_scan.py`/`crispri_tss_scan.py` ([PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene)) | ✅ **Yes** |
 | `raw_fastq/` | 253G | Raw FASTQ for the 15 samples ([PIPELINE.md §1](PIPELINE.md#1-qc-and-read-trimming)) | ❌ No — no colleague pipeline needs it; to replicate QC/trimming, use your own samples |
 | `trimmed_fastp/` | 251G | fastp-trimmed reads (comparison only, not used downstream) | ❌ No |
 | `trimmed_trimmomatic/` | 241G | Trimmomatic-trimmed reads (the trimmer used downstream) | ❌ No — to re-map, use your own samples |
-| `mapping/` | 784G | BWA-MEM sorted BAMs, v1+v2, individual + per-group merged ([PIPELINE.md §2](PIPELINE.md#2-mapping-to-the-reference-genome)) | ❌ No |
-| `gatk/` | 610G | Deduplicated BAMs, GVCFs, VCFs, GenomicsDB workspace (v1+v2) ([PIPELINE.md §3](PIPELINE.md#3-variant-calling--gatk)) | ❌ No — neither colleague pipeline needs sample BAMs/VCFs |
-| `crispresso/` | 192M | CRISPResso2 reports (small — mostly text/HTML) | ❌ No (already summarized in the visual reports, see [RESULTS.md](RESULTS.md)) |
-| `crispresso_v2/` | 58K | v2 migration, barely started | ❌ No |
-| `assembly/` | 506G | SPAdes/RagTag/gap-filling/QC intermediate working directories — the FINAL outputs of this process already live in `reference/colombian_scaffolded_genome/`, which is copied | ❌ No |
+| `mapping/` | 972G | BWA-MEM sorted BAMs, v1+v2, individual + per-group merged ([PIPELINE.md §2](PIPELINE.md#2-mapping-to-the-reference-genome)) | ❌ No |
+| `gatk/` | 654G | Deduplicated BAMs, GVCFs, VCFs, GenomicsDB workspace, hotspots (v1+v2) ([PIPELINE.md §3](PIPELINE.md#3-variant-calling--gatk)) | ❌ No — neither colleague pipeline needs sample BAMs/VCFs |
+| `crispresso/` | 192M | CRISPResso2 reports, v1 (small — mostly text/HTML) | ❌ No (already summarized in the visual reports, see [RESULTS.md](RESULTS.md)) |
+| `crispresso_v2/` | 177M | CRISPResso2 reports, v2 migration — now complete (on-target, WGS off-target, merged tracks) | ❌ No |
+| `assembly/` | 508G | SPAdes/RagTag/gap-filling/QC intermediate working directories (v1+v2) — the FINAL outputs of this process live in `reference/colombian_scaffolded_genome{,_v2}/`, which is copied | ❌ No |
 | `intermediate_files/` | 1.1G | Miscellaneous, not essential | ❌ No |
 
-**Total to copy: ≈21.5G** (not the full ~2.6TB). Neither guide design nor primer design need
-anything else heavy — the off-target sites CSV (`combined_offtargets.csv`) is already small and
-lives in git; `primer3_env`/the EMBOSS module are a conda environment + cluster module that each
-colleague builds locally with `codes/analysis/setup_primer3.sh`, not a file to copy.
+**Total to copy: ≈31G** (not the full ~3.6TB — both figures grew since this table was first
+written, from the v2 migration work). Neither guide design nor primer design need anything else
+heavy — the off-target sites CSV (`combined_offtargets.csv`) is already small and lives in git;
+`primer3_env`/the EMBOSS module are a conda environment + cluster module that each colleague
+builds locally with `codes/analysis/setup_primer3.sh`, not a file to copy.
+
+**2026-09-17 note:** `reference/colombian_scaffolded_genome_v2/` (the v2 equivalent of the de novo
+assembly, gap-filled + polished) is being built as of this writing — once complete, its size will
+add to the `reference/` total above and it should be copied too (same category as the v1
+scaffolded genome).
 
 ## How to Copy (example, run by each user with their own credentials)
 

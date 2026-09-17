@@ -36,9 +36,13 @@
 # and their logs/configs don't collide.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+# INPUT_DIR (trimmed Illumina reads) is genome-version-independent - the
+# same 3 Control samples used to build the original SPAdes co-assembly,
+# regardless of which reference the assembly is later scaffolded against.
 INPUT_DIR=${PROJECT_DIR}/trimmed_trimmomatic
-GENOME=${PROJECT_DIR}/assembly/tgsgapcloser_output/colombian_gapfilled.fasta
-WORKDIR=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled
+GENOME=${PROJECT_DIR}/assembly/tgsgapcloser_output${OUT_SUFFIX}/colombian_gapfilled.fasta
+WORKDIR=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled${OUT_SUFFIX}
 
 mkdir -p "$WORKDIR" logs/
 

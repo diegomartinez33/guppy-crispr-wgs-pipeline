@@ -20,11 +20,15 @@
 # other busco_qc*.sh stages. Same odb10 fix as prior BUSCO stages.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled/genome.nextpolish.fasta
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled${OUT_SUFFIX}/genome.nextpolish.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results
+# BUSCO_DL (actinopterygii_odb10 lineage data) is species/version-independent
+# - shared across both REF_VERSIONs, no need to re-download.
 BUSCO_DL=${QC_DIR}/busco_downloads
+RUN_DIR=${QC_DIR}/busco_gapfilled_polished${OUT_SUFFIX}
 
-mkdir -p "${QC_DIR}/busco_gapfilled_polished" logs/
+mkdir -p "$RUN_DIR" logs/
 
 if [ ! -f "$SCAFFOLD" ]; then
     echo "ERROR: genome.nextpolish.fasta not found at $SCAFFOLD - did nextpolish_gapfilled_genome.sh finish?"
@@ -32,17 +36,18 @@ if [ ! -f "$SCAFFOLD" ]; then
 fi
 
 module load busco/5.7.1
-cd "${QC_DIR}/busco_gapfilled_polished"
+cd "$RUN_DIR"
 
 echo "Start time: $(date)"
+echo "REF_VERSION=${REF_VERSION}  SCAFFOLD=${SCAFFOLD}"
 busco -i "$SCAFFOLD" \
       -l actinopterygii_odb10 \
       -m genome \
       -c "${SLURM_CPUS_PER_TASK}" \
       --download_path "$BUSCO_DL" \
       --offline \
-      -o busco_colombian_scaffold_gapfilled_polished
+      -o "busco_colombian_scaffold_gapfilled_polished${OUT_SUFFIX}"
 echo "End time: $(date)"
 
 echo "=== Summary ==="
-find "${QC_DIR}/busco_gapfilled_polished/busco_colombian_scaffold_gapfilled_polished" -name "short_summary*.txt" -exec cat {} \;
+find "${RUN_DIR}/busco_colombian_scaffold_gapfilled_polished${OUT_SUFFIX}" -name "short_summary*.txt" -exec cat {} \;

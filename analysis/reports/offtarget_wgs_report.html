@@ -83,6 +83,10 @@
   .kpi .kpi-label{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
   footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
   footer p{max-width:70ch;}
+  .ver-toggle{display:inline-flex;border:1px solid var(--border-strong);border-radius:99px;padding:3px;gap:2px;background:var(--surface);}
+  .ver-toggle button{appearance:none;border:none;background:transparent;font-family:"IBM Plex Sans",sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--ink-soft);padding:6px 14px;border-radius:99px;cursor:pointer;}
+  .ver-toggle button[aria-pressed="true"]{background:var(--accent);color:var(--bg);}
+  .ver-toggle button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 </style>
 
 <header class="top">
@@ -100,14 +104,20 @@
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · bdnf · v1 genome (Guanapo/Trinidad)</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <span class="eyebrow" id="eyebrow">Poecilia reticulata · bdnf · v1 genome (Guanapo/Trinidad)</span>
+      <div class="ver-toggle" role="tablist" aria-label="Reference genome version">
+        <button type="button" id="btn-v1" role="tab" aria-pressed="true">v1 · Guanapo</button>
+        <button type="button" id="btn-v2" role="tab" aria-pressed="false">v2 · Male PacBio+Hi-C</button>
+      </div>
+    </div>
     <h1>Off-Target WGS Analysis: GATK + CRISPResso2</h1>
     <p class="lede">CRISPR editing quantification and variant calling at the 8 computationally predicted off-target sites (Cas-OFFinder + CRISPOR) for the bdnf guide, across the experiment's 15 samples, compared against the on-target site.</p>
     <div class="scope-strip">
       <div class="scope-item"><div class="label">Samples</div><div class="value">15 (4 groups)</div></div>
       <div class="scope-item"><div class="label">Sites analyzed</div><div class="value">1 on-target + 8 off-target</div></div>
       <div class="scope-item"><div class="label">Tools</div><div class="value">GATK4 4.4.0.0 · CRISPResso2</div></div>
-      <div class="scope-item"><div class="label">Genome</div><div class="value">GCF_000633615.1 (v1)</div></div>
+      <div class="scope-item"><div class="label">Genome</div><div class="value" id="scope-genome">GCF_000633615.1 (v1)</div></div>
     </div>
   </section>
 
@@ -117,17 +127,12 @@
       <span class="eyebrow">Analysis conclusion</span>
       No CRISPR-induced indel was detected at any of the 8 predicted off-target sites, in any of the 15 samples (neither GATK nor CRISPRessoWGS). The only site with detected variants (OT4) also has them in the Control group — they are pre-existing population polymorphisms, not an editing effect.
     </div>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">0/8</div><div class="kpi-label">sites with induced indel</div></div>
-      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-label">background SNPs (OT4, pre-existing)</div></div>
-      <div class="kpi"><div class="kpi-value">~7.66M</div><div class="kpi-label">SNPs / sample (genome-wide)</div></div>
-      <div class="kpi"><div class="kpi-value">1.37</div><div class="kpi-label">average Ti/Tv (expected quality)</div></div>
-    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
   </section>
 
   <section id="sites" class="divider-top">
     <h2>The 9 Sites Analyzed</h2>
-    <p class="section-sub">On-target + 8 off-target, from <code>crispresso/offtargets/combined/combined_offtargets.csv</code> — deduplicated merge (±2bp) of Cas-OFFinder + CRISPOR, prioritizing CRISPOR entries (they carry MIT/CFD scores + locus annotation).</p>
+    <p class="section-sub" id="sites-sub">On-target + 8 off-target, from <code>crispresso/offtargets/combined/combined_offtargets.csv</code> — deduplicated merge (±2bp) of Cas-OFFinder + CRISPOR, prioritizing CRISPOR entries (they carry MIT/CFD scores + locus annotation).</p>
     <div class="table-scroll">
       <table class="data" id="sites-table">
         <thead><tr><th>Site</th><th>Coordinates</th><th>Strand</th><th class="num">Mismatches</th><th class="num">MIT</th><th class="num">CFD</th><th>Locus</th></tr></thead>
@@ -138,7 +143,7 @@
 
   <section id="genotypes" class="divider-top">
     <h2>GATK Genotypes at the 8 Off-Target Sites</h2>
-    <p class="section-sub">Extracted from the filtered joint VCF (<code>gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz</code>) via <code>gatk_offtarget_genotypes.py</code>. Only <b>OT4</b> has variants — both already present in the Control group at a comparable frequency, classified as <span class="pill pill-mod">background_variant</span> (pre-existing polymorphism, not CRISPR-induced).</p>
+    <p class="section-sub" id="geno-sub">Extracted from the filtered joint VCF (<code>gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz</code>) via <code>gatk_offtarget_genotypes.py</code>. Only <b>OT4</b> has variants — both already present in the Control group at a comparable frequency, classified as <span class="pill pill-mod">background_variant</span> (pre-existing polymorphism, not CRISPR-induced).</p>
     <div class="table-scroll">
       <table class="data" id="geno-table">
         <thead><tr><th>Site</th><th>Position</th><th>Ref&gt;Alt</th><th class="num">AF Control</th><th class="num">AF Only_MNP</th><th class="num">AF Plasmid_Ko</th><th class="num">AF RNP_Cas</th><th>Classification</th></tr></thead>
@@ -161,7 +166,7 @@
 
   <section id="variants" class="divider-top">
     <h2>Genome-Wide Variant Summary</h2>
-    <p class="section-sub">Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites. <i>Refreshed 2026-09-15: the previous version of this table was computed from an incomplete snapshot of the filtered VCF, predating the final VariantFiltration run — counts here are ~5.5× higher and reflect the complete, final joint VCF (11,083,611 SNP records across all 24 chromosomes). The genotypes/editing tables above were unaffected (verified byte-identical to the prior version).</i></p>
+    <p class="section-sub" id="var-sub">Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites. <i>Refreshed 2026-09-15: the previous version of this table was computed from an incomplete snapshot of the filtered VCF, predating the final VariantFiltration run — counts here are ~5.5× higher and reflect the complete, final joint VCF (11,083,611 SNP records across all 24 chromosomes). The genotypes/editing tables above were unaffected (verified byte-identical to the prior version).</i></p>
     <div class="table-scroll">
       <table class="data" id="var-table">
         <thead><tr><th>Sample</th><th>Group</th><th class="num">SNPs</th><th class="num">Het</th><th class="num">Hom</th><th class="num">Ti/Tv</th><th class="num">INDELs</th><th class="num">Mean depth</th></tr></thead>
@@ -171,60 +176,130 @@
   </section>
 
   <footer>
-    <p>Off-Target WGS Report · generated from codes/analysis/gatk_summary/*.csv, codes/analysis/editing_comparison/*.csv, and crispresso/offtargets/combined/combined_offtargets.csv · off-target_data project.</p>
+    <p id="footer-text">Off-Target WGS Report · generated from codes/analysis/gatk_summary/*.csv, codes/analysis/editing_comparison/*.csv, and crispresso/offtargets/combined/combined_offtargets.csv · off-target_data project.</p>
   </footer>
 </div>
 
 <script>
 const SITES = [
-  {label:"on_target", chrom:"NC_024333.1", start:15922035, end:15922058, strand:"-", mm:0, mit:null, cfd:null, locus:""},
-  {label:"off_target_1", chrom:"NC_024331.1", start:5708724, end:5708747, strand:"+", mm:3, mit:0.312187, cfd:0.071006, locus:"exon:XM_008429791.2"},
-  {label:"off_target_2", chrom:"NC_024331.1", start:13951199, end:13951222, strand:"-", mm:4, mit:0.092245, cfd:0.140625, locus:"exon:XM_017306200.1/…"},
-  {label:"off_target_3", chrom:"NC_024331.1", start:26228796, end:26228819, strand:"+", mm:4, mit:0.019964, cfd:0.14359, locus:"intergenic"},
-  {label:"off_target_4", chrom:"NC_024332.1", start:5810651, end:5810674, strand:"+", mm:4, mit:0.113159, cfd:0.011988, locus:"intron:XM_008425835.2"},
-  {label:"off_target_5", chrom:"NC_024338.1", start:20512932, end:20512955, strand:"-", mm:4, mit:0.016572, cfd:0.108889, locus:"intergenic"},
-  {label:"off_target_6", chrom:"NC_024339.1", start:7034820, end:7034843, strand:"-", mm:4, mit:0.11831, cfd:0.065333, locus:"intron:XM_017306598.1/…"},
-  {label:"off_target_7", chrom:"NC_024340.1", start:12200655, end:12200678, strand:"-", mm:4, mit:0.19971, cfd:0.044118, locus:"intergenic"},
-  {label:"off_target_8", chrom:"NC_024349.1", start:24882037, end:24882060, strand:"+", mm:4, mit:0.199098, cfd:0.030854, locus:"intron:XM_008437971.2"},
-];
-const GENO = [
-  {site:"OT4", pos:5810660, ref:"C", alt:"T", control:0.167, only_mnp:0.0, plasmid_ko:0.25, rnp_cas:0.0, cls:"background_variant"},
-  {site:"OT4", pos:5810668, ref:"A", alt:"C", control:0.167, only_mnp:0.0, plasmid_ko:0.125, rnp_cas:0.0, cls:"background_variant"},
-];
-const EDIT = [
-  {s:"Control_MNP_I",g:"Control",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Control_MNP_II",g:"Control",on:0.0,ot:[0.0,0.0,0.0,28.57,0.0,0.0,null,0.0]},
-  {s:"Control_MNP_III",g:"Control",on:0.0,ot:[0.0,0.0,null,0.0,0.0,0.0,null,0.0]},
-  {s:"Only_MNP_C1",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Only_MNP_C2",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Only_MNP_C3",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,4.17]},
-  {s:"Only_MNP_C4",g:"Only_MNP",on:6.25,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,25.0,0.0,0.0,null,0.0]},
-  {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"RNP_Cas1",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
-  {s:"RNP_Cas2",g:"RNP_Cas",on:0.0,ot:[3.70,0.0,5.56,0.0,0.0,0.0,null,0.0]},
-  {s:"RNP_Cas3",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,null,0.0]},
-  {s:"RNP_Cas4",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,null,0.0]},
-];
-const VARS = [
-  {s:"Control_MNP_I",g:"Control",snps:7806737,het:1089947,hom:6716790,titv:1.3710,indels:2010705,dp:46.8},
-  {s:"Control_MNP_II",g:"Control",snps:7925384,het:1086450,hom:6838934,titv:1.3703,indels:2036917,dp:47.4},
-  {s:"Control_MNP_III",g:"Control",snps:7812818,het:1117678,hom:6695140,titv:1.3716,indels:2011610,dp:49.6},
-  {s:"Only_MNP_C1",g:"Only_MNP",snps:7859581,het:1093021,hom:6766560,titv:1.3705,indels:2017533,dp:42.6},
-  {s:"Only_MNP_C2",g:"Only_MNP",snps:7453443,het:1247679,hom:6205764,titv:1.3705,indels:1923648,dp:45.5},
-  {s:"Only_MNP_C3",g:"Only_MNP",snps:7354393,het:1274134,hom:6080259,titv:1.3708,indels:1906043,dp:45.7},
-  {s:"Only_MNP_C4",g:"Only_MNP",snps:7807719,het:1097200,hom:6710519,titv:1.3709,indels:2006563,dp:45.6},
-  {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",snps:7943660,het:1064382,hom:6879278,titv:1.3723,indels:2039343,dp:46.8},
-  {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",snps:7573730,het:1173770,hom:6399960,titv:1.3698,indels:1957517,dp:46.1},
-  {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",snps:7454570,het:1217439,hom:6237131,titv:1.3692,indels:1922689,dp:41.1},
-  {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",snps:7568538,het:1207158,hom:6361380,titv:1.3682,indels:1953578,dp:44.8},
-  {s:"RNP_Cas1",g:"RNP_Cas",snps:8012787,het:1075690,hom:6937097,titv:1.3706,indels:2061259,dp:58.7},
-  {s:"RNP_Cas2",g:"RNP_Cas",snps:7507932,het:1215389,hom:6292543,titv:1.3697,indels:1948835,dp:53.6},
-  {s:"RNP_Cas3",g:"RNP_Cas",snps:7728078,het:1149818,hom:6578260,titv:1.3701,indels:2009864,dp:66.0},
-  {s:"RNP_Cas4",g:"RNP_Cas",snps:7127987,het:1335182,hom:5792805,titv:1.3684,indels:1851923,dp:59.8},
-];
+const DATA = {
+  v1: {
+    eyebrow: "Poecilia reticulata · bdnf · v1 genome (Guanapo/Trinidad)",
+    genome: "GCF_000633615.1 (v1)",
+    kpis: [["0/8","sites with induced indel"],["2","background SNPs (OT4, pre-existing)"],["~7.66M","SNPs / sample (genome-wide)"],["1.37","average Ti/Tv (expected quality)"]],
+    sitesSub: 'On-target + 8 off-target, from <code>crispresso/offtargets/combined/combined_offtargets.csv</code> — deduplicated merge (±2bp) of Cas-OFFinder + CRISPOR, prioritizing CRISPOR entries (they carry MIT/CFD scores + locus annotation).',
+    genoSub: 'Extracted from the filtered joint VCF (<code>gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz</code>) via <code>gatk_offtarget_genotypes.py</code>. Only <b>OT4</b> has variants — both already present in the Control group at a comparable frequency, classified as <span class="pill pill-mod">background_variant</span> (pre-existing polymorphism, not CRISPR-induced).',
+    varSub: 'Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the Guanapo/Trinidad reference — background context, not specific to the CRISPR sites. <i>Refreshed 2026-09-15: the previous version of this table was computed from an incomplete snapshot of the filtered VCF, predating the final VariantFiltration run — counts here are ~5.5× higher and reflect the complete, final joint VCF (11,083,611 SNP records across all 24 chromosomes). The genotypes/editing tables above were unaffected (verified byte-identical to the prior version).</i>',
+    footer: "Off-Target WGS Report · generated from codes/analysis/gatk_summary/*.csv, codes/analysis/editing_comparison/*.csv, and crispresso/offtargets/combined/combined_offtargets.csv · off-target_data project.",
+    sites: [
+      {label:"on_target", chrom:"NC_024333.1", start:15922035, end:15922058, strand:"-", mm:0, mit:null, cfd:null, locus:""},
+      {label:"off_target_1", chrom:"NC_024331.1", start:5708724, end:5708747, strand:"+", mm:3, mit:0.312187, cfd:0.071006, locus:"exon:XM_008429791.2"},
+      {label:"off_target_2", chrom:"NC_024331.1", start:13951199, end:13951222, strand:"-", mm:4, mit:0.092245, cfd:0.140625, locus:"exon:XM_017306200.1/…"},
+      {label:"off_target_3", chrom:"NC_024331.1", start:26228796, end:26228819, strand:"+", mm:4, mit:0.019964, cfd:0.14359, locus:"intergenic"},
+      {label:"off_target_4", chrom:"NC_024332.1", start:5810651, end:5810674, strand:"+", mm:4, mit:0.113159, cfd:0.011988, locus:"intron:XM_008425835.2"},
+      {label:"off_target_5", chrom:"NC_024338.1", start:20512932, end:20512955, strand:"-", mm:4, mit:0.016572, cfd:0.108889, locus:"intergenic"},
+      {label:"off_target_6", chrom:"NC_024339.1", start:7034820, end:7034843, strand:"-", mm:4, mit:0.11831, cfd:0.065333, locus:"intron:XM_017306598.1/…"},
+      {label:"off_target_7", chrom:"NC_024340.1", start:12200655, end:12200678, strand:"-", mm:4, mit:0.19971, cfd:0.044118, locus:"intergenic"},
+      {label:"off_target_8", chrom:"NC_024349.1", start:24882037, end:24882060, strand:"+", mm:4, mit:0.199098, cfd:0.030854, locus:"intron:XM_008437971.2"},
+    ],
+    geno: [
+      {site:"OT4", pos:5810660, ref:"C", alt:"T", control:0.167, only_mnp:0.0, plasmid_ko:0.25, rnp_cas:0.0, cls:"background_variant"},
+      {site:"OT4", pos:5810668, ref:"A", alt:"C", control:0.167, only_mnp:0.0, plasmid_ko:0.125, rnp_cas:0.0, cls:"background_variant"},
+    ],
+    edit: [
+      {s:"Control_MNP_I",g:"Control",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Control_MNP_II",g:"Control",on:0.0,ot:[0.0,0.0,0.0,28.57,0.0,0.0,null,0.0]},
+      {s:"Control_MNP_III",g:"Control",on:0.0,ot:[0.0,0.0,null,0.0,0.0,0.0,null,0.0]},
+      {s:"Only_MNP_C1",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Only_MNP_C2",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Only_MNP_C3",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,4.17]},
+      {s:"Only_MNP_C4",g:"Only_MNP",on:6.25,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,25.0,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"RNP_Cas1",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"RNP_Cas2",g:"RNP_Cas",on:0.0,ot:[3.70,0.0,5.56,0.0,0.0,0.0,null,0.0]},
+      {s:"RNP_Cas3",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,null,0.0]},
+      {s:"RNP_Cas4",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,null,0.0]},
+    ],
+    vars: [
+      {s:"Control_MNP_I",g:"Control",snps:7806737,het:1089947,hom:6716790,titv:1.3710,indels:2010705,dp:46.8},
+      {s:"Control_MNP_II",g:"Control",snps:7925384,het:1086450,hom:6838934,titv:1.3703,indels:2036917,dp:47.4},
+      {s:"Control_MNP_III",g:"Control",snps:7812818,het:1117678,hom:6695140,titv:1.3716,indels:2011610,dp:49.6},
+      {s:"Only_MNP_C1",g:"Only_MNP",snps:7859581,het:1093021,hom:6766560,titv:1.3705,indels:2017533,dp:42.6},
+      {s:"Only_MNP_C2",g:"Only_MNP",snps:7453443,het:1247679,hom:6205764,titv:1.3705,indels:1923648,dp:45.5},
+      {s:"Only_MNP_C3",g:"Only_MNP",snps:7354393,het:1274134,hom:6080259,titv:1.3708,indels:1906043,dp:45.7},
+      {s:"Only_MNP_C4",g:"Only_MNP",snps:7807719,het:1097200,hom:6710519,titv:1.3709,indels:2006563,dp:45.6},
+      {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",snps:7943660,het:1064382,hom:6879278,titv:1.3723,indels:2039343,dp:46.8},
+      {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",snps:7573730,het:1173770,hom:6399960,titv:1.3698,indels:1957517,dp:46.1},
+      {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",snps:7454570,het:1217439,hom:6237131,titv:1.3692,indels:1922689,dp:41.1},
+      {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",snps:7568538,het:1207158,hom:6361380,titv:1.3682,indels:1953578,dp:44.8},
+      {s:"RNP_Cas1",g:"RNP_Cas",snps:8012787,het:1075690,hom:6937097,titv:1.3706,indels:2061259,dp:58.7},
+      {s:"RNP_Cas2",g:"RNP_Cas",snps:7507932,het:1215389,hom:6292543,titv:1.3697,indels:1948835,dp:53.6},
+      {s:"RNP_Cas3",g:"RNP_Cas",snps:7728078,het:1149818,hom:6578260,titv:1.3701,indels:2009864,dp:66.0},
+      {s:"RNP_Cas4",g:"RNP_Cas",snps:7127987,het:1335182,hom:5792805,titv:1.3684,indels:1851923,dp:59.8},
+    ],
+  },
+  v2: {
+    eyebrow: "Poecilia reticulata · bdnf · v2 genome (male, PacBio+Hi-C)",
+    genome: "GCF_904066995.2 (v2)",
+    kpis: [["0/8","sites with induced indel"],["2","background SNPs (OT4, pre-existing)"],["~8.71M","SNPs / sample (genome-wide)"],["1.37","average Ti/Tv (expected quality)"]],
+    sitesSub: 'On-target + 8 off-target, from <code>crispresso_v2/offtargets/combined/combined_offtargets.csv</code> — same deduplicated merge (±2bp) of Cas-OFFinder + CRISPOR, remapped to v2 coordinates. Locus classification (exon/intron/intergenic) hasn\'t been computed against the v2 annotation yet, so the Locus column is blank rather than guessed.',
+    genoSub: 'Extracted from the filtered joint VCF (<code>gatk/trimmomatic_v2/vcf_offtargets/offtarget_variants.vcf.gz</code>) via <code>gatk_offtarget_genotypes.py</code>. Only <b>OT4</b> has variants — the exact same 2 background SNPs as v1 (present in Control + Plasmid_Ko at comparable frequencies), just at remapped coordinates — confirming this finding is robust across two independent reference assemblies.',
+    varSub: 'Count of PASS SNPs/INDELs per sample (joint filtered VCF, all 15 samples), reflecting the general genomic divergence between the Colombian population and the current RefSeq reference — background context, not specific to the CRISPR sites.',
+    footer: "Off-Target WGS Report (v2) · generated from codes/analysis/gatk_summary_v2/*.csv, codes/analysis/editing_comparison_v2/*.csv, and crispresso_v2/offtargets/combined/combined_offtargets.csv · off-target_data project.",
+    sites: [
+      {label:"on_target", chrom:"NC_088832.1", start:15849690, end:15849713, strand:"-", mm:0, mit:null, cfd:null, locus:""},
+      {label:"off_target_1", chrom:"NC_088830.1", start:7340936, end:7340959, strand:"+", mm:3, mit:0.312187, cfd:0.071006, locus:""},
+      {label:"off_target_2", chrom:"NC_088830.1", start:14098839, end:14098862, strand:"-", mm:4, mit:0.092245, cfd:0.140625, locus:""},
+      {label:"off_target_3", chrom:"NC_088830.1", start:26619950, end:26619973, strand:"+", mm:4, mit:0.019964, cfd:0.14359, locus:""},
+      {label:"off_target_4", chrom:"NC_088831.1", start:6154659, end:6154682, strand:"-", mm:4, mit:0.113159, cfd:0.011988, locus:""},
+      {label:"off_target_5", chrom:"NC_088837.1", start:25867890, end:25867913, strand:"-", mm:4, mit:0.016572, cfd:0.108889, locus:""},
+      {label:"off_target_6", chrom:"NC_088838.1", start:8510394, end:8510417, strand:"-", mm:4, mit:0.11831, cfd:0.065333, locus:""},
+      {label:"off_target_7", chrom:"NC_088839.1", start:3391653, end:3391676, strand:"+", mm:4, mit:0.19971, cfd:0.044118, locus:""},
+      {label:"off_target_8", chrom:"NC_088848.1", start:20545705, end:20545728, strand:"-", mm:4, mit:0.199098, cfd:0.030854, locus:""},
+    ],
+    geno: [
+      {site:"OT4", pos:6154664, ref:"T", alt:"G", control:0.167, only_mnp:0.0, plasmid_ko:0.125, rnp_cas:0.0, cls:"background_variant"},
+      {site:"OT4", pos:6154672, ref:"G", alt:"A", control:0.167, only_mnp:0.0, plasmid_ko:0.25, rnp_cas:0.0, cls:"background_variant"},
+    ],
+    edit: [
+      {s:"Control_MNP_I",g:"Control",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Control_MNP_II",g:"Control",on:0.0,ot:[0.0,0.0,0.0,25.0,0.0,0.0,0.0,0.0]},
+      {s:"Control_MNP_III",g:"Control",on:0.0,ot:[0.0,0.0,null,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Only_MNP_C1",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Only_MNP_C2",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Only_MNP_C3",g:"Only_MNP",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.17]},
+      {s:"Only_MNP_C4",g:"Only_MNP",on:6.25,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",on:0.0,ot:[0.0,null,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,30.77,0.0,0.0,null,0.0]},
+      {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"RNP_Cas1",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+      {s:"RNP_Cas2",g:"RNP_Cas",on:0.0,ot:[3.70,0.0,5.56,0.0,0.0,0.0,null,0.0]},
+      {s:"RNP_Cas3",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,0.0,0.0]},
+      {s:"RNP_Cas4",g:"RNP_Cas",on:0.0,ot:[0.0,0.0,0.0,null,0.0,0.0,0.0,0.0]},
+    ],
+    vars: [
+      {s:"Control_MNP_I",g:"Control",snps:8868279,het:1285971,hom:7582308,titv:1.3665,indels:2216310,dp:42.2},
+      {s:"Control_MNP_II",g:"Control",snps:9005413,het:1277559,hom:7727854,titv:1.3658,indels:2247635,dp:42.9},
+      {s:"Control_MNP_III",g:"Control",snps:8862058,het:1317005,hom:7545053,titv:1.3669,indels:2215132,dp:44.6},
+      {s:"Only_MNP_C1",g:"Only_MNP",snps:8914155,het:1277360,hom:7636795,titv:1.3654,indels:2220921,dp:38.5},
+      {s:"Only_MNP_C2",g:"Only_MNP",snps:8476498,het:1459455,hom:7017043,titv:1.3658,indels:2122381,dp:41.0},
+      {s:"Only_MNP_C3",g:"Only_MNP",snps:8345035,het:1497577,hom:6847458,titv:1.3653,indels:2097265,dp:41.3},
+      {s:"Only_MNP_C4",g:"Only_MNP",snps:8854777,het:1290237,hom:7564540,titv:1.3657,indels:2208068,dp:41.1},
+      {s:"Plasmid_Ko_P1",g:"Plasmid_Ko",snps:9013658,het:1254970,hom:7758688,titv:1.3675,indels:2246282,dp:42.2},
+      {s:"Plasmid_Ko_P2",g:"Plasmid_Ko",snps:8598216,het:1384446,hom:7213770,titv:1.3657,indels:2154998,dp:41.7},
+      {s:"Plasmid_Ko_P3",g:"Plasmid_Ko",snps:8447020,het:1428150,hom:7018870,titv:1.3638,indels:2114733,dp:37.1},
+      {s:"Plasmid_Ko_P4",g:"Plasmid_Ko",snps:8592380,het:1415074,hom:7177306,titv:1.3635,indels:2151146,dp:40.5},
+      {s:"RNP_Cas1",g:"RNP_Cas",snps:9131920,het:1267498,hom:7864422,titv:1.3654,indels:2280846,dp:53.0},
+      {s:"RNP_Cas2",g:"RNP_Cas",snps:8545501,het:1428067,hom:7117434,titv:1.3648,indels:2151090,dp:48.4},
+      {s:"RNP_Cas3",g:"RNP_Cas",snps:8793367,het:1353714,hom:7439653,titv:1.3651,indels:2219281,dp:59.6},
+      {s:"RNP_Cas4",g:"RNP_Cas",snps:8140258,het:1559093,hom:6581165,titv:1.3628,indels:2048853,dp:54.0},
+    ],
+  },
+};
 
 function fmt(n){ return n===null||n===undefined ? "—" : (typeof n==="number" ? n.toLocaleString("en-US") : n); }
 function pct(n){ return n===null||n===undefined ? "—" : n.toFixed(2)+"%"; }
@@ -235,27 +310,46 @@ function heatColor(v){
   return "background:var(--danger-soft);color:var(--danger);";
 }
 
-document.getElementById("sites-tbody").innerHTML = SITES.map(s=>`
-  <tr><td><b>${s.label}</b></td><td class="mono">${s.chrom}:${s.start.toLocaleString()}-${s.end.toLocaleString()}</td>
-  <td>${s.strand}</td><td class="num">${s.mm}</td>
-  <td class="num">${s.mit!==null?s.mit.toFixed(3):"—"}</td><td class="num">${s.cfd!==null?s.cfd.toFixed(3):"—"}</td>
-  <td style="font-size:12px;color:var(--ink-soft);">${s.locus}</td></tr>`).join("");
+function render(version){
+  const d = DATA[version];
+  document.getElementById("btn-v1").setAttribute("aria-pressed", version==="v1");
+  document.getElementById("btn-v2").setAttribute("aria-pressed", version==="v2");
+  document.getElementById("eyebrow").textContent = d.eyebrow;
+  document.getElementById("scope-genome").textContent = d.genome;
+  document.getElementById("sites-sub").innerHTML = d.sitesSub;
+  document.getElementById("geno-sub").innerHTML = d.genoSub;
+  document.getElementById("var-sub").innerHTML = d.varSub;
+  document.getElementById("footer-text").textContent = d.footer;
 
-document.getElementById("geno-tbody").innerHTML = GENO.map(r=>`
-  <tr><td><b>${r.site}</b></td><td class="mono">${r.pos.toLocaleString()}</td><td class="mono">${r.ref}&gt;${r.alt}</td>
-  <td class="num">${r.control.toFixed(3)}</td><td class="num">${r.only_mnp.toFixed(3)}</td>
-  <td class="num">${r.plasmid_ko.toFixed(3)}</td><td class="num">${r.rnp_cas.toFixed(3)}</td>
-  <td><span class="pill pill-mod">${r.cls}</span></td></tr>`).join("");
+  document.getElementById("kpi-grid").innerHTML = d.kpis.map(([v,l])=>
+    `<div class="kpi"><div class="kpi-value">${v}</div><div class="kpi-label">${l}</div></div>`).join("");
 
-document.getElementById("edit-tbody").innerHTML = EDIT.map(r=>`
-  <tr><td>${r.s}</td><td style="color:var(--ink-soft);">${r.g}</td>
-  <td class="num"><span class="heatcell" style="${heatColor(r.on)}">${pct(r.on)}</span></td>
-  ${r.ot.map(v=>`<td class="num"><span class="heatcell" style="${heatColor(v)}">${pct(v)}</span></td>`).join("")}
-  </tr>`).join("");
+  document.getElementById("sites-tbody").innerHTML = d.sites.map(s=>`
+    <tr><td><b>${s.label}</b></td><td class="mono">${s.chrom}:${s.start.toLocaleString()}-${s.end.toLocaleString()}</td>
+    <td>${s.strand}</td><td class="num">${s.mm}</td>
+    <td class="num">${s.mit!==null?s.mit.toFixed(3):"—"}</td><td class="num">${s.cfd!==null?s.cfd.toFixed(3):"—"}</td>
+    <td style="font-size:12px;color:var(--ink-soft);">${s.locus||"—"}</td></tr>`).join("");
 
-document.getElementById("var-tbody").innerHTML = VARS.map(r=>`
-  <tr><td>${r.s}</td><td style="color:var(--ink-soft);">${r.g}</td>
-  <td class="num">${fmt(r.snps)}</td><td class="num">${fmt(r.het)}</td><td class="num">${fmt(r.hom)}</td>
-  <td class="num">${r.titv.toFixed(3)}</td><td class="num">${fmt(r.indels)}</td><td class="num">${r.dp.toFixed(1)}x</td></tr>`).join("");
+  document.getElementById("geno-tbody").innerHTML = d.geno.map(r=>`
+    <tr><td><b>${r.site}</b></td><td class="mono">${r.pos.toLocaleString()}</td><td class="mono">${r.ref}&gt;${r.alt}</td>
+    <td class="num">${r.control.toFixed(3)}</td><td class="num">${r.only_mnp.toFixed(3)}</td>
+    <td class="num">${r.plasmid_ko.toFixed(3)}</td><td class="num">${r.rnp_cas.toFixed(3)}</td>
+    <td><span class="pill pill-mod">${r.cls}</span></td></tr>`).join("");
+
+  document.getElementById("edit-tbody").innerHTML = d.edit.map(r=>`
+    <tr><td>${r.s}</td><td style="color:var(--ink-soft);">${r.g}</td>
+    <td class="num"><span class="heatcell" style="${heatColor(r.on)}">${pct(r.on)}</span></td>
+    ${r.ot.map(v=>`<td class="num"><span class="heatcell" style="${heatColor(v)}">${pct(v)}</span></td>`).join("")}
+    </tr>`).join("");
+
+  document.getElementById("var-tbody").innerHTML = d.vars.map(r=>`
+    <tr><td>${r.s}</td><td style="color:var(--ink-soft);">${r.g}</td>
+    <td class="num">${fmt(r.snps)}</td><td class="num">${fmt(r.het)}</td><td class="num">${fmt(r.hom)}</td>
+    <td class="num">${r.titv.toFixed(3)}</td><td class="num">${fmt(r.indels)}</td><td class="num">${r.dp.toFixed(1)}x</td></tr>`).join("");
+}
+
+document.getElementById("btn-v1").addEventListener("click", ()=>render("v1"));
+document.getElementById("btn-v2").addEventListener("click", ()=>render("v2"));
+render("v1");
 </script>
 </body></html>

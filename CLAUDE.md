@@ -2981,6 +2981,103 @@ All four tracks (CRISPOR registration, RagTag Phase 2, IGV files, bdnf
 primers) run in parallel this session, confirming they share no file
 dependencies - none blocked or interfered with any other.
 
+**v1 de novo assembly promotion bug - found + fixed 2026-09-17.** While
+scoping what v2's de novo assembly still needed beyond RagTag, discovered
+`reference/colombian_scaffolded_genome/colombian_scaffolded.fna` (the
+canonical file `liftoff_annotation.sh`/`index_scaffolded_genome.sh` both
+read from) was STILL the original, pre-gap-fill RagTag scaffold (mtime
+Jul 11, header `>NC_024238.1_RagTag`) - the actual final, validated
+gap-filled+polished genome (`assembly/nextpolish_output_gapfilled/
+genome.nextpolish.fasta`, mtime Sep 6, header renamed `_np1212` by
+NextPolish) had been computed and validated back in early September but
+never promoted to the canonical location. Consequence: its Liftoff
+annotation (`colombian_scaffolded.liftoff.gff3`) and all its indices
+(`.fai`, BWA, BLAST, `.dict`) were actually built against the WRONG
+(stale, pre-gap-fill) sequence the whole time - `docs/RESULTS.md`'s and
+`genome_resources_report.html`'s claim of "final genome (gap-filled +
+polished) + ... Liftoff annotation (bdnf: coverage=0.945,
+sequence_ID=0.923)" was simply incorrect (those numbers are for the old
+scaffold, not the final assembly).
+
+Fixed: archived the stale scaffold-stage files to `reference/
+colombian_scaffolded_genome/pre_gapfill_archive/` (not deleted), copied
+the real final genome to the canonical path, and extended
+`liftoff_annotation.sh` with a `GENOME_STAGE` env var (`scaffold` = raw
+RagTag output, matching the original 3-step pipeline; `final` = the
+gap-filled+polished genome) plus `REF_VERSION`/`OUT_SUFFIX` support (it
+previously had neither - `codes/genome_versions.sh` wasn't sourced at
+all). Also parameterized `index_scaffolded_genome.sh`,
+`tgsgapcloser_genome.sh`, `nextpolish_gapfilled_genome.sh`, and
+`busco_qc_gapfilled_polished.sh` for v2 the same way (all had zero
+`REF_VERSION` support before this).
+
+Re-ran `liftoff_annotation.sh --export=REF_VERSION=v1,GENOME_STAGE=final`
+(job 726159, 9 min) and `index_scaffolded_genome.sh` (job 726160, 11 min)
+against the correct final genome. Real, verified improvement: bdnf
+Liftoff quality went from coverage=0.945/sequence_ID=0.923 (stale
+scaffold) to coverage=0.960/sequence_ID=0.957 (actual final assembly) -
+makes sense, since gap-filling+polishing genuinely improved sequence
+quality at that locus. Corrected the wrong numbers in
+`genome_resources_report.html` (both the local file and its Artifact)
+and in `docs/RESULTS.md`.
+
+**Full v2 de novo assembly chain - submitted 2026-09-17, running.**
+SLURM dependency chain: `tgsgapcloser_genome.sh` (job 726161) ->
+`nextpolish_gapfilled_genome.sh` (726162) -> `liftoff_annotation.sh
+GENOME_STAGE=final` (726163) -> `index_scaffolded_genome.sh` (726164),
+plus `busco_qc_gapfilled_polished.sh` (726165) as a parallel branch off
+the NextPolish step. Deliberately scoped down from v1's full exploratory
+journey (which included now-superseded intermediate QC comparisons at
+the raw-scaffold and gap-filled-only stages, and a slow ~19h QUAST run)
+to just the validated final recipe + one confirmatory BUSCO check -
+re-litigating v1's already-settled gap-fill-vs-polish tradeoff analysis
+for v2 isn't warranted. Expect NextPolish alone to dominate the runtime
+(~10h for v1's equivalent run).
+
+**8-gene KO/CRISPRi guide comparison against pseudogenome_v2 - DONE
+2026-09-17.** Ran on the login node (not SLURM - same pattern as
+`run_ko_guide_scan.sh`'s original v1 runs). Made `run_ko_guide_scan.sh`'s
+`POPULATION` variable env-overridable (`POPULATION=${POPULATION:-pseudogenome}`,
+previously hardcoded) rather than hand-editing the checked-in default.
+`ko_guide_scan.py`/`crispri_tss_scan.py` already had full `pseudogenome_v2`
+support wired in from when they were written (fasta/gff paths,
+`guppyColPseudogenomeV2` CRISPOR genome ID) - no code changes needed,
+just the CRISPOR registration done above. CRISPRi TSS scan (all 8 genes)
+completed first; KO guide scan followed (CRISPOR overhead per gene is
+higher for the larger CDS-wide scan than CRISPRi's single TSS window).
+
+**Result: the v1 CRISPOR-scoring limitation for agap3/grin1a/gria1a is
+completely resolved under v2.** These 3 genes had exactly 0 CRISPOR
+scores under v1 (confirmed directly: 0/557, 0/441, 0/333 guide-comparison
+rows had any `*_crispor_*` value populated - `crispor.py` crashes on
+ambiguous IUPAC codes in the v1 reference at these genes' guide windows,
+per the known limitation in `docs/RESULTS.md` item 5). Under v2: 559/559,
+442/442, and 387/387 rows respectively now have real CRISPOR scores -
+100% coverage, not just partial improvement. v2's cleaner assembly
+(PacBio+Hi-C, no unresolved heterozygous IUPAC bases) simply doesn't have
+the ambiguous-base windows that broke `crispor.py` for these genes under
+v1. All 8 genes' `*_pseudogenome_v2_guide_comparison.csv` and
+`*_pseudogenome_v2_crispri_candidates.csv` written to
+`analysis/ko_guide_scan/`. The Guppy CRISPR Atlas report itself
+(`guppy_crispr_atlas.html`) has NOT been rebuilt to show this v2 data yet
+- that's a follow-up, not done as part of this run.
+
+**Reports refreshed with v1/v2 toggles - 2026-09-17.** Extended
+`offtarget_wgs_report.html` and `primer_design_report.html` with the
+same v1/v2 toggle pattern already used for `hotspots_report.html`
+(button pair swapping a `DATA`/`META` object keyed by version - masthead
+eyebrow, scope-strip, KPIs, tables, footer all swap together). Off-
+target WGS v2 data reproduces v1 exactly (same 2 background SNPs at
+OT4, remapped coordinates). Primer design v2 surfaced a genuinely nice
+result: **all 9 sites now have candidates** (v1 had only 7/9 - the 2
+IUPAC-ambiguity-blocked sites don't have that problem in the cleaner v2
+assembly) - 45 total pairs, 36 specific, 45/45 free of population
+variants. `genome_resources_report.html` got the bdnf annotation fix
+above plus a status note (v2 pseudogenome complete, v2 de novo assembly
+in progress) rather than a full toggle, since half its data (de novo
+assembly QC) isn't ready yet - to be completed once the assembly chain
+above finishes.
+
 **Hotspots under v2 - DONE 2026-09-15.** `hotspot_windows.sh` (SLURM,
 job 724997, 11 min) -> `hotspot_analysis.py` (job 725062) ->
 `plot_hotspot_summary.py` were all already parameterized for

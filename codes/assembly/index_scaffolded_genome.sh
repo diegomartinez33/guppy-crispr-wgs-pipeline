@@ -14,11 +14,14 @@ module load bwa/0.7.17
 module load blast/2.14.1+
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-GENOME=${PROJECT_DIR}/reference/colombian_scaffolded_genome/colombian_scaffolded.fna
-BLAST_DB=${PROJECT_DIR}/reference/colombian_scaffolded_genome/blast_db/colombian_scaffolded
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+OUT_DIR=${PROJECT_DIR}/reference/colombian_scaffolded_genome${OUT_SUFFIX}
+GENOME=${OUT_DIR}/colombian_scaffolded.fna
+BLAST_DB=${OUT_DIR}/blast_db/colombian_scaffolded
 
-mkdir -p ${PROJECT_DIR}/reference/colombian_scaffolded_genome/blast_db
+mkdir -p "${OUT_DIR}/blast_db"
 echo "Start: $(date)"
+echo "REF_VERSION=${REF_VERSION}  GENOME=${GENOME}"
 
 # ── 1. samtools faidx ─────────────────────────────────────────────────────────
 echo ""
@@ -56,6 +59,6 @@ echo ""
 echo "========================================================"
 echo " INDEX SUMMARY"
 echo "========================================================"
-ls -lh ${PROJECT_DIR}/reference/colombian_scaffolded_genome/
+ls -lh "${OUT_DIR}"
 echo "========================================================"
 echo "End: $(date)"

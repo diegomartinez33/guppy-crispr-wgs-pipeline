@@ -34,6 +34,13 @@ codes/assembly/logs/
 codes/assembly/busco_downloads/
 codes/assembly/*.log.info
 codes/assembly/done_step*_tag
+# tgsgapcloser_genome.sh's idempotency tag files actually land in whatever
+# directory the SLURM job was SUBMITTED from (the project root, in every
+# run so far - `sbatch codes/assembly/tgsgapcloser_genome.sh` from
+# off-target_data/), not in codes/assembly/ itself - the pattern above
+# never matched them. Found 2026-09-17 when the v2 run left 8 of these
+# sitting untracked at the repo root.
+/done_step*_tag
 
 # CRISPOR Singularity container + registered genomes - large downloaded/derived
 # binaries, regenerable via crispor_add_genomes.sh / crispor_add_genome_v2.sh

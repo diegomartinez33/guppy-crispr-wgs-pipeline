@@ -4,7 +4,7 @@
 #
 # ── MODIFICAR AQUÍ para analizar otros genes ────────────────────────────
 GENES=(bdnf agap3 grin1a grin1b gria1a gria1b gria2b nlgn1)
-POPULATION=pseudogenome   # "pseudogenome" (recomendado, ver abajo), "scaffolded",
+POPULATION=${POPULATION:-pseudogenome}   # "pseudogenome" (recomendado, ver abajo), "scaffolded",
                           # o "pseudogenome_v2" (contra el nuevo genoma de
                           # referencia GCF_904066995.2, una vez construido -
                           # ver CLAUDE.md, "Migration to GCF_904066995.2 (v2)")

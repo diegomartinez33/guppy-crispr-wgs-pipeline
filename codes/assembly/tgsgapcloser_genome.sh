@@ -34,8 +34,14 @@
 # --tgstype ont since this is Nanopore, not PacBio.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-GENOME=${PROJECT_DIR}/reference/colombian_scaffolded_genome/colombian_scaffolded.fna
-OUT_DIR=${PROJECT_DIR}/assembly/tgsgapcloser_output
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+# Input is the raw RagTag scaffold, NOT reference/colombian_scaffolded_genome/
+# colombian_scaffolded.fna - that path holds whatever the FINAL, already-
+# promoted assembly is (see liftoff_annotation.sh's GENOME_STAGE), which
+# would create a circular dependency the first time this runs. Read
+# straight from ragtag_scaffold.sh's own output instead.
+GENOME=${PROJECT_DIR}/assembly/ragtag_output${OUT_SUFFIX}/ragtag.scaffold.fasta
+OUT_DIR=${PROJECT_DIR}/assembly/tgsgapcloser_output${OUT_SUFFIX}
 OUT_PREFIX=${OUT_DIR}/colombian_gapfilled
 RACON=/hpcfs/apps/conda4.12.0/envs/racon-1.5.0/bin/racon
 

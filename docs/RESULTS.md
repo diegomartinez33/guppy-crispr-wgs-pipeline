@@ -50,12 +50,18 @@ method, and limitations: **[reference/pseudogenome/README.md](../reference/pseud
 ## 4. Colombian De Novo Assembly — ✅ complete (v1)
 
 `reference/colombian_scaffolded_genome/` — final genome (gap-filled + polished) + indices +
-transferred Liftoff annotation (bdnf: coverage=0.945, sequence_ID=0.923). Comparative QC across
+transferred Liftoff annotation (bdnf: coverage=0.960, sequence_ID=0.957). Comparative QC across
 the 4 stages (raw → polished → gapfilled → gapfilled+polished) in `assembly/qc_results/`. Full
 detail, method, and limitations:
 **[reference/colombian_scaffolded_genome/README.md](../reference/colombian_scaffolded_genome/README.md)**.
 Comparative visual report for both population genomes (pseudogenome + de novo assembly):
 [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html).
+
+**Corrected 2026-09-17:** the previous bdnf figures (coverage=0.945, sequence_ID=0.923) were
+computed against the raw RagTag scaffold, not the actually-adopted gap-filled+polished assembly —
+that final genome was validated back in September but never promoted to the canonical
+`colombian_scaffolded.fna`, so its annotation/indices never existed until now. See CLAUDE.md §8,
+"v1 de novo assembly promotion bug".
 
 ## 5. CRISPR KO/CRISPRi Guide Design (8 genes) — ✅ complete
 
@@ -68,9 +74,12 @@ raw TSVs where available.
 [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html)
 — also published as an Artifact: [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856).
 
-**Limitation:** agap3, grin1a, gria1a have no CRISPOR scores (ambiguous IUPAC codes in the v1
-reference crash `crispor.py`) — will be repeated against v2 once available. Detail in
-[PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene).
+**Limitation (v1 only):** agap3, grin1a, gria1a have no CRISPOR scores (ambiguous IUPAC codes in
+the v1 reference crash `crispor.py`). **Resolved under v2** (2026-09-17): all 3 genes now have
+100% CRISPOR coverage (559/559, 442/442, 387/387 guide-comparison rows respectively) —
+`analysis/ko_guide_scan/{agap3,grin1a,gria1a}_pseudogenome_v2_guide_comparison.csv`. The Atlas
+report itself still shows v1-only data; rebuilding it with the v2 comparison is a follow-up.
+Detail in [PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene).
 
 **Isoform constitutivity (2026-09-12):** CRISPRko candidates are now checked for whether their
 genomic footprint is present in EVERY annotated isoform of the gene, not just the one
@@ -97,9 +106,9 @@ addressed"). Full methodology in `CLAUDE.md`, item #6, "Same process extended to
 
 | What | v1 | v2 |
 |---|---|---|
-| Final primer table (9 sites: on-target + 8 off-target) | `analysis/offtarget_primers/bdnf_v1_primers.csv` | `analysis/offtarget_primers/bdnf_v2_primers.csv` (45 pairs, 36/45 genome-wide specific, all 45 free of population variants) |
+| Final primer table (9 sites: on-target + 8 off-target) | `analysis/offtarget_primers/bdnf_v1_primers.csv` (7/9 sites — 2 blocked by IUPAC ambiguity) | `analysis/offtarget_primers/bdnf_v2_primers.csv` (**9/9 sites** — v2's cleaner assembly has no ambiguous bases at those 2 windows; 45 pairs, 36/45 genome-wide specific, all 45 free of population variants) |
 | Raw `eprimer3` output per site | `analysis/offtarget_primers/raw/bdnf_v1/` | `analysis/offtarget_primers/raw/bdnf_v2/` |
-| **Visual report** | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) (v1 numbers only) | — |
+| **Visual report** | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) — v1/v2 toggle | |
 
 **Pending:** the other 7 candidate genes (agap3, grin1a, grin1b, gria1a, gria1b, gria2b, nlgn1),
 any version — the script is already parameterized (`--gene`/`--ref-version`), it just
@@ -152,6 +161,8 @@ form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 | `guppyColPseudogenomeV2` registered with CRISPOR | ✅ done — `codes/analysis/crispor_add_genome_v2.sh` extended to also register the v2 pseudogenome (mirrors v1's `crispor_add_genomes.sh`); verified (2bit + BWA index present) — unblocks CRISPOR scoring for `ko_guide_scan.py`/`crispri_tss_scan.py --population pseudogenome_v2` |
 | bdnf primers for v2 | ✅ done — 45 candidate pairs (5/site × 9 sites), 36/45 confirmed genome-wide specific, all 45 free of population variants in the primer footprint — `analysis/offtarget_primers/bdnf_v2_primers.csv` |
 | IGV files for v2 | ✅ done — `codes/assembly/prepare_igv_files.sh` parameterized (`REF_VERSION`); `igv_files_v2/` (genome, sorted+bgzipped+tabixed annotation, 4 merged BAMs, `features_of_interest.bed`). The off-target/sgRNA coordinates in the BED were lifted from reference to pseudogenome coordinates via CrossMap (`colombian_pseudogenome.chain`) and spot-verified against the actual sequence — this also surfaced that v1's equivalent BED mixes reference- and pseudogenome-native coordinates (pre-existing imprecision, not fixed retroactively) |
+| 8-gene KO/CRISPRi guide comparison against pseudogenome_v2 | ✅ done — all 8 genes, both CRISPRko (`*_pseudogenome_v2_guide_comparison.csv`) and CRISPRi (`*_pseudogenome_v2_crispri_candidates.csv`). **agap3/grin1a/gria1a's v1 CRISPOR-scoring limitation is fully resolved**: 0/557, 0/441, 0/333 scored rows under v1 → 559/559, 442/442, 387/387 under v2 (100% coverage) — v2's cleaner assembly has no ambiguous IUPAC bases at these genes' guide windows. Atlas report not yet rebuilt with this data — follow-up |
+| De novo assembly gap-filling/polishing/annotation for v2 | 🔄 in progress — TGS-GapCloser done (43m54s, matches v1's ~43min); NextPolish → Liftoff → indexing → BUSCO QC queued/running (SLURM dependency chain, jobs 726162-726165) |
 
 ## 8. IGV Files — ✅ complete, both v1 and v2
 
@@ -170,8 +181,8 @@ directly to a colleague without needing a claude.ai account).
 | Report | Objective | Artifact | Local copy |
 |---|---|---|---|
 | Guppy CRISPR Atlas | KO/CRISPRi guide design, 8 genes | [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856) | [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html) |
-| Off-Target WGS Report | Off-target WGS (GATK + CRISPResso) | [link](https://claude.ai/code/artifact/3290263b-0f56-4d76-84fe-825d4d98110c) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
+| Off-Target WGS Report | Off-target WGS (GATK + CRISPResso), v1/v2 toggle | [link](https://claude.ai/code/artifact/3290263b-0f56-4d76-84fe-825d4d98110c) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
 | Variant Hotspots Report | Variant hotspots, v1/v2 toggle | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
-| Colombian Genome Resources | Pseudogenome + de novo assembly | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |
-| Primer Design Report | Primer design (bdnf/v1) | [link](https://claude.ai/code/artifact/eb740fdb-261b-41a5-b44b-e8530a82c215) | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
+| Colombian Genome Resources | Pseudogenome + de novo assembly (v1; v2 pseudogenome noted, v2 assembly pending) | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |
+| Primer Design Report | Primer design (bdnf), v1/v2 toggle | [link](https://claude.ai/code/artifact/eb740fdb-261b-41a5-b44b-e8530a82c215) | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
 | RT-qPCR Primer Verification Report | RT-qPCR primer verification (5 in-use pairs + 3 candidates) | [link](https://claude.ai/code/artifact/7b447aed-e947-42b6-96e5-085bfdaea0e9) | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |

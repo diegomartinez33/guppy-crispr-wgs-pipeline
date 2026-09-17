@@ -123,6 +123,9 @@
       <div class="scope-item"><div class="label">Guide reference</div><div class="value">GCF_000633615.1 (v1)</div></div>
       <div class="scope-item"><div class="label">Annotation</div><div class="value">Liftoff v1.5.1</div></div>
     </div>
+    <div class="callout" style="margin-top:20px;padding:16px 20px;border-radius:12px;background:var(--pseudo-soft);border:1px solid color-mix(in srgb,var(--pseudo) 35%,transparent);font-size:13.5px;">
+      <b>v2 status (GCF_904066995.2, male, PacBio+Hi-C):</b> the v2 pseudogenome is complete (31,226 genes, 12/12 verification checks passed, bdnf coverage=1.0/sequence_ID=0.999) — see <code>reference/pseudogenome_v2/</code>. The v2 de novo assembly is in progress (RagTag scaffolding done; gap-filling/polishing/QC running as of 2026-09-17) — this report will get a v1/v2 toggle once that finishes, matching the other visual reports.
+    </div>
   </section>
 
   <section id="compare">
@@ -149,13 +152,14 @@
           <div><dt>Structural variants</dt><dd>Yes, in principle</dd></div>
           <div><dt>Coordinates</dt><dd>Its own (<code>_RagTag</code> suffix)</dd></div>
           <div><dt>Base accuracy</dt><dd>Draft quality — assembly errors possible</dd></div>
-          <div><dt>Annotation (Liftoff)</dt><dd>bdnf: coverage=0.945, sequence_ID=0.923</dd></div>
+          <div><dt>Annotation (Liftoff)</dt><dd>bdnf: coverage=0.960, sequence_ID=0.957</dd></div>
           <div><dt>Recommended for</dt><dd>Structural analysis, novel sequence</dd></div>
           <div><dt>Status</dt><dd><span class="pill pill-denovo">Draft</span></dd></div>
         </dl>
       </div>
     </div>
     <p class="section-sub" style="margin-top:20px;">Full detail on each (step-by-step method, complete QC, limitations): <a href="../../reference/pseudogenome/README.md">reference/pseudogenome/README.md</a> · <a href="../../reference/colombian_scaffolded_genome/README.md">reference/colombian_scaffolded_genome/README.md</a>.</p>
+    <p class="section-sub" style="font-style:italic;">Corrected 2026-09-17: the previous bdnf figures (coverage=0.945, sequence_ID=0.923) were computed against the raw RagTag scaffold, not the actually-adopted gap-filled+polished assembly — that final genome had been validated but never promoted to the canonical <code>reference/colombian_scaffolded_genome/colombian_scaffolded.fna</code>, so its Liftoff annotation and indices never existed until now. Fixed by promoting the real final genome and re-running annotation + indexing against it.</p>
   </section>
 
   <section id="assembly-qc" class="divider-top">
