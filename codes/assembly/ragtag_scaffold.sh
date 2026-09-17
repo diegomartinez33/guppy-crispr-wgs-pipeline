@@ -28,9 +28,12 @@
 # same class of hang even at 500K contigs.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+# CONTIGS is genome-version-independent (SPAdes de novo assembly of raw
+# reads, not aligned to any particular reference) - only the scaffolding
+# target (REF) and OUTPUT_DIR vary with REF_VERSION.
 CONTIGS=${PROJECT_DIR}/assembly/spades_control_coassembly/contigs.min500.fasta
-OUTPUT_DIR=${PROJECT_DIR}/assembly/ragtag_output
+OUTPUT_DIR=${PROJECT_DIR}/assembly/ragtag_output${OUT_SUFFIX}
 
 mkdir -p logs/
 

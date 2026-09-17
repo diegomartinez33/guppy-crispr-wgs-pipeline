@@ -86,6 +86,10 @@
   .bar-row .bar-value{width:38px;flex:none;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);text-align:left;padding-left:4px;}
   footer{border-top:1px solid var(--border);padding:40px 0 20px;color:var(--ink-faint);font-size:12.5px;}
   footer p{max-width:70ch;}
+  .ver-toggle{display:inline-flex;border:1px solid var(--border-strong);border-radius:99px;padding:3px;gap:2px;background:var(--surface);}
+  .ver-toggle button{appearance:none;border:none;background:transparent;font-family:"IBM Plex Sans",sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--ink-soft);padding:6px 14px;border-radius:99px;cursor:pointer;}
+  .ver-toggle button[aria-pressed="true"]{background:var(--accent);color:var(--bg);}
+  .ver-toggle button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 </style>
 
 <header class="top">
@@ -102,12 +106,18 @@
 
 <div class="wrap">
   <section class="masthead">
-    <span class="eyebrow">Poecilia reticulata · whole genome · v1 genome</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <span class="eyebrow" id="eyebrow">Poecilia reticulata · whole genome · v1 genome</span>
+      <div class="ver-toggle" role="tablist" aria-label="Reference genome version">
+        <button type="button" id="btn-v1" role="tab" aria-pressed="true">v1 · Guanapo</button>
+        <button type="button" id="btn-v2" role="tab" aria-pressed="false">v2 · Male PacBio+Hi-C</button>
+      </div>
+    </div>
     <h1>Variant Density Hotspots</h1>
-    <p class="lede">Regions of the genome with abnormally high SNP/INDEL density between the Colombian population and the Guanapo/Trinidad reference — general population-divergence context, independent of the specific CRISPR sites.</p>
+    <p class="lede" id="lede">Regions of the genome with abnormally high SNP/INDEL density between the Colombian population and the Guanapo/Trinidad reference — general population-divergence context, independent of the specific CRISPR sites.</p>
     <div class="scope-strip">
       <div class="scope-item"><div class="label">Window</div><div class="value">10kb, 2kb step</div></div>
-      <div class="scope-item"><div class="label">Windows scanned</div><div class="value">366,998</div></div>
+      <div class="scope-item"><div class="label">Windows scanned</div><div class="value" id="scope-windows">366,998</div></div>
       <div class="scope-item"><div class="label">Threshold</div><div class="value">FDR (BH) &lt; 0.05</div></div>
       <div class="scope-item"><div class="label">Merge</div><div class="value">bedtools merge -d 2000</div></div>
     </div>
@@ -115,12 +125,7 @@
 
   <section id="summary">
     <h2>Summary</h2>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">403</div><div class="kpi-label">merged hotspot regions</div></div>
-      <div class="kpi"><div class="kpi-value">1,780</div><div class="kpi-label">windows with FDR&lt;0.05</div></div>
-      <div class="kpi"><div class="kpi-value">0.49%</div><div class="kpi-label">of the 366,998 windows</div></div>
-      <div class="kpi"><div class="kpi-value">LG2</div><div class="kpi-label">chromosome with the most regions (32)</div></div>
-    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
     <div class="callout">
       <span class="eyebrow">Interpretation note</span>
       These hotspots reflect general genomic divergence between populations (drift, local selection, or mapping artifacts in repetitive regions) — they are not related to CRISPR editing. Their value is as a population-genomics resource: candidates for future studies of local adaptation or population structure.
@@ -148,45 +153,97 @@
 
   <section id="method" class="divider-top">
     <h2>Method</h2>
-    <p class="section-sub">
-      1) <code>bedtools makewindows -w 10000 -s 2000</code> over the whole genome. 2) Count of PASS SNPs/INDELs per window (<code>bedtools coverage -counts</code>). 3) Density = variants/kb; Z-score computed <b>per chromosome</b> (not genome-wide, to avoid bias from size/coverage differences between chromosomes). 4) Window = hotspot if its Z-score-associated p-value survives Benjamini-Hochberg correction with FDR&lt;0.05 (fallback threshold Z&gt;4.0 if <code>statsmodels</code> is unavailable). 5) Adjacent hotspot windows are merged (<code>bedtools merge -d 2000</code>) into the 403 final regions. 6) Gene annotation via direct overlap with the reference GFF; zebrafish orthologs via ID mapping + functional enrichment with gProfiler.
+    <p class="section-sub" id="method-text">
+      1) <code>bedtools makewindows -w 10000 -s 2000</code> over the whole genome. 2) Count of PASS SNPs/INDELs per window (<code>bedtools coverage -counts</code>). 3) Density = variants/kb; Z-score computed <b>per chromosome</b> (not genome-wide, to avoid bias from size/coverage differences between chromosomes). 4) Window = hotspot if its Z-score-associated p-value survives Benjamini-Hochberg correction with FDR&lt;0.05 (fallback threshold Z&gt;4.0 if <code>statsmodels</code> is unavailable). 5) Adjacent hotspot windows are merged (<code>bedtools merge -d 2000</code>) into the final regions. 6) Gene annotation via direct overlap with the population-specific Liftoff annotation; zebrafish orthologs via gProfiler g:Orth.
     </p>
   </section>
 
   <footer>
-    <p>Variant Hotspots Report · generated from gatk/trimmomatic/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.</p>
+    <p id="footer-text">Variant Hotspots Report · generated from gatk/trimmomatic/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.</p>
   </footer>
 </div>
 
 <script>
-const CHROM_COUNTS = [
-  ["LG2",32],["LG7",31],["LG9",27],["LG18",26],["LG11",23],["LG16",20],["LG8",19],
-  ["LG21",18],["LG3",18],["LG17",16],["LG10",15],["LG4",15],["LG23",14],["LG20",14],["LG14",14],
-];
-const GENES = [
-  {region:"NC_024346.1:3,430,000-3,470,000", lg:"LG16", z:16.21, dens:152.8, n:4, named:"capn7"},
-  {region:"NC_024344.1:15,448,000-15,508,000", lg:"LG14", z:15.57, dens:138.3, n:6, named:"oxa1l"},
-  {region:"NC_024342.1:2,928,000-2,960,000", lg:"LG12", z:13.05, dens:125.0, n:2, named:"ckmt2a, rasgrf2a"},
-  {region:"NC_024335.1:14,312,000-14,342,000", lg:"LG5", z:12.68, dens:119.4, n:1, named:"—"},
-  {region:"NC_024339.1:32,814,000-32,876,000", lg:"LG9", z:11.61, dens:109.8, n:5, named:"—"},
-  {region:"NC_024334.1:11,674,000-11,746,000", lg:"LG4", z:10.90, dens:100.6, n:2, named:"lsm4"},
-  {region:"NC_024348.1:22,024,000-22,026,651", lg:"LG18", z:10.83, dens:147.5, n:1, named:"—"},
-  {region:"NC_024336.1:1,620,000-1,640,000", lg:"LG6", z:10.55, dens:97.2, n:1, named:"kitlga"},
-  {region:"NC_024342.1:26,174,000-26,198,000", lg:"LG12", z:10.31, dens:103.1, n:2, named:"tbc1d13, thnsl2"},
-  {region:"NC_024338.1:8,318,000-8,352,000", lg:"LG8", z:10.12, dens:111.8, n:4, named:"pick1"},
-];
+const DATA = {
+  v1: {
+    eyebrow: "Poecilia reticulata · whole genome · v1 genome (GCF_000633615.1, Guanapo/Trinidad)",
+    lede: "Regions of the genome with abnormally high SNP/INDEL density between the Colombian population and the Guanapo/Trinidad reference — general population-divergence context, independent of the specific CRISPR sites.",
+    windowsScanned: "366,998",
+    regions: 403, windowsFDR: "1,780", pct: "0.49%", topLG: "LG2", topLGCount: 32,
+    footer: "Variant Hotspots Report · generated from gatk/trimmomatic/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.",
+    chromCounts: [
+      ["LG2",32],["LG7",31],["LG9",27],["LG18",26],["LG11",23],["LG16",20],["LG8",19],
+      ["LG21",18],["LG3",18],["LG17",16],["LG10",15],["LG4",15],["LG23",14],["LG20",14],["LG14",14],
+    ],
+    genes: [
+      {region:"NC_024346.1:3,430,000-3,470,000", lg:"LG16", z:16.21, dens:152.8, n:4, named:"capn7"},
+      {region:"NC_024344.1:15,448,000-15,508,000", lg:"LG14", z:15.57, dens:138.3, n:6, named:"oxa1l"},
+      {region:"NC_024342.1:2,928,000-2,960,000", lg:"LG12", z:13.05, dens:125.0, n:2, named:"ckmt2a, rasgrf2a"},
+      {region:"NC_024335.1:14,312,000-14,342,000", lg:"LG5", z:12.68, dens:119.4, n:1, named:"—"},
+      {region:"NC_024339.1:32,814,000-32,876,000", lg:"LG9", z:11.61, dens:109.8, n:5, named:"—"},
+      {region:"NC_024334.1:11,674,000-11,746,000", lg:"LG4", z:10.90, dens:100.6, n:2, named:"lsm4"},
+      {region:"NC_024348.1:22,024,000-22,026,651", lg:"LG18", z:10.83, dens:147.5, n:1, named:"—"},
+      {region:"NC_024336.1:1,620,000-1,640,000", lg:"LG6", z:10.55, dens:97.2, n:1, named:"kitlga"},
+      {region:"NC_024342.1:26,174,000-26,198,000", lg:"LG12", z:10.31, dens:103.1, n:2, named:"tbc1d13, thnsl2"},
+      {region:"NC_024338.1:8,318,000-8,352,000", lg:"LG8", z:10.12, dens:111.8, n:4, named:"pick1"},
+    ],
+  },
+  v2: {
+    eyebrow: "Poecilia reticulata · whole genome · v2 genome (GCF_904066995.2, male, PacBio+Hi-C)",
+    lede: "Regions of the genome with abnormally high SNP/INDEL density between the Colombian population and the current RefSeq reference — general population-divergence context, independent of the specific CRISPR sites.",
+    windowsScanned: "372,587",
+    regions: 459, windowsFDR: "2,165", pct: "0.58%", topLG: "LG2", topLGCount: 38,
+    footer: "Variant Hotspots Report (v2) · generated from gatk/trimmomatic_v2/hotspots/{window_counts_annotated.csv, hotspots.bed, hotspot_gene_summary.tsv} · off-target_data project.",
+    chromCounts: [
+      ["LG2",38],["LG12",36],["LG7",34],["LG18",32],["LG9",31],["LG3",21],["LG16",21],
+      ["LG17",20],["LG20",20],["LG4",19],["LG11",19],["LG1",18],["LG5",17],["LG8",17],["LG21",17],
+    ],
+    genes: [
+      {region:"NC_088834.1:8,408,000-8,440,000", lg:"LG5", z:12.30, dens:116.9, n:1, named:"—"},
+      {region:"NC_088837.1:7,030,000-7,066,000", lg:"LG8", z:10.33, dens:115.0, n:5, named:"pick1"},
+      {region:"NC_088833.1:8,232,000-8,306,000", lg:"LG4", z:10.33, dens:99.3, n:3, named:"lsm4"},
+      {region:"NC_088846.1:28,416,000-28,456,000", lg:"LG17", z:9.87, dens:95.8, n:6, named:"—"},
+      {region:"NC_088851.1:21,594,000-21,636,000", lg:"LG22", z:9.62, dens:93.9, n:2, named:"—"},
+      {region:"NC_088845.1:25,762,000-25,782,000", lg:"LG16", z:9.29, dens:94.3, n:3, named:"zhx1"},
+      {region:"NC_088838.1:34,730,000-34,754,000", lg:"LG9", z:9.23, dens:93.4, n:2, named:"—"},
+      {region:"NC_088831.1:40,340,000-40,412,000", lg:"LG2", z:9.05, dens:94.5, n:8, named:"—"},
+      {region:"NC_088845.1:12,024,000-12,056,000", lg:"LG16", z:9.01, dens:92.0, n:3, named:"—"},
+      {region:"NC_088834.1:19,436,000-19,460,000", lg:"LG5", z:9.00, dens:90.8, n:3, named:"—"},
+    ],
+  },
+};
 
-const maxCount = Math.max(...CHROM_COUNTS.map(c=>c[1]));
-document.getElementById("chrom-bars").innerHTML = CHROM_COUNTS.map(([lg,n])=>`
-  <div class="bar-row">
-    <div class="bar-label">${lg}</div>
-    <div class="bar-track"><div class="bar-fill" style="width:${(n/maxCount*100).toFixed(1)}%"></div></div>
-    <div class="bar-value">${n}</div>
-  </div>`).join("");
+function render(version){
+  const d = DATA[version];
+  document.getElementById("btn-v1").setAttribute("aria-pressed", version==="v1");
+  document.getElementById("btn-v2").setAttribute("aria-pressed", version==="v2");
+  document.getElementById("eyebrow").textContent = d.eyebrow;
+  document.getElementById("lede").textContent = d.lede;
+  document.getElementById("scope-windows").textContent = d.windowsScanned;
+  document.getElementById("footer-text").textContent = d.footer;
 
-document.getElementById("genes-tbody").innerHTML = GENES.map(g=>`
-  <tr><td class="mono" style="font-size:12.5px;">${g.region}</td><td>${g.lg}</td>
-  <td class="num">${g.z.toFixed(2)}</td><td class="num">${g.dens.toFixed(1)}</td>
-  <td class="num">${g.n}</td><td style="font-style:italic;color:var(--ink-soft);">${g.named}</td></tr>`).join("");
+  document.getElementById("kpi-grid").innerHTML = `
+    <div class="kpi"><div class="kpi-value">${d.regions}</div><div class="kpi-label">merged hotspot regions</div></div>
+    <div class="kpi"><div class="kpi-value">${d.windowsFDR}</div><div class="kpi-label">windows with FDR&lt;0.05</div></div>
+    <div class="kpi"><div class="kpi-value">${d.pct}</div><div class="kpi-label">of the ${d.windowsScanned} windows</div></div>
+    <div class="kpi"><div class="kpi-value">${d.topLG}</div><div class="kpi-label">chromosome with the most regions (${d.topLGCount})</div></div>`;
+
+  const maxCount = Math.max(...d.chromCounts.map(c=>c[1]));
+  document.getElementById("chrom-bars").innerHTML = d.chromCounts.map(([lg,n])=>`
+    <div class="bar-row">
+      <div class="bar-label">${lg}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxCount*100).toFixed(1)}%"></div></div>
+      <div class="bar-value">${n}</div>
+    </div>`).join("");
+
+  document.getElementById("genes-tbody").innerHTML = d.genes.map(g=>`
+    <tr><td class="mono" style="font-size:12.5px;">${g.region}</td><td>${g.lg}</td>
+    <td class="num">${g.z.toFixed(2)}</td><td class="num">${g.dens.toFixed(1)}</td>
+    <td class="num">${g.n}</td><td style="font-style:italic;color:var(--ink-soft);">${g.named}</td></tr>`).join("");
+}
+
+document.getElementById("btn-v1").addEventListener("click", ()=>render("v1"));
+document.getElementById("btn-v2").addEventListener("click", ()=>render("v2"));
+render("v1");
 </script>
 </body></html>

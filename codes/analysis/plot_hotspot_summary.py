@@ -218,7 +218,7 @@ lg_data = df_main[df_main["chrom"] == densest_chrom].copy().sort_values("start")
 lg_hot  = hotspots[hotspots["chrom"] == densest_chrom]
 mu      = lg_data["density"].mean()
 sd      = lg_data["density"].std(ddof=1)
-mids    = (lg_data["start"] + lg_data["end"]) / 2 / 1e6
+mids    = ((lg_data["start"] + lg_data["end"]) / 2 / 1e6).to_numpy()
 smoothed = lg_data["density"].rolling(5, center=True, min_periods=1).mean()
 max_z_val = lg_hot["max_z"].max() if len(lg_hot) > 0 else 0
 
@@ -252,7 +252,7 @@ ax.spines["right"].set_visible(False)
 # Zoomed: around the densest hotspot cluster
 ax = axes[1]
 zoom = lg_data[(lg_data["start"] >= zoom_start) & (lg_data["end"] <= zoom_end)].copy()
-mid_z = (zoom["start"] + zoom["end"]) / 2 / 1e6
+mid_z = ((zoom["start"] + zoom["end"]) / 2 / 1e6).to_numpy()
 sm_z  = zoom["density"].rolling(5, center=True, min_periods=1).mean()
 ax.plot(mid_z, zoom["density"].values, color="#aaaaaa", linewidth=0.4, alpha=0.5)
 ax.plot(mid_z, sm_z.values, color=chrom_color, linewidth=1.5)
@@ -298,7 +298,7 @@ for idx, chrom in enumerate(active_chroms):
     hot  = hotspots[hotspots["chrom"] == chrom]
     mu   = sub["density"].mean()
     sd   = sub["density"].std(ddof=1)
-    mids = (sub["start"] + sub["end"]) / 2 / 1e6
+    mids = ((sub["start"] + sub["end"]) / 2 / 1e6).to_numpy()
     sm   = sub["density"].rolling(5, center=True, min_periods=1).mean()
 
     ax.plot(mids, sub["density"].values, color="#cccccc", linewidth=0.4)

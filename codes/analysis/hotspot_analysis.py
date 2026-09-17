@@ -241,11 +241,11 @@ for chrom in chroms_ordered:
     fig, ax = plt.subplots(figsize=(14, 4))
     midpoints = ((sub["start"] + sub["end"]) / 2 / 1e6).to_numpy()   # Mb
 
-    ax.plot(midpoints, sub["density"], color="#aaaaaa", linewidth=0.5, alpha=0.6)
+    ax.plot(midpoints, sub["density"].to_numpy(), color="#aaaaaa", linewidth=0.5, alpha=0.6)
 
     smoothed = sub["density"].rolling(5, center=True, min_periods=1).mean()
     color    = CHROM_COLORS.get(chrom, "#4C8EBF")
-    ax.plot(midpoints, smoothed, color=color, linewidth=1.2)
+    ax.plot(midpoints, smoothed.to_numpy(), color=color, linewidth=1.2)
 
     ax.axhline(mu, color="gray", linewidth=0.8, linestyle="--")
     if sd > 0:

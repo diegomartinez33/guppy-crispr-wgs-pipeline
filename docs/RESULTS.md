@@ -21,18 +21,25 @@ progress, ⏳ = pending. For detail on how each thing was generated see [PIPELIN
 only site with variants (OT4) already had them in the Control group — a pre-existing population
 polymorphism, not an editing effect.
 
-## 2. Variant Hotspots — ✅ complete, v1 only
+## 2. Variant Hotspots — ✅ complete, both v1 and v2
 
-| What | Path |
-|---|---|
-| Variant density per window (10kb/2kb) | `gatk/trimmomatic/hotspots/window_counts_annotated.csv`, `window_counts.tsv` |
-| Final hotspot regions (403 merged, FDR<0.05) | `gatk/trimmomatic/hotspots/hotspots.bed` |
-| Hotspot gene annotation (incl. zebrafish orthologs, gProfiler enrichment) | `hotspot_gene_summary.tsv`, `hotspot_gene_overlaps.tsv`, `hotspot_genes_zebrafish.txt`, `gProfiler_*.csv` |
-| Genome-wide Manhattan plot + per-chromosome density | `hotspot_manhattan_genome.png`, `hotspot_plots/` |
-| 5 final summary figures | `gatk/trimmomatic/hotspots/summary_plots/hotspot_summary_0{1..5}_*.png` |
-| **Consolidated visual report** | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
+| What | v1 path | v2 path |
+|---|---|---|
+| Variant density per window (10kb/2kb) | `gatk/trimmomatic/hotspots/window_counts_annotated.csv`, `window_counts.tsv` | `gatk/trimmomatic_v2/hotspots/window_counts_annotated.csv`, `window_counts.tsv` |
+| Final hotspot regions (403 merged, FDR<0.05) | `gatk/trimmomatic/hotspots/hotspots.bed` | `gatk/trimmomatic_v2/hotspots/hotspots.bed` (459 merged, FDR<0.05) |
+| Hotspot gene overlap (reconstructed as `codes/analysis/hotspot_gene_overlap.sh`, 2026-09-15) | `hotspot_gene_overlaps.tsv`, `hotspot_gene_list.txt` (705 genes), `hotspot_geneIDs_all.txt` | `hotspot_gene_overlaps.tsv`, `hotspot_gene_list.txt` (882 genes), `hotspot_geneIDs_all.txt` |
+| Zebrafish orthologs (g:Orth, manual/external tool) + gene summary (reconstructed as `codes/analysis/hotspot_gene_summary.py`, 2026-09-15) | `hotspot_gene_summary.tsv` (349/403 regions with ≥1 gene), `hotspot_zebrafish_ENSDARG.txt` (315 orthologs), `gProfiler_*.csv` | `hotspot_gene_summary.tsv` (434/459 regions with ≥1 gene), `hotspot_zebrafish_ENSDARG.txt` (314 orthologs), `gProfiler_*.csv` — ✅ done |
+| Genome-wide Manhattan plot + per-chromosome density | `hotspot_manhattan_genome.png`, `hotspot_plots/` (573 PNGs) | `hotspot_manhattan_genome.png`, `hotspot_plots/` (182 PNGs) |
+| 5 final summary figures | `gatk/trimmomatic/hotspots/summary_plots/hotspot_summary_0{1..5}_*.png` | `gatk/trimmomatic_v2/hotspots/summary_plots/hotspot_summary_0{1..5}_*.png` |
+| **Consolidated visual report** | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) (v1 numbers unchanged, see note) | not yet built |
 
-**Not run under v2 yet** — `gatk/trimmomatic_v2/` has no `hotspots/` subfolder (see objective 7).
+**2026-09-15**: found and fixed two real bugs while running this for v2 (see CLAUDE.md §8) — a
+broken `conda activate fastp_env` that silently fell through to a system Python, and a
+pandas/matplotlib version incompatibility that crashed `hotspot_analysis.py`'s per-chromosome
+plots and 2 of `plot_hotspot_summary.py`'s 5 plots. v1's `hotspot_plots/` had actually been empty
+since 2026-06-03 (never worked); re-running the fixed scripts for v1 reproduced the documented
+numbers exactly (403 regions, byte-identical CSV/BED) while finally populating those plots — no
+factual numbers changed, so the existing v1 report/Artifact needed no update.
 
 ## 3. Colombian Pseudogenome — ✅ complete (v1)
 
@@ -86,16 +93,16 @@ strongest support of all 7 isoforms (44 RNA-seq samples). The Atlas now shows an
 coverage note per gene (e.g. "covers only 1/7 isoforms — real alternative promoter, not
 addressed"). Full methodology in `CLAUDE.md`, item #6, "Same process extended to CRISPRi".
 
-## 6. PCR Primer Design — 🔄 partial (bdnf/v1 only)
+## 6. PCR Primer Design — 🔄 partial (bdnf only, v1 + v2)
 
-| What | Path |
-|---|---|
-| Final primer table (9 sites: on-target + 8 off-target) | `analysis/offtarget_primers/bdnf_v1_primers.csv` |
-| Raw `eprimer3` output per site | `analysis/offtarget_primers/raw/bdnf_v1/` |
-| **Visual report** | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
+| What | v1 | v2 |
+|---|---|---|
+| Final primer table (9 sites: on-target + 8 off-target) | `analysis/offtarget_primers/bdnf_v1_primers.csv` | `analysis/offtarget_primers/bdnf_v2_primers.csv` (45 pairs, 36/45 genome-wide specific, all 45 free of population variants) |
+| Raw `eprimer3` output per site | `analysis/offtarget_primers/raw/bdnf_v1/` | `analysis/offtarget_primers/raw/bdnf_v2/` |
+| **Visual report** | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) (v1 numbers only) | — |
 
-**Pending:** the other 7 candidate genes (agap3, grin1a, grin1b, gria1a, gria1b, gria2b, nlgn1)
-and the v2 version — the script is already parameterized (`--gene`/`--ref-version`), it just
+**Pending:** the other 7 candidate genes (agap3, grin1a, grin1b, gria1a, gria1b, gria2b, nlgn1),
+any version — the script is already parameterized (`--gene`/`--ref-version`), it just
 needs to be run (see [TUTORIAL.md §3](TUTORIAL.md#3-primer-design-for-a-new-gene)).
 
 ## 6b. RT-qPCR Primer Verification — ✅ complete (formalized script)
@@ -137,18 +144,20 @@ form in [PIPELINE.md §10](PIPELINE.md#10-rt-qpcr-primer-verification).
 | Mapping (BWA) + MarkDuplicates + HaplotypeCaller (15 samples) | ✅ done — all 15 samples completed |
 | GenomicsDBImport / GenotypeGVCFs / VariantFiltration | ✅ done — `gatk/trimmomatic_v2/vcf_filtered/` (12.9M SNPs, 3.4M indels, all 23 chromosomes) |
 | v2 pseudogenome | ✅ done, 12/12 verification checks passed — `reference/pseudogenome_v2/` (fna + chain + BWA/GATK/minimap2/BLAST indices + Liftoff annotation, 31,226 genes, 99.6% transfer) |
-| De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ⏳ pending — can start now (no longer blocked) |
+| De novo assembly re-scaffolded against v2 (RagTag Phase 2) | ✅ done — `assembly/ragtag_output_v2/ragtag.scaffold.fasta` (474,480 sequences placed, 611.6Mb, vs v1's 468,519/606.2Mb — v2 places slightly more, consistent with its better contiguity) |
 | CRISPResso on-target/off-target under v2 | ✅ done — individual (15), WGS (15×8 sites), and merged (4 groups, authoritative) all completed; merged track exactly reproduces v1's historical editing numbers (Control/RNP_Cas/Plasmid_Ko 0%, Only_MNP 1.47% noise) — `crispresso_v2/ontarget/`, `crispresso_v2/wgs/` |
-| Hotspots under v2 | ⏳ pending |
+| Hotspots under v2 (incl. zebrafish orthologs) | ✅ done — 459 merged hotspot regions (FDR<0.05), gene overlap (882 genes), 314 zebrafish orthologs — `gatk/trimmomatic_v2/hotspots/`. Found + fixed 2 real bugs along the way (broken conda env, pandas/matplotlib plotting crash — also affected v1, now fixed there too) — see objective 2 |
 | `select_offtargets` genotyping for the 8 v2 off-target sites | ✅ done — 2 SNPs at off_target_4, present in Control (pre-existing, not CRISPR-induced), reproducing v1's exact finding — `gatk/trimmomatic_v2/vcf_offtargets/` |
 | GATK genotype/summary plots for v2 (`gatk_offtarget_genotypes.py`, `gatk_variant_summary.py`, `plot_editing_comparison.py`) | ✅ done — all 3 scripts parameterized (`REF_VERSION`) and run for v2; off-target genotypes exactly reproduce v1 (same 2 background SNPs at OT4, remapped coordinates); on-target editing numbers match v1 exactly per sample; genome-wide summary (~8-9M SNPs/sample, Ti/Tv 1.36-1.37) tracks v1's corrected numbers — `codes/analysis/gatk_summary_v2/`, `codes/analysis/editing_comparison_v2/`. Side finding: this run also caught that the *committed v1* `gatk_summary/gatk_variant_summary.csv` was stale (computed before the final hard-filtered VCF existed, 5.5× undercounted) and has now been refreshed — see CLAUDE.md §8 |
-| bdnf guide/primer design already supports `--ref-version v2`/`--population pseudogenome_v2` | ✅ code ready and pseudogenome now exists — CRISPOR scoring still needs `guppyColPseudogenomeV2` registered in the container |
+| `guppyColPseudogenomeV2` registered with CRISPOR | ✅ done — `codes/analysis/crispor_add_genome_v2.sh` extended to also register the v2 pseudogenome (mirrors v1's `crispor_add_genomes.sh`); verified (2bit + BWA index present) — unblocks CRISPOR scoring for `ko_guide_scan.py`/`crispri_tss_scan.py --population pseudogenome_v2` |
+| bdnf primers for v2 | ✅ done — 45 candidate pairs (5/site × 9 sites), 36/45 confirmed genome-wide specific, all 45 free of population variants in the primer footprint — `analysis/offtarget_primers/bdnf_v2_primers.csv` |
+| IGV files for v2 | ✅ done — `codes/assembly/prepare_igv_files.sh` parameterized (`REF_VERSION`); `igv_files_v2/` (genome, sorted+bgzipped+tabixed annotation, 4 merged BAMs, `features_of_interest.bed`). The off-target/sgRNA coordinates in the BED were lifted from reference to pseudogenome coordinates via CrossMap (`colombian_pseudogenome.chain`) and spot-verified against the actual sequence — this also surfaced that v1's equivalent BED mixes reference- and pseudogenome-native coordinates (pre-existing imprecision, not fixed retroactively) |
 
-## 8. IGV Files — ✅ complete, v1 only
+## 8. IGV Files — ✅ complete, both v1 and v2
 
-`igv_files/` — pseudogenome genome + annotation (bgzip+tabix) + per-group merged BAMs (4) +
+`igv_files{,_v2}/` — pseudogenome genome + annotation (bgzip+tabix) + per-group merged BAMs (4) +
 `features_of_interest.bed` (bdnf, guide site, cut site, 8 off-targets). Ready to load directly
-into IGV Desktop. No v2 equivalent yet (consistent with objective 7).
+into IGV Desktop.
 
 ---
 
@@ -162,7 +171,7 @@ directly to a colleague without needing a claude.ai account).
 |---|---|---|---|
 | Guppy CRISPR Atlas | KO/CRISPRi guide design, 8 genes | [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856) | [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html) |
 | Off-Target WGS Report | Off-target WGS (GATK + CRISPResso) | [link](https://claude.ai/code/artifact/3290263b-0f56-4d76-84fe-825d4d98110c) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
-| Variant Hotspots Report | Variant hotspots | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
+| Variant Hotspots Report | Variant hotspots, v1/v2 toggle | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
 | Colombian Genome Resources | Pseudogenome + de novo assembly | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |
 | Primer Design Report | Primer design (bdnf/v1) | [link](https://claude.ai/code/artifact/eb740fdb-261b-41a5-b44b-e8530a82c215) | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
 | RT-qPCR Primer Verification Report | RT-qPCR primer verification (5 in-use pairs + 3 candidates) | [link](https://claude.ai/code/artifact/7b447aed-e947-42b6-96e5-085bfdaea0e9) | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |

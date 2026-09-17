@@ -2902,13 +2902,183 @@ for one task (RNP_Cas1 individual, task 12 of job 724615): correctly used
 `NC_088832.1:15849655-15849755` (the real, relocated v2 coordinate), not
 an accidental v1 reuse.
 
-Still pending for the v2 migration: hotspots under v2; RagTag Phase 2
-(re-scaffold the Colombian assembly against v2 - can start now);
-registering `guppyColPseudogenomeV2` with CRISPOR (needed before
-`ko_guide_scan.py --population pseudogenome_v2` can get CRISPOR scores,
-though the manual scan/classification already works without it);
-re-running the 8-gene KO/CRISPRi guide comparison against
-pseudogenome_v2 once that's registered.
+Still pending for the v2 migration: re-running the 8-gene KO/CRISPRi
+guide comparison against pseudogenome_v2 now that it's registered with
+CRISPOR (see below); the other 7 genes' PCR primer design (any version).
+
+**Blocking-chain step 1: `guppyColPseudogenomeV2` registered with
+CRISPOR - DONE 2026-09-16.** Extended `crispor_add_genome_v2.sh` (which
+previously only registered the raw `guppyRefMaleV2` reference) to also
+register the v2 pseudogenome, mirroring v1's `crispor_add_genomes.sh`
+(same fasta-only pattern, same `--desc`/`--baseDir` flags, same
+idempotency guard). Job 725605, ~9 min (BWA index build dominates).
+Verified: `guppyColPseudogenomeV2/{*.2bit,*.fa.bwt}` present in
+`codes/analysis/crispor_singularity/genomes/`. This was the last
+blocking step before `ko_guide_scan.py`/`crispri_tss_scan.py
+--population pseudogenome_v2` can get real CRISPOR scores (manual
+scan/classification already worked without it).
+
+**Independent track: RagTag Phase 2 for v2 - DONE 2026-09-16.**
+`ragtag_scaffold.sh` had no `REF_VERSION` support at all (hardcoded v1
+paths) - parameterized it (mechanical change only, `OUT_SUFFIX` appended
+to `OUTPUT_DIR`; `CONTIGS` input is genome-version-independent SPAdes
+output, unaffected). Job 725608, 2m49s (v1's original run took much
+longer - v2's better contiguity makes minimap2 alignment/ordering much
+faster). Result: 474,480 sequences placed (611.6Mb) vs v1's 468,519
+(606.2Mb) - v2 places slightly more of the de novo assembly, consistent
+with its better reference quality -> `assembly/ragtag_output_v2/`.
+
+**Independent track: IGV files for v2 - DONE 2026-09-16.**
+`prepare_igv_files.sh` had no `REF_VERSION` support - parameterized
+(mechanical: `PSEUDO_DIR`/`MERGED_DIR`/`IGV_DIR` all take `OUT_SUFFIX`;
+also swapped the hardcoded "NLGN3-like" IGV search-bar example, which
+turned out to be an unstable `LOC` ID with no v2 equivalent, for `nlgn1`
+- one of the actual 8 candidate genes, easy to verify in both versions).
+v1 regression: GFF3 output byte-identical (md5 match) after decompression.
+
+`features_of_interest.bed` (hand-curated, never scripted even for v1 -
+lives directly in `igv_files/`, tracked in git despite that directory
+being mostly gitignored) needed real work, not just parameterization.
+Building it surfaced a genuine finding: **v1's own BED file mixes
+coordinate systems** - `bdnf_gene` comes from the Liftoff GFF
+(pseudogenome-native coordinates) while the sgRNA/cut-site/8 off-target
+coordinates come from `combined_offtargets.csv` (reference-native, since
+CRISPOR/Cas-OFFinder ran against the raw reference) and were used
+as-is, unlifted. Confirmed directly: `NC_024333.1:15923720-15923730`
+(v1 bdnf region) reads completely different sequence on the pseudogenome
+vs. the reference - not a SNP-level difference, a real coordinate shift
+from population-specific indels. For v2, did this properly instead of
+reproducing the same imprecision: built a reference-coordinate BED for
+the sgRNA/cut-site/8-off-target features, lifted it to pseudogenome
+coordinates with `CrossMap bed reference/pseudogenome_v2/
+colombian_pseudogenome.chain` (same tool/chain `design_offtarget_
+primers.py` already uses for its population-variant check), and
+spot-verified 3 of the 10 lifted features (sgRNA site, OT1 +strand,
+OT4 -strand) against the actual pseudogenome sequence via
+`samtools faidx` + manual reverse-complement check - all matched
+exactly. `bdnf_gene` itself needed no lift (Liftoff GFF is already
+pseudogenome-native). v1's file was NOT retroactively fixed (out of
+scope, would need the same lift-and-reverify treatment done here) -
+flagged for awareness, not corrected.
+
+**Independent track: bdnf primers for v2 - DONE 2026-09-16.** No code
+changes needed - `design_offtarget_primers.py`/`run_offtarget_primer_
+design.sh` were already fully parameterized (`--ref-version`,
+`REF_BY_VERSION`/`PSEUDOGENOME_BY_VERSION`/`CHAIN_BY_VERSION` dicts
+already had v2 entries) from when this script was originally written,
+just needed the v2 sites CSV
+(`crispresso_v2/offtargets/combined/combined_offtargets.csv`) and
+`REF_VERSION=v2`. Job 725609, 21m44s (`eprimer3` design finishes in
+seconds; `primersearch`'s genome-wide specificity scan of all 45
+candidate pairs against the full v2 reference dominates the runtime).
+Result: 45 candidate pairs (5/site x 9 sites), 36/45 confirmed
+genome-wide-specific (off_target_5 is the worst case, only 1/5
+specific - a repetitive region), all 45 free of population variants in
+the primer footprint (pseudogenome check ran successfully for 9/9
+sites) -> `analysis/offtarget_primers/bdnf_v2_primers.csv`.
+
+All four tracks (CRISPOR registration, RagTag Phase 2, IGV files, bdnf
+primers) run in parallel this session, confirming they share no file
+dependencies - none blocked or interfered with any other.
+
+**Hotspots under v2 - DONE 2026-09-15.** `hotspot_windows.sh` (SLURM,
+job 724997, 11 min) -> `hotspot_analysis.py` (job 725062) ->
+`plot_hotspot_summary.py` were all already parameterized for
+`REF_VERSION`/`OUT_SUFFIX` from earlier in this migration, so this was a
+straight run, not new code - except for two real bugs found and fixed
+along the way:
+
+1. `hotspot_analysis.sh`'s `conda activate fastp_env` never actually
+   worked, for either version. `conda info --base` resolves to whatever
+   `~/.bashrc`'s conda-init block points at (`miniconda3_crispresso`,
+   which has no `fastp_env` at all); even the real `fastp_env` (under
+   `anaconda3/`) turns out to be missing `statsmodels`/`scipy`, which the
+   script's BH-FDR hotspot calling needs. Both v1's original runs (jobs
+   683994/684016, "1,780 windows, BH-corrected FDR<0.05") and this v2 run
+   therefore always silently fell through to whatever `module load
+   anaconda/conda4.12.0` python was already on PATH - which happens to
+   have every needed package. Made this explicit (`module load
+   anaconda/conda4.12.0` instead of the broken conda-activate) so it stops
+   depending on fragile ambient state.
+2. That same fallback environment's pandas 2.3.3 + matplotlib 3.5.1 pairing
+   crashes on `ax.plot(array, pandas.Series)` ("multi-dimensional indexing
+   ... no longer supported") - hit in `hotspot_analysis.py`'s per-chromosome
+   density-plot loop and in three places in `plot_hotspot_summary.py`
+   (the `mids`/`mid_z` x-axis arrays). This crash is NOT new: v1's
+   `hotspot_plots/` directory has been empty since its creation (2026-06-03)
+   and `plot_hotspot_summary.py`'s Plots 4/5 were failing too (its last
+   *successful* full run predates this pandas upgrade, Aug 10). Fixed by
+   converting every Series passed to `ax.plot()` to `.to_numpy()`/`.values`
+   at the call site - version-agnostic, no behavior change. Verified via
+   v1 regression: `window_counts_annotated.csv`/`hotspots.bed` byte-identical
+   to before my changes; `plot_hotspot_summary.py` now correctly reports
+   "403 hotspot regions" (matches the documented v1 result) with all 5
+   plots generated; v1's `hotspot_plots/` now has 573 real per-chromosome
+   PNGs (previously 0, in every prior run).
+
+v2 result: 372,587 windows (10kb/2kb) across 182 contigs -> 2,165
+hotspot windows (BH-corrected FDR<0.05) -> 459 merged regions (vs v1's
+403), across 23 active linkage groups (v2 has no unplaced-scaffold
+equivalent to v1's `NW_007615013.1`). Densest: LG5 (`NC_088834.1`),
+max Z=12.3 (v1's densest was LG16, max Z=16.2 - different chromosome,
+consistent with the two assemblies not being byte-for-byte comparable
+gene-for-gene at the linkage-group level).
+
+**Gene-overlap step also reconstructed as a real script.** v1's
+`hotspot_gene_overlaps.tsv`/`hotspot_gene_list.txt`/
+`hotspot_geneIDs_all.txt` had no script behind them in this repo - they
+were produced by an untracked, ad hoc `bedtools intersect` against the
+population-specific Liftoff annotation (`reference/pseudogenome/
+colombian_pseudogenome.liftoff.gff3`, not the raw NCBI GFF). Reverse-
+engineered the exact command from the existing v1 output's column
+layout and wrote `codes/analysis/hotspot_gene_overlap.sh` (parameterized,
+same `REF_VERSION` pattern). Regression-verified against v1: identical
+742 overlap records / 705 gene symbols / 720 GeneIDs, byte-identical
+output (one cosmetic trailing-newline difference only). Ran for v2:
+924 overlap records, 882 unique gene symbols = 882 unique GeneIDs (a
+cleaner 1:1 symbol<->GeneID mapping than v1's 705-vs-720, likely a
+side effect of v2's newer/better Liftoff transfer) ->
+`gatk/trimmomatic_v2/hotspots/{hotspot_gene_overlaps.tsv,
+hotspot_gene_list.txt, hotspot_geneIDs_all.txt}`.
+
+**Zebrafish ortholog step - DONE for v2, 2026-09-15.** User ran gProfiler's
+`g:Orth` tool by hand (Organism: Poecilia reticulata, Target: Danio rerio,
+IDs treated as ENTREZGENE_ACC) against `hotspot_geneIDs_all.txt` (882
+guppy GeneIDs) and saved the result as `gProfiler_preticulata_drerio_
+2026-09-15_18-25-51.csv` into `gatk/trimmomatic_v2/hotspots/` - verified
+its 882 `initial_alias` values are an exact match to the v2 GeneID list
+(a first attempt accidentally re-used v1's 720-ID list instead, caught by
+diffing the alias sets against both versions' `hotspot_geneIDs_all.txt`
+before trusting it).
+
+Reverse-engineered the derivation of v1's `hotspot_gene_summary.tsv` (no
+script existed for it either) by direct inspection - confirmed it is
+built ENTIRELY from `hotspot_gene_overlaps.tsv` (grouped by hotspot
+region, keeping non-`LOC`-prefixed gene names, sorted by max_z descending
+then h_start ascending), with NO dependency on the gProfiler CSV at all -
+and wrote `codes/analysis/hotspot_gene_summary.py` to reproduce it,
+plus a second, independent step in the same script that extracts
+`hotspot_zebrafish_ENSDARG.txt` (unique non-"N/A" `ortholog_ensg` values)
+straight from whichever `gProfiler_*.csv` is present. Verified against
+v1: 349/349 regions and 315/315 ENSDARG IDs match; the row ORDER is
+byte-identical except 2 pairs (4 of 349 rows) with exactly-tied max_z
+whose relative order couldn't be reconstructed by any secondary key
+tried (h_start, n_genes) - most likely an artifact of an unstable sort
+in the original, lost/unscripted analysis. Data content unaffected.
+
+NOT reproduced (and not worth guessing at): v1's `hotspot_genes_zebrafish.txt`
+(172 lowercase gene symbols) and `hotspot_named_genes_gProfiler.txt` (179
+non-LOC guppy symbols) have no confirmed derivation - a plain lowercase
+of the CSV's `ortholog_name` column does NOT reproduce the former
+(spot-checked, ~140/172 mismatches), so it was likely hand-filtered or
+hand-edited outside any recorded process.
+
+v2 result: 434/459 hotspot regions have >=1 overlapping gene (v1: 349/403);
+top region NC_088834.1:8408000-8440000 (LG5, max Z=12.3, the densest
+hotspot overall) has 1 gene, unnamed (LOC); next is NC_088837.1:7030000-
+7066000 (LG8, Z=10.3, 5 genes, 1 named: `pick1`). 314 unique zebrafish
+orthologs found (v1: 315) -> `gatk/trimmomatic_v2/hotspots/{
+hotspot_gene_summary.tsv, hotspot_zebrafish_ENSDARG.txt}`.
 
 **GATK genotype/summary plots (gatk_offtarget_genotypes.py,
 gatk_variant_summary.py, plot_editing_comparison.py) parameterized + run for

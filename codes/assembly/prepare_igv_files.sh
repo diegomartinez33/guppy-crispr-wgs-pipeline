@@ -12,9 +12,13 @@
 module load samtools/1.16.1
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-PSEUDO_DIR=${PROJECT_DIR}/reference/pseudogenome
-MERGED_DIR=${PROJECT_DIR}/mapping/trimmomatic/merged
-IGV_DIR=${PROJECT_DIR}/igv_files
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+PSEUDO_DIR=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}
+MERGED_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}/merged
+IGV_DIR=${PROJECT_DIR}/igv_files${OUT_SUFFIX}
+# features_of_interest.bed is hand-curated per version (bdnf/sgRNA/off-target
+# coordinates are genome-specific) and lives directly in IGV_DIR, same as
+# v1 - this script never generated it and doesn't touch it.
 
 mkdir -p "$IGV_DIR"
 echo "Start: $(date)"
@@ -85,8 +89,13 @@ echo "     → RNP_Cas_merged.sorted.bam"
 echo ""
 echo "  3. Search bar:"
 echo "     → bdnf                           (by gene name)"
-echo "     → NC_024333.1:15923726-15938393  (by coordinates)"
-echo "     → NC_024340.1:12516807-12518032  (NLGN3/neuroligin-3)"
+if [ "$REF_VERSION" = "v1" ]; then
+    echo "     → NC_024333.1:15923726-15938393  (bdnf, by coordinates)"
+    echo "     → NC_024334.1:13468145-13847119  (nlgn1)"
+else
+    echo "     → NC_088832.1:15851100-15865643  (bdnf, by coordinates)"
+    echo "     → NC_088833.1:31182502-31568166  (nlgn1)"
+fi
 echo "========================================================"
 
 echo ""
