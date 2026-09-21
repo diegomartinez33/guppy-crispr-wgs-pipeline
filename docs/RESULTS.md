@@ -15,7 +15,7 @@ progress, ⏳ = pending. For detail on how each thing was generated see [PIPELIN
 | VCF restricted to the 8 off-target loci | `gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz` | `gatk/trimmomatic_v2/vcf_offtargets/offtarget_variants.vcf.gz` |
 | Per-sample CRISPResso2 reports (on-target, 15 folders + `merged/`) | `crispresso/ontarget/trimmomatic/<SAMPLE>/CRISPResso_on_<SAMPLE>/` | `crispresso_v2/ontarget/trimmomatic/<SAMPLE>/` (15 + `merged/`) |
 | Per-sample CRISPRessoWGS reports (8 off-target sites, 15 folders + `aggregate/`) | `crispresso/wgs/trimmomatic/<SAMPLE>/` | `crispresso_v2/wgs/trimmomatic/<SAMPLE>/` (15 + `aggregate/`) |
-| **Consolidated visual report** | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) — v1/v2 toggle | (same report, `v2` tab) |
+| **Consolidated visual report** | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) — v1/v2 toggle, 6 summary figures per version embedded inline (added 2026-09-21) | (same report, `v2` tab) |
 
 **Main finding:** no CRISPR-induced indel detected at any of the 8 off-target sites by GATK; the
 only site with variants (OT4) already had them in the Control group — a pre-existing population
@@ -38,7 +38,7 @@ coordinates and MIT/CFD scores match exactly, for both v1 and v2. Detail in CLAU
 | Zebrafish orthologs (g:Orth, manual/external tool) + gene summary (reconstructed as `codes/analysis/hotspot_gene_summary.py`, 2026-09-15) | `hotspot_gene_summary.tsv` (349/403 regions with ≥1 gene), `hotspot_zebrafish_ENSDARG.txt` (315 orthologs), `gProfiler_*.csv` | `hotspot_gene_summary.tsv` (434/459 regions with ≥1 gene), `hotspot_zebrafish_ENSDARG.txt` (314 orthologs), `gProfiler_*.csv` — ✅ done |
 | Genome-wide Manhattan plot + per-chromosome density | `hotspot_manhattan_genome.png`, `hotspot_plots/` (573 PNGs) | `hotspot_manhattan_genome.png`, `hotspot_plots/` (182 PNGs) |
 | 5 final summary figures | `gatk/trimmomatic/hotspots/summary_plots/hotspot_summary_0{1..5}_*.png` | `gatk/trimmomatic_v2/hotspots/summary_plots/hotspot_summary_0{1..5}_*.png` |
-| **Consolidated visual report** | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) — v1/v2 toggle, both tabs have real data | (same report, `v2` tab) |
+| **Consolidated visual report** | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) — v1/v2 toggle, both tabs have real data, 6 summary figures per version embedded inline (added 2026-09-21) | (same report, `v2` tab) |
 
 **2026-09-15**: found and fixed two real bugs while running this for v2 (see CLAUDE.md §8) — a
 broken `conda activate fastp_env` that silently fell through to a system Python, and a
@@ -231,6 +231,17 @@ parameterized on 2026-09-20 (`get_editing_region_coverage.sh`: `BAM_DIR`/`OUTPUT
 | Per-sample raw depth/coverage (15 samples × 3 files) | `coverage/bdnf_site/` | `coverage/bdnf_site_v2/` |
 | Aggregated CSVs (4: summary, depth-by-position, depth-by-zone, coverage-by-zone) | `coverage/csv/` | `coverage/csv_v2/` |
 | Plots (5 per script × 4 scripts) | `coverage/csv/{coverage_plots,depth_zone_plots,depth_position_plots,coverage_zone_plots}/` | `coverage/csv_v2/{coverage_plots_v2,depth_zone_plots_v2,depth_position_plots_v2,coverage_zone_plots_v2}/` |
+| **Consolidated visual report** (added 2026-09-21) | [`analysis/reports/coverage_bdnf_report.html`](../analysis/reports/coverage_bdnf_report.html) — v1/v2 toggle, one representative figure per plotting script embedded inline | (same report, `v2` tab) |
+
+**Depth/coverage statistics are byte-identical between v1 and v2** (verified directly, not
+assumed): the bdnf locus and its ±600bp window are essentially sequence-identical between the two
+references (the sgRNA site itself lifts over at 100% identity — see objective-1 note above), so
+the same reads place at the same relative positions under both alignments. The raw per-sample
+files genuinely differ (different chromosome names/coordinates, different md5), only the derived
+depth/coverage statistics coincide — a real confirmation of robustness, not a pipeline artifact
+(ruled out by checking that `BAM_DIR` was genuinely different between the two SLURM runs, jobs
+729136 v1 / 729151 v2, and that both read real per-chromosome data specific to their own
+reference).
 
 **Naming note:** `coverage/bdnf_site_v2/` predates this project's `REF_VERSION` convention and
 used to contain v1-coordinate data despite its name (a leftover from before "_v2" meant "second
@@ -261,8 +272,9 @@ directly to a colleague without needing a claude.ai account).
 | Report | Objective | Artifact | Local copy |
 |---|---|---|---|
 | Guppy CRISPR Atlas | KO/CRISPRi guide design, 8 genes, v1/v2 toggle | [link](https://claude.ai/code/artifact/71120b70-10ea-4817-b4d6-883a4a1b8856) | [`analysis/ko_guide_scan/report/guppy_crispr_atlas.html`](../analysis/ko_guide_scan/report/guppy_crispr_atlas.html) |
-| Off-Target WGS Report | Off-target WGS (GATK + CRISPResso), v1/v2 toggle | [link](https://claude.ai/code/artifact/3290263b-0f56-4d76-84fe-825d4d98110c) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
-| Variant Hotspots Report | Variant hotspots, v1/v2 toggle | [link](https://claude.ai/code/artifact/bd831a9e-276a-4aef-a8ef-d35be58f539c) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
+| Off-Target WGS Report | Off-target WGS (GATK + CRISPResso), v1/v2 toggle, 6 summary figures per version | [link](https://claude.ai/artifact/7F8xbPVWQVPSJeNMnvmYyq) | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
+| Variant Hotspots Report | Variant hotspots, v1/v2 toggle, 6 summary figures per version | [link](https://claude.ai/artifact/QQJYCLbSH4gKmxfWKvoWVq) | [`analysis/reports/hotspots_report.html`](../analysis/reports/hotspots_report.html) |
 | Colombian Genome Resources | Pseudogenome + de novo assembly, v1-vs-v2 final-assembly comparison | [link](https://claude.ai/code/artifact/beb5bc85-ac67-4f3f-912f-ab4dc82a0d5d) | [`analysis/reports/genome_resources_report.html`](../analysis/reports/genome_resources_report.html) |
 | Primer Design Report | Primer design (bdnf), v1/v2 toggle | [link](https://claude.ai/code/artifact/eb740fdb-261b-41a5-b44b-e8530a82c215) | [`analysis/reports/primer_design_report.html`](../analysis/reports/primer_design_report.html) |
-| RT-qPCR Primer Verification Report | RT-qPCR primer verification (5 in-use pairs + 3 candidates) | [link](https://claude.ai/code/artifact/7b447aed-e947-42b6-96e5-085bfdaea0e9) | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |
+| RT-qPCR Primer Verification Report | RT-qPCR primer verification (5 in-use pairs + 3 candidates) | [link](https://claude.ai/artifact/GDrT92TCqu39Yp2PhvVT3W) | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |
+| bdnf Editing-Site Coverage Report | Coverage-by-zone around the bdnf cut site, v1/v2 toggle, 4 summary figures per version | [link](https://claude.ai/artifact/8jHYL9UYVXKvCT1wTocGBV) | [`analysis/reports/coverage_bdnf_report.html`](../analysis/reports/coverage_bdnf_report.html) |

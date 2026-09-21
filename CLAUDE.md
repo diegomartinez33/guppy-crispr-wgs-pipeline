@@ -3657,6 +3657,60 @@ found 2 real bugs and 1 false alarm:
   comparison below"). No change made; the existing "Final Assembly: v1
   vs v2" section already covers the one stage both versions share.
 
+**Embedded real plot images into 3 reports (2026-09-21), requested by the
+user** after noticing the tables-only reports were missing the PNG
+figures those analyses actually produced. Base64-embedded a curated
+subset directly into each report's `<script>` block (a new `const
+PLOTS = {v1:[...], v2:[...]}` per report, rendered into a `.plot-grid`
+alongside the existing v1/v2 toggle) rather than linking to external
+files, to preserve the project's established "self-contained,
+single-file, shareable without a claude.ai account" property for these
+reports. Embedding was done by a Python script operating directly on
+the file on disk (reading images, base64-encoding, string-splicing
+into the HTML), not by passing raw base64 through the conversation -
+the images total several MB, well under the 16MB single-page Artifact
+limit, but far too large to usefully pass as literal tool-call text.
+- `offtarget_wgs_report.html`: added all 6 existing plots per version
+  (3 from `codes/analysis/gatk_summary{,_v2}/`, 3 from
+  `codes/analysis/editing_comparison{,_v2}/`) - small enough (~1.7MB
+  raw total) to include everything, no curation needed.
+- `hotspots_report.html`: added all 6 existing plots per version (the
+  genome-wide Manhattan plot + the 5 `plot_hotspot_summary.py`
+  figures) - ~3.9MB raw total, same reasoning.
+- `coverage_bdnf_report.html` (**new report** - none existed for this
+  analysis before): 40 plots exist total (20 per version, ~19MB) - too
+  many/large to embed all in one page usefully. Per the user's explicit
+  choice (asked via AskUserQuestion), embedded 1 representative figure
+  per plotting-script group instead (4 per version: a metrics heatmap,
+  a depth-by-zone heatmap, a normalized depth-position profile, a
+  coverage-by-zone heatmap) - ~4.6MB raw, ~6.4MB total page size. Built
+  from scratch using the same design system as the other 5 reports
+  (CSS boilerplate, `.ver-toggle` pattern, KPI grid,
+  `.plot-grid`/`.plot-card` components reused verbatim from the other
+  two reports' new Plots sections).
+  - While pulling the zone-summary data for this report, found the v1
+    and v2 `depth_by_zone_summary.csv`/`coverage_by_zone_summary.csv`
+    are **byte-identical** (`diff` exit 0). Investigated rather than
+    assuming a bug: confirmed via SLURM job logs that the two coverage
+    runs (job 729136 v1, job 729151 v2) genuinely read different
+    `BAM_DIR`s and extracted different chromosomes/coordinates
+    (`NC_024333.1` vs `NC_088832.1`) - and confirmed the underlying
+    per-sample raw files differ (distinct md5 hashes). The identical
+    summary stats are a real finding: the bdnf locus and its ±600bp
+    window are essentially sequence-identical between v1 and v2
+    (consistent with the sgRNA site's 100%-identity liftover already
+    documented), so the same reads place identically under both
+    alignments. Called this out explicitly in the new report's "Robust
+    across both reference versions" callout rather than silently
+    showing duplicate-looking numbers with no explanation.
+- All 3 republished to their existing/new Artifact URLs:
+  `offtarget_wgs_report.html` (version 6), `hotspots_report.html`
+  (version 4), `coverage_bdnf_report.html` (new, version 1). Verified
+  the base64 round-trips byte-for-byte before publishing (decoded one
+  embedded image back out and diffed against the source PNG). Updated
+  `docs/RESULTS.md` (objectives #1, #2, #9, and the Visual Reports
+  summary table) with the new report links and plot-count notes.
+
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
 ```
 codes/analysis/design_offtarget_primers.py (+ run_offtarget_primer_design.sh),
