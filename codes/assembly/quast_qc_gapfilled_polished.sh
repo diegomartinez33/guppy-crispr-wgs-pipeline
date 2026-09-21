@@ -30,11 +30,12 @@
 # Chr0_RagTag_np1212, appending the task sequence "1212" during polishing).
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
-SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled/genome.nextpolish.noChr0.fasta
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled${OUT_SUFFIX}/genome.nextpolish.noChr0.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results
+RUN_DIR=${QC_DIR}/quast_gapfilled_polished${OUT_SUFFIX}
 
-mkdir -p "${QC_DIR}/quast_gapfilled_polished" logs/
+mkdir -p "$RUN_DIR" logs/
 
 if [ ! -f "$SCAFFOLD" ]; then
     echo "ERROR: genome.nextpolish.noChr0.fasta not found at $SCAFFOLD - did nextpolish_gapfilled_genome.sh finish and get Chr0-filtered?"
@@ -43,8 +44,9 @@ fi
 
 module load quast/5.0.2
 echo "Start time: $(date)"
-quast.py "$SCAFFOLD" -r "$REF" -o "${QC_DIR}/quast_gapfilled_polished" -t "${SLURM_CPUS_PER_TASK}" --fragmented
+echo "REF_VERSION=${REF_VERSION}  SCAFFOLD=${SCAFFOLD}  REF=${REF}"
+quast.py "$SCAFFOLD" -r "$REF" -o "$RUN_DIR" -t "${SLURM_CPUS_PER_TASK}" --fragmented
 echo "End time: $(date)"
 
 echo "=== Summary ==="
-cat "${QC_DIR}/quast_gapfilled_polished/report.txt" 2>/dev/null | head -30
+cat "${RUN_DIR}/report.txt" 2>/dev/null | head -30

@@ -185,7 +185,8 @@ flowchart TD
 |---|---|---|---|
 | `crispresso_ontarget.sh` | array 1-15%8, 4cpu, 32G, 6h, short | ✅ | Editing quantification per individual sample |
 | `crispresso_ontarget_merged.sh` | array 1-4, 4cpu, 32G, 6h, short | ✅ | Editing quantification per group (merged BAM) — **authoritative track for between-group comparison** |
-| `crispresso_compare_merged.sh` | 4cpu, 16G, 2h, short | v1-only | 6 pairwise comparisons across the 4 groups |
+| `crispresso_compare_merged.sh` | 4cpu, 16G, 2h, short | ✅ (2026-09-20) | 6 pairwise comparisons across the 4 groups |
+| `crispresso_aggregate_ontarget.sh` | 4cpu, 16G, 2h, short | ✅ (2026-09-20) | `CRISPRessoAggregate` summary across all 15 individual on-target samples |
 
 ```bash
 CRISPResso --bam_input sorted.bam \
@@ -230,7 +231,7 @@ flowchart TD
 | `crispor_offtarget_scan.sh` | — (Singularity container) | ✅ | Real MIT/CFD scores via `crispor.py` against the whole genome |
 | `combine_offtargets.py` | — (interactive) | ✅ | Merges and deduplicates both sources, generates BED/interval-list |
 | `crispresso_wgs.sh` | array 1-15%8, 4cpu, 32G, 8h, short | ✅ | Quantifies indels at the 8 sites directly from the full WGS BAM |
-| `crispresso_wgs_aggregate.sh` | 4cpu, 16G, 2h, short | v1-only | Aggregates WGS results per experimental group |
+| `crispresso_wgs_aggregate.sh` | 4cpu, 16G, 2h, short | ✅ (2026-09-20) | Aggregates WGS results per experimental group |
 
 ```bash
 # Cas-OFFinder - input: genome, NGG PAM, ambiguous guide+PAM, 4 mismatches

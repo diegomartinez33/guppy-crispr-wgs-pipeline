@@ -11,13 +11,19 @@ import numpy as np
 import os
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-INPUT_CSV  = "depth_per_position_all_samples.csv"
-OUTPUT_DIR = "depth_position_plots"
+# Env-var overridable (added 2026-09-20), same convention as plot_coverage.py -
+# e.g. for v2: SGRNA_START=15849694 SGRNA_END=15849713 CHROMOSOME=NC_088832.1
+# INPUT_CSV=depth_per_position_all_samples.csv OUTPUT_DIR=depth_position_plots_v2
+# python3 plot_depth_by_position.py (run from coverage/csv_v2/).
+INPUT_CSV  = os.environ.get("INPUT_CSV", "depth_per_position_all_samples.csv")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "depth_position_plots")
+SGRNA_SEQ  = os.environ.get("SGRNA_SEQ", "TGAGAGACGCCCCGGGCATG")
+CHROMOSOME = os.environ.get("CHROMOSOME", "NC_024333.1")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── CRISPR site coordinates ───────────────────────────────────────────────────
-SGRNA_START = 15922039
-SGRNA_END   = 15922058
+SGRNA_START = int(os.environ.get("SGRNA_START", 15922039))
+SGRNA_END   = int(os.environ.get("SGRNA_END", 15922058))
 CUT_SITE    = (SGRNA_START + SGRNA_END) // 2   # ~15922048
 
 # ── Sample → Group mapping ────────────────────────────────────────────────────
@@ -114,10 +120,10 @@ for ax, group in zip(axes, groups_ordered):
     ax.spines[["top", "right"]].set_visible(False)
     ax.set_facecolor("#f9f9f9")
 
-axes[-1].set_xlabel("Genomic Position (NC_024333.1)", fontsize=10)
+axes[-1].set_xlabel(f"Genomic Position ({CHROMOSOME})", fontsize=10)
 fig.suptitle(
     "Sequencing Depth Profile Along CRISPR-Cas9 Target Region (bdnf)\n"
-    f"NC_024333.1 | sgRNA: TGAGAGACGCCCCGGGCATG | Cut site: ~{CUT_SITE:,}",
+    f"{CHROMOSOME} | sgRNA: {SGRNA_SEQ} | Cut site: ~{CUT_SITE:,}",
     fontsize=12, fontweight="bold", y=1.01
 )
 
@@ -152,7 +158,7 @@ for group in groups_ordered:
 ymax = df_smooth.max().max()
 annotate_crispr_site(ax, 0, ymax)
 
-ax.set_xlabel("Genomic Position (NC_024333.1)", fontsize=11)
+ax.set_xlabel(f"Genomic Position ({CHROMOSOME})", fontsize=11)
 ax.set_ylabel("Mean Depth (×) ± SEM", fontsize=11)
 ax.set_title(
     "Mean Sequencing Depth by Experimental Group\n"
@@ -222,7 +228,7 @@ ax.axvline(cut_idx, color="white", linewidth=2,
 ax.axvspan(sgrna_start_idx, sgrna_end_idx,
            alpha=0.3, color="white")
 
-ax.text(cut_idx, -1, "✂ Cut", ha="center", va="bottom",
+ax.text(cut_idx, -0.05, "✂ Cut", ha="center", va="bottom",
         fontsize=8, color="red", fontweight="bold",
         transform=ax.get_xaxis_transform())
 
@@ -253,7 +259,7 @@ for group in groups_ordered:
 cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.12)
 cbar.set_label("Depth (×)", fontsize=9)
 
-ax.set_xlabel("Genomic Position (NC_024333.1)", fontsize=11)
+ax.set_xlabel(f"Genomic Position ({CHROMOSOME})", fontsize=11)
 ax.set_ylabel("Sample", fontsize=11)
 ax.set_title(
     "Depth Heatmap Across CRISPR-Cas9 Target Region (bdnf)\n"
@@ -297,7 +303,7 @@ ax.axhline(1.0, color="black", linestyle="--",
 
 annotate_crispr_site(ax, 0, df_norm.max().max())
 
-ax.set_xlabel("Genomic Position (NC_024333.1)", fontsize=11)
+ax.set_xlabel(f"Genomic Position ({CHROMOSOME})", fontsize=11)
 ax.set_ylabel("Normalized Depth\n(ratio to sample mean)", fontsize=11)
 ax.set_title(
     "Normalized Depth Profile by Experimental Group\n"

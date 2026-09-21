@@ -7,6 +7,13 @@ and CRISPResso2 analysis against the Colombian population background.
 **Date built:** July 2026
 **Contact:** diegoandres3322@gmail.com
 
+**Note (2026-09-20):** everything below describes the original pseudogenome, built
+against the v1 reference (GCF_000633615.1). A second pseudogenome built the same way
+against the newer v2 reference (GCF_904066995.2) also exists at `reference/pseudogenome_v2/`
+(12/12 verification checks passed, 99.6% Liftoff annotation transfer, 31,226 genes) — see
+[docs/RESULTS.md](../../docs/RESULTS.md#7-migration-to-the-v2-reference-genome--in-progress)
+for its status and CLAUDE.md §8 for build detail. This document is not duplicated per version.
+
 ---
 
 ## What this is

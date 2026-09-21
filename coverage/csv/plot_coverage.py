@@ -11,8 +11,14 @@ import numpy as np
 import os
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-INPUT_CSV  = "coverage_summary_all_samples.csv"
-OUTPUT_DIR = "coverage_plots"
+# Env-var overridable (added 2026-09-20) so this can be run once per genome
+# version without editing it, matching summary_coverage.sh's convention -
+# e.g. INPUT_CSV=coverage_by_zone_all_samples.csv OUTPUT_DIR=coverage_plots_v2
+# CHROMOSOME=NC_088832.1 REGION_LABEL="15,849,194-15,850,213" python3 plot_coverage.py
+INPUT_CSV  = os.environ.get("INPUT_CSV", "coverage_summary_all_samples.csv")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "coverage_plots")
+CHROMOSOME = os.environ.get("CHROMOSOME", "NC_024333.1")
+REGION_LABEL = os.environ.get("REGION_LABEL", "15,921,539–15,922,558 (±500bp window)")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── Color palette per group ───────────────────────────────────────────────────
@@ -69,8 +75,8 @@ ax.text(len(df) - 0.5, mean_depth + 0.5, f"Mean: {mean_depth:.1f}×",
 ax.set_xticks(range(len(df)))
 ax.set_xticklabels(df["Sample_short"], rotation=45, ha="right", fontsize=8)
 ax.set_ylabel("Mean Depth (×)", fontsize=11)
-ax.set_title("Mean Sequencing Depth at CRISPR-Cas9 Target Site (bdnf)\n"
-             "NC_024333.1:15,921,539–15,922,558 (±500bp window)",
+ax.set_title(f"Mean Sequencing Depth at CRISPR-Cas9 Target Site (bdnf)\n"
+             f"{CHROMOSOME}:{REGION_LABEL}",
              fontsize=12, fontweight="bold", pad=15)
 ax.set_ylim(0, df["Mean_Depth"].max() * 1.15)
 ax.spines[["top", "right"]].set_visible(False)

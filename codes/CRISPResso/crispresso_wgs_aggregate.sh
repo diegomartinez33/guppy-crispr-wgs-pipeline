@@ -8,8 +8,9 @@
 #SBATCH --partition=short
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-WGS_DIR=${PROJECT_DIR}/crispresso/wgs/trimmomatic
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/wgs/trimmomatic/aggregate
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+WGS_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/wgs/trimmomatic
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/wgs/trimmomatic/aggregate
 
 mkdir -p "$OUTPUT_DIR" logs/
 

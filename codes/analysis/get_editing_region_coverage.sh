@@ -11,19 +11,28 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
+# All of BAM_DIR/OUTPUT_DIR/CHROMOSOME/SGRNA_START/SGRNA_END are env-var
+# overridable (added 2026-09-20) so this script can be run once per genome
+# version without editing it - e.g.:
+#   BAM_DIR=.../mapping/trimmomatic_v2 OUTPUT_DIR=.../coverage/bdnf_site_v2 \
+#   CHROMOSOME=NC_088832.1 SGRNA_START=15849694 SGRNA_END=15849713 \
+#   sbatch codes/analysis/get_editing_region_coverage.sh
+# Defaults below are v1's original values, with OUTPUT_DIR corrected from the
+# previously misleading "bdnf_site_v2" (that name predated this project's
+# REF_VERSION convention and never meant "genome version 2" - see CLAUDE.md).
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
-BAM_DIR=${PROJECT_DIR}/mapping/trimmomatic
-OUTPUT_DIR=${PROJECT_DIR}/coverage/bdnf_site_v2
+BAM_DIR=${BAM_DIR:-${PROJECT_DIR}/mapping/trimmomatic}
+OUTPUT_DIR=${OUTPUT_DIR:-${PROJECT_DIR}/coverage/bdnf_site}
 
 mkdir -p "$OUTPUT_DIR" logs/
 
 module load samtools/1.16.1
 
 # ── Coordenadas del sitio CRISPR ──────────────────────────────────────────────
-CHROMOSOME="NC_024333.1"
-SGRNA_START=15922039
-SGRNA_END=15922058
+CHROMOSOME=${CHROMOSOME:-"NC_024333.1"}
+SGRNA_START=${SGRNA_START:-15922039}
+SGRNA_END=${SGRNA_END:-15922058}
 WINDOW=600
 
 # ── Verificar tamaños de zonas ────────────────────────────────────────────────

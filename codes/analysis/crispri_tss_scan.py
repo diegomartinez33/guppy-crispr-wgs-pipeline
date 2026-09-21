@@ -40,8 +40,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from ko_guide_scan import (  # noqa: E402
     GENOME_CHOICES, OUT_DIR, CRISPOR_SIF, CRISPOR_REF_GENOME_IDS, CRISPOR_GENOME_IDS,
-    find_gene_features, faidx_seq, align_cs, parse_cs_variants, find_ngg_candidates,
-    classify_candidate, revcomp, run_crispor,
+    REF_FASTA_V2, find_gene_features, faidx_seq, align_cs, parse_cs_variants,
+    find_ngg_candidates, classify_candidate, revcomp, run_crispor,
 )
 
 WINDOW_UPSTREAM = 50    # bp upstream of TSS (Gilbert 2014 / Horlbeck 2016 CRISPRi window)
@@ -199,10 +199,13 @@ def main():
     crispor_ref_scores, crispor_pop_scores = {}, {}
     if not args.no_crispor and CRISPOR_SIF.exists():
         print("\n=== Running CRISPOR (Singularity) ===")
+        # Same REF_FASTA-identity-keyed suffix fix as ko_guide_scan.py (2026-09-20)
+        # to prevent v1/v2 reference-side CRISPOR output filename collisions.
+        ref_suffix = "_v2" if pop["ref_fasta"] == REF_FASTA_V2 else ""
         ref_genome_id = CRISPOR_REF_GENOME_IDS.get(pop["ref_fasta"])
         if ref_genome_id:
             crispor_ref_scores = run_crispor(
-                ref_seq, ref_genome_id, tmp_prefix + "_crispor_ref", str(OUT_DIR / f"{gene}_reference_crispri")
+                ref_seq, ref_genome_id, tmp_prefix + "_crispor_ref", str(OUT_DIR / f"{gene}_reference{ref_suffix}_crispri")
             )
             print(f"CRISPOR reference guides scored: {len(crispor_ref_scores)}")
         pop_genome_id = CRISPOR_GENOME_IDS.get(args.population)

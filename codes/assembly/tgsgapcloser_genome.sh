@@ -130,5 +130,19 @@ tgsgapcloser \
 
 echo "End time: $(date)"
 
+# TGS-GapCloser's real output is ${OUT_PREFIX}.scaff_seqs - not a standard
+# FASTA suffix, so nextpolish_gapfilled_genome.sh (and any other
+# downstream tool) can't use it directly by convention. v1's run had this
+# copy done by hand, never folded into this script - found 2026-09-17 when
+# nextpolish_gapfilled_genome.sh failed instantly for v2 with "genome not
+# found at .../colombian_gapfilled.fasta" (the copy had never been made).
+if [ -f "${OUT_PREFIX}.scaff_seqs" ]; then
+    cp "${OUT_PREFIX}.scaff_seqs" "${OUT_PREFIX}.fasta"
+    echo "Copied ${OUT_PREFIX}.scaff_seqs -> ${OUT_PREFIX}.fasta for downstream tools"
+else
+    echo "ERROR: ${OUT_PREFIX}.scaff_seqs not produced - tgsgapcloser failed" >&2
+    exit 1
+fi
+
 echo "=== Output files ==="
 ls -la "${OUT_PREFIX}"* 2>&1

@@ -12,8 +12,12 @@ import numpy as np
 import os
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-INPUT_CSV  = "depth_by_zone.csv"
-OUTPUT_DIR = "depth_zone_plots"
+# Env-var overridable (added 2026-09-20), same convention as plot_coverage.py.
+INPUT_CSV  = os.environ.get("INPUT_CSV", "depth_by_zone.csv")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "depth_zone_plots")
+SGRNA_SEQ  = os.environ.get("SGRNA_SEQ", "TGAGAGACGCCCCGGGCATG")
+CHROMOSOME = os.environ.get("CHROMOSOME", "NC_024333.1")
+REGION_LABEL = os.environ.get("REGION_LABEL", "15,922,039–15,922,058")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── Color palette per group ───────────────────────────────────────────────────
@@ -97,8 +101,8 @@ ax.set_xticks(x)
 ax.set_xticklabels(samples, rotation=45, ha="right", fontsize=8)
 ax.set_ylabel("Mean Depth (×)", fontsize=11)
 ax.set_title(
-    "Mean Sequencing Depth by Zone Around CRISPR-Cas9 Cut Site (bdnf)\n"
-    "sgRNA: TGAGAGACGCCCCGGGCATG | NC_024333.1:15,922,039–15,922,058",
+    f"Mean Sequencing Depth by Zone Around CRISPR-Cas9 Cut Site (bdnf)\n"
+    f"sgRNA: {SGRNA_SEQ} | {CHROMOSOME}:{REGION_LABEL}",
     fontsize=12, fontweight="bold", pad=15
 )
 ax.spines[["top", "right"]].set_visible(False)

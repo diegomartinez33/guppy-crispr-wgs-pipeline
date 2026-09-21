@@ -73,9 +73,16 @@ and run it with `bash codes/analysis/run_ko_guide_scan.sh`.
 
 **Output:** `analysis/ko_guide_scan/<gene>_<population>_guide_comparison.csv` (CRISPRko) and
 `_crispri_candidates.csv` (CRISPRi), plus CRISPOR's raw TSVs where available. To regenerate the
-consolidated visual report (like the Guppy CRISPR Atlas) after adding a new gene:
-`python3 codes/analysis/build_guide_report.py` (edit the `GENES` list at the top of the script
-first).
+consolidated visual report (like the Guppy CRISPR Atlas) after adding a new gene: edit the `GENES`
+list at the top of `codes/analysis/build_guide_report.py`, then run it — `POPULATION` is env-var
+overridable (added 2026-09-20, same `VAR=${VAR:-default}` convention as elsewhere in this
+project): `python3 codes/analysis/build_guide_report.py` for v1 (writes `report_data.json`), or
+`POPULATION=pseudogenome_v2 python3 codes/analysis/build_guide_report.py` for v2 (writes
+`report_data_pseudogenome_v2.json`) — each version writes its own file, so running one never
+overwrites the other. The Atlas HTML itself has no build step wiring these JSON files in
+automatically (it's a static page with the data pasted into a `const DATA = {v1:{...}, v2:{...}}`
+block) — merging a newly regenerated JSON in means editing that block by hand (or with an editor
+script) after running `build_guide_report.py`.
 
 **If your new gene needs a genome not yet registered with CRISPOR** (uncommon — the project's 3
 genomes, `guppyRefTrinidad`/`guppyColPseudogenome`/`guppyRefMaleV2`, already cover

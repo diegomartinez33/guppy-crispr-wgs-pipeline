@@ -27,8 +27,9 @@
 # sample, pointing directly at that exact path.
 
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-ONTARGET_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/aggregate
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+ONTARGET_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/ontarget/trimmomatic
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/aggregate
 
 mkdir -p "$OUTPUT_DIR" logs/
 

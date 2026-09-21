@@ -2507,13 +2507,13 @@
     "chrom": "NC_024340.1",
     "gene_span": "30090619-30141296",
     "classification_counts": {
-      "IDENTICAL": 289,
-      "EXON_JUNCTION_ARTIFACT": 44,
+      "IDENTICAL": 293,
+      "EXON_JUNCTION_ARTIFACT": 45,
       "PAM_BROKEN": 3,
       "SEED_VARIANT": 4,
       "DISTAL_VARIANT": 1
     },
-    "total_guides": 341,
+    "total_guides": 346,
     "variant_affected_guides": [
       {
         "gene": "gria2b",

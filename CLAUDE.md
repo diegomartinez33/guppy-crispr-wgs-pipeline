@@ -2529,7 +2529,7 @@ supplement to the manual scan, never the primary classifier, per this
 item's original goal statement above).
 ```
 
-### 8. Migration to GCF_904066995.2 (v2) — IN PROGRESS 2026-09-05
+### 8. Migration to GCF_904066995.2 (v2) — DONE 2026-09-05 to 2026-09-20
 ```
 Why: GCF_000633615.1 (Trinidad/Guanapo, female, short-read, 2014 - the
 reference this whole project has used) is now marked "suppressed" by NCBI
@@ -3034,6 +3034,78 @@ re-litigating v1's already-settled gap-fill-vs-polish tradeoff analysis
 for v2 isn't warranted. Expect NextPolish alone to dominate the runtime
 (~10h for v1's equivalent run).
 
+**Bug found 2026-09-18: `tgsgapcloser_genome.sh` never actually produced
+the file the next stage needs.** Job 726162 (`nextpolish_gapfilled_genome.sh`)
+failed instantly ("genome not found at .../colombian_gapfilled.fasta"),
+which then permanently stuck 726163/726165 in `DependencyNeverSatisfied`
+and 726164 in `Dependency` - none of them would ever run. Root cause:
+TGS-GapCloser's real output is `${OUT_PREFIX}.scaff_seqs` (non-standard
+extension, not a `.fasta` downstream tools recognize by convention) -
+v1's `colombian_gapfilled.fasta` existed only because someone copied it
+by hand after that run finished; the copy was never folded into
+`tgsgapcloser_genome.sh` itself, so it silently never happened for v2.
+Fixed by adding the `cp ${OUT_PREFIX}.scaff_seqs ${OUT_PREFIX}.fasta`
+step to the end of the script (with an explicit failure if `.scaff_seqs`
+itself is missing, rather than silently producing nothing). Did the
+one-time catch-up copy for the already-completed v2 run by hand (722MB,
+84 sequences - matches `ragtag_output_v2/ragtag.scaffold.fasta` exactly,
+confirming TGS-GapCloser didn't drop/merge anything; the 84-vs-v1's-2064
+sequence count difference is expected, not a bug - v2's far more
+contiguous PacBio+Hi-C reference gives RagTag many fewer scaffolding
+targets than v1's fragmented 2014 short-read reference). Cancelled the
+3 stuck jobs and resubmitted the chain fresh: `nextpolish_gapfilled_
+genome.sh` (727889) -> `liftoff_annotation.sh` (727890) ->
+`index_scaffolded_genome.sh` (727891), + `busco_qc_gapfilled_polished.sh`
+(727892) parallel branch. Confirmed genuinely running this time (config
+written, `nextPolish` process started) before moving on.
+
+**v2 de novo assembly chain - COMPLETE 2026-09-19.** All 4 jobs finished
+cleanly: NextPolish (727889, 8h21m) -> Liftoff (727890, 12m44s) -> index
+(727891, 10m30s), + BUSCO (727892, 3m20s) parallel branch. Real, verified
+result, not just "job exited 0":
+- `assembly/nextpolish_output_gapfilled_v2/genome.nextpolish.fasta` (84
+  sequences, matches the gap-filled input) promoted correctly to
+  `reference/colombian_scaffolded_genome_v2/colombian_scaffolded.fna`
+  (714MB) - no repeat of the v1 promotion bug, since the fix was already
+  in `liftoff_annotation.sh` before this run started.
+- bdnf Liftoff quality: coverage=0.980, sequence_ID=0.964 - actually
+  BETTER than v1's corrected final numbers (0.960/0.957), consistent
+  with v2 being the higher-quality reference overall.
+- BUSCO (actinopterygii_odb10): C:96.3% [S:95.9%,D:0.4%], F:2.0%, M:1.7%
+  - also better than v1's final gap-filled+polished stage (95.5%
+    Complete). 132 genes still have internal stop codons (vs v1's 136 at
+    the equivalent stage) - same expected residual Nanopore-derived
+    artifact pattern, not a new problem.
+- `liftoff_unmapped_genes.txt` correctly relocated out of the CWD
+  (the fix added to `liftoff_annotation.sh` earlier this session worked
+  as intended, unlike v1's original run which left it stray until found
+  and cleaned up separately).
+- Full index set present: `.fai`, BWA (`.amb/.ann/.bwt/.pac/.sa`), GATK
+  `.dict`, BLAST db - all under `reference/colombian_scaffolded_genome_v2/`.
+
+This completes the full v2 de novo assembly objective (SPAdes -> RagTag
+-> TGS-GapCloser -> NextPolish -> Liftoff -> indexing), matching v1's
+now-corrected pipeline end to end.
+
+**Correction 2026-09-20: QUAST was wrongly skipped for v2, added back.**
+The earlier scoping decision ("deliberately scoped down... to just the
+validated final recipe + one confirmatory BUSCO check") conflated two
+different things: the gap-fill-vs-polish TRADEOFF decision (genuinely
+already settled for v1, doesn't need re-litigating) with the actual
+QUAST NUMBERS for v2's specific final assembly (never computed at all -
+BUSCO alone gives gene completeness, not structural metrics like N50/
+genome fraction/misassemblies, which `genome_resources_report.html`'s
+comparison table needs and didn't have for v2 in any form). User caught
+this gap. Fixed: parameterized `quast_qc_gapfilled_polished.sh` for
+`REF_VERSION` (previously hardcoded v1-only), built the required
+Chr0-excluded input the same way v1's was built (`samtools faidx -r
+<keep_list>` excluding `Chr0_RagTag_np1212`, 84->83 sequences - no
+dedicated script for this step even for v1, it was always done ad hoc)
+- `assembly/nextpolish_output_gapfilled_v2/genome.nextpolish.noChr0.fasta`
+- and submitted the job (729122), confirmed genuinely running (not an
+instant-fail like the earlier NextPolish bug) before moving on. v1's
+equivalent run needed the full 48h time limit; expect similar for v2.
+
 **8-gene KO/CRISPRi guide comparison against pseudogenome_v2 - DONE
 2026-09-17.** Ran on the login node (not SLURM - same pattern as
 `run_ko_guide_scan.sh`'s original v1 runs). Made `run_ko_guide_scan.sh`'s
@@ -3225,6 +3297,272 @@ staleness possible - it was generated and analyzed in the same session):
 ~8.1-9.1M SNPs/sample, Ti/Tv 1.360-1.367, depth 37-60x, all closely tracking
 v1's corrected numbers.
 ```
+
+**Guppy CRISPR Atlas rebuilt with a v1/v2 toggle + reference-side CRISPOR
+naming-collision bug found and fixed - DONE 2026-09-20.** User asked to
+rebuild the Atlas with the v2 guide-comparison data that had existed since
+2026-09-17 but was never wired into the report. Investigation found the
+report itself (`guppy_crispr_atlas.html`) has no build/template step at
+all - it's a static page with `build_guide_report.py`'s `report_data.json`
+pasted verbatim into a `const DATA = {gene: {...}}` script block, edited by
+hand each time.
+
+While tracing how to add v2, found a real, already-manifested bug:
+`ko_guide_scan.py` (line ~594) and `crispri_tss_scan.py` (line ~202) write
+CRISPOR's reference-side guide/off-target TSVs to `OUT_DIR /
+f"{gene}_reference"` / `f"{gene}_reference_crispri"` - filenames keyed only
+on gene name, with NO reference-genome-version tag. Since the same script
+serves both v1 (`--population pseudogenome`, `REF_FASTA=REF_FASTA_V1`) and
+v2 (`--population pseudogenome_v2`, `REF_FASTA=REF_FASTA_V2`) runs, the
+2026-09-17 v2 guide-scan run had silently overwritten v1's reference-side
+CRISPOR TSVs for all 8 genes with v2 data. Verified via two independent
+signals before trusting the already-published Atlas HTML as still-correct
+v1 data: (1) timestamps - the HTML and its `report_data.json` are both
+dated 2026-09-14, three days before the 2026-09-17 overwrite; (2) content -
+`report_data.json`'s embedded off-target coordinates use v1-style
+`NC_0243xx.1` chromosome names (e.g. bdnf's `total_guides: 150` matches the
+untouched, Sep-11-dated v1 population-side CSV exactly), not v2's
+`NC_088xxx.1` scheme.
+
+User's explicit choice (given the option to just extract the still-correct
+v1 data from the published HTML instead): fully redo the v1 CRISPOR +
+guide scan from scratch after fixing the bug, for a clean, regeneratable
+v1 source file on disk rather than relying on a frozen HTML snapshot. Fix:
+keyed the reference-side filename suffix on `REF_FASTA` identity (`_v2`
+when the v2 genome is in use, matching `pop["ref_fasta"] == REF_FASTA_V2`)
+rather than on `args.population` directly, since `pseudogenome` and
+`scaffolded` both use `REF_FASTA_V1` and should keep sharing the same
+reference-side cache. Before re-running v1, renamed the 32 currently-on-disk
+(confirmed-v2-content) reference-side TSVs to their new versioned names
+(e.g. `bdnf_reference_crispor_guides.tsv` -> `bdnf_reference_v2_crispor_guides.tsv`)
+so the already-correct v2 data was preserved without recomputation. Then
+re-ran `run_ko_guide_scan.sh` (POPULATION=pseudogenome) and a new mirroring
+wrapper `run_crispri_tss_scan.sh` (crispri_tss_scan.py had no SLURM/bash
+wrapper of its own until now) for all 8 genes - completed cleanly, with the
+same known IUPAC-ambiguity warnings for agap3/grin1a/gria1a as before
+(`KeyError: 'S'`, `ValueError: 'R' is not in list` - expected, not new
+bugs). 7/8 genes' regenerated `total_guides` counts matched the pre-redo
+file exactly; gria2b differed (341->346, reproduced identically on 2 more
+fresh re-runs, so deterministic, not minimap2 nondeterminism) - most likely
+because `liftoff_annotation.sh` was re-run for v1 earlier this session
+(see the "v1 de novo assembly promotion bug" fix above), which may have
+shifted the v1 pseudogenome's Liftoff-derived GFF coordinates slightly for
+this gene.
+
+Parameterized `build_guide_report.py`: `POPULATION` is now
+`os.environ.get("POPULATION", "pseudogenome")` (previously hardcoded);
+fixed `pop_guide_path` (was hardcoded to the literal string `"pseudogenome"`
+regardless of `POPULATION` - a second, smaller instance of the same
+version-blindness bug); fixed `guide_path`/`offs_path` to use the same
+`REF_FASTA`-keyed suffix as the scan scripts; versioned the output filename
+(`report_data.json` for v1, `report_data_pseudogenome_v2.json` for v2) so
+one version can never again overwrite the other. Ran both - v1's output
+confirmed consistent with the pre-redo file (see gria2b note above); v2's
+output confirms `crispor_available: true` for all 8 genes (vs 5/8 under
+v1), directly reflecting the resolved IUPAC-ambiguity limitation.
+
+Rebuilt `guppy_crispr_atlas.html` with a v1/v2 toggle, mirroring the exact
+pattern already used in `hotspots_report.html` (`.ver-toggle` CSS,
+`#btn-v1`/`#btn-v2` button pair in the masthead, `const DATA = {v1:{...},
+v2:{...}}`, a `render(version)` function). Unlike hotspots' simple
+field-fills, the Atlas's 3 render blocks (`GENE_ORDER.forEach` loops for
+the KO summary table, CRISPRi summary table, and per-gene cards) use
+`appendChild` in a loop rather than a single `innerHTML` assignment, so
+each got an `innerHTML = ""` reset added before its loop - needed now that
+`render()` can run more than once (toggling), which the original one-shot
+script never had to handle. Masthead's "CRISPRko guides"/"CRISPRi guides"/
+"Population" values are now computed per-version inside `render()` instead
+of being static hardcoded text. Republished to the existing Artifact
+(same URL, version 9).
+
+**Side fix, found while re-running the bdnf coverage-by-zone analysis for
+v1/v2 (same session, user's next request after the Atlas rebuild):**
+`codes/analysis/get_editing_region_coverage.sh` was fully hardcoded
+(`BAM_DIR`/`OUTPUT_DIR`/`CHROMOSOME`/`SGRNA_START`/`SGRNA_END`, no
+`genome_versions.sh` sourcing) - parameterized as `${VAR:-default}`
+overrides and run for both versions (v2 coordinates
+`NC_088832.1:15849694-15849713`, already established earlier this session
+via minimap2 liftover). Its downstream `summary_coverage.sh` had the same
+hardcoding, parameterized the same way - but while regenerating its CSVs,
+found a genuine, separate data-correctness bug unrelated to versioning:
+the per-position depth CSV builder pastes each sample's `(pos, depth)`
+2-column file together with a master position column, giving fields
+`1=pos, 2=pos1, 3=depth1, 4=pos2, 5=depth2, ...` (depths at ODD indices
+from 3), but the extraction loop was `for(i=2;i<=NF;i+=2)` - EVEN indices -
+silently pulling each sample's duplicated position column instead of its
+depth column. `depth_per_position_all_samples.csv` had values in the
+millions (matching genomic coordinates) instead of real depth (~40-70x) -
+confirmed by cross-referencing `ymax` computed from this file in
+`plot_depth_by_position.py` (15,922,655 instead of ~50). Fixed the loop to
+start at `i=3`. Also fixed a second, independent bug this exposed: that
+same plotting script placed a "cut site" text annotation at `y=-1` using
+axes-fraction coordinates (`ax.get_xaxis_transform()`), which combined with
+the (before the awk fix) astronomically large data range made
+`bbox_inches="tight"` try to compute an ~970-inch-tall canvas, hitting
+matplotlib's hard 2^16-pixel limit - fixed to `y=-0.05` (a small offset
+just below the axis, the evident original intent). Also parameterized all
+4 plotting scripts (`plot_coverage.py`, `plot_depth_by_zone.py`,
+`plot_depth_by_position.py`, `plot_coverage_by_zone.py`) for
+`INPUT_CSV`/`OUTPUT_DIR`/`CHROMOSOME`/`SGRNA_SEQ`/`REGION_LABEL` (env-var
+overrides, same convention). Re-ran the full chain
+(coverage -> summary -> plots) for both v1 (into the now-correctly-named
+`coverage/bdnf_site/`, `coverage/csv/`) and v2 (`coverage/bdnf_site_v2/`,
+`coverage/csv_v2/`) - all 4 CSVs and 20 plots (5 per script x 4 scripts)
+verified present for both versions. See RESULTS.md §9 for the full
+before/after path map - this whole `coverage/` mini-pipeline predates and
+is unrelated to this project's `REF_VERSION` convention (confirmed via a
+naming collision: `coverage/bdnf_site_v2/` had contained real but
+v1-coordinate data before this fix, not genuine v2 data as its name
+implied).
+
+**v2 mapping verification (read-only audit, no changes needed) - CONFIRMED
+2026-09-20.** User asked to double check that the already-completed v2
+mapping actually used the correct v2 reference genome, having lost track
+of which script did it. Confirmed via `bwa_index.sh` + `bwa_trimmomatic_array.sh`
+(both correctly source `genome_versions.sh`) and, more directly, the v2
+BAM `@PG`/`@SQ` headers themselves: `CL:bwa mem ... GCF_904066995.2_P_reticulata-male-v2_genomic.fna
+...` and 182 `@SQ` lines starting `NC_088830.1, NC_088831.1, NC_088832.1...`
+(vs v1's 2768 `@SQ` lines starting `NC_024331.1...` against
+`GCF_000633615.1_...`) - unambiguous proof, not just script inspection.
+All 15 samples + 4 merged group BAMs present in `mapping/trimmomatic_v2/`,
+~99.6% mapped. One unrelated, low-priority gap noted: `bwa_fastp_array.sh`
+(the secondary, non-primary fastp-trimmed-read track) remains v1-hardcoded
+- not part of the authoritative pipeline (that's always been the
+trimmomatic track), so not fixed.
+
+**CRISPResso post-processing (aggregate/compare) v2 gap - found and closed
+2026-09-20.** While auditing 9 old `codes/CRISPResso/` scripts
+(`crispresso_aggregate_ontarget.sh`, `crispresso_compare.sh`,
+`crispresso_compare_groups.sh`, `crispresso_compare_merged.sh`,
+`crispresso_pooled_groups.sh`, `crispresso_wgs_aggregate.sh`, and 3
+orchestrator wrappers) for v2 gaps, initially and WRONGLY concluded all 9
+were dead/superseded, based only on none of them sourcing
+`genome_versions.sh`. User pushed back and asked to actually compare the
+`crispresso/` vs `crispresso_v2/` directories rather than trust that
+inference - doing so overturned the conclusion for 3 of the 9:
+`crispresso_aggregate_ontarget.sh`, `crispresso_compare_merged.sh`, and
+`crispresso_wgs_aggregate.sh` all have real, substantial v1 output
+(`crispresso/aggregate/`, `crispresso/compare/trimmomatic/merged/` - 6
+pairwise group comparisons, `crispresso/wgs/trimmomatic/aggregate/` - 4
+group aggregates) with NO v2 equivalent directories at all - and
+`docs/PIPELINE.md` had already flagged 2 of these 3 "v1-only" in its own
+parameter table, a known gap that was simply never closed. The other 3
+non-orchestrator scripts (`crispresso_compare.sh` - still has the literal
+`--partition=your_partition` placeholder, `crispresso_compare_groups.sh`,
+`crispresso_pooled_groups.sh`) really are dead - confirmed via CLAUDE.md's
+own existing "⚠️ Superseded" tag on that exact chain (its input, `pooled/`,
+was always empty) and via directly checking their exact target paths have
+no matching output anywhere.
+
+Fixed: parameterized the 3 real scripts for `REF_VERSION`/`OUT_SUFFIX`
+(`crispresso${OUT_SUFFIX}/...`, matching `crispresso_ontarget_merged.sh`/
+`crispresso_wgs.sh`'s existing convention). Re-ran all 3 for v1 first as a
+regression check (all v2 prerequisite data - `crispresso_v2/ontarget/
+trimmomatic/merged/`, `crispresso_v2/wgs/trimmomatic/<SAMPLE>/` - already
+existed) - v1 output directory structure/counts confirmed unchanged
+(same 1 all-samples aggregate, same 6 pairwise comparisons, same 4 group
+WGS aggregates). Then ran all 3 for v2 (jobs 729284-729286) - all
+completed, real output confirmed (e.g. v2's `RNP_Cas_vs_Control`
+`Substitutions_quantification.txt` shows 0.0 substitutions across the
+board for both groups, consistent with the already-established
+no-CRISPR-induced-editing finding). Updated `docs/PIPELINE.md`'s
+"v1-only" tags to "✅ (2026-09-20)" and added a row for
+`crispresso_aggregate_ontarget.sh` (was missing from that table entirely).
+
+**QUAST v2 (job 729122) finished - migration objective now fully DONE
+2026-09-20.** Completed genuinely (7h04m, exit 0:0, verified against the
+real `report.txt`, not just `sacct` status). Full comparison against v1's
+equivalent final-stage (gap-filled+polished) numbers:
+
+```
+                    v1          v2          Better
+N50                 29.4Mb      30.7Mb      v2
+NA50 (aligned)      114Kb       159Kb       v2
+# misassemblies     23,914      13,768      v2 (-42%)
+Duplication ratio   1.042       1.029       v2
+Mismatches/100kbp   626         647         v1 (slight)
+Indels/100kbp       149.98      150.23      ~tied
+Genome fraction     92.2%       85.5%       v1 (-6.7pts)
+# contigs            2,063          83      v2 (25x fewer)
+BUSCO Complete       95.5%       96.3%       v2
+```
+
+v2 wins on nearly every metric that measures assembly QUALITY (contiguity,
+misassembly rate, duplication, BUSCO completeness) - only genome fraction
+favors v1, and this needed investigation since it contradicts the
+BUSCO-driven "v2 is uniformly better" narrative from earlier sessions.
+User pushed for a real explanation rather than accepting a hand-wavy
+"different reference, hard to compare" answer.
+
+Investigation (via `genome_stats/genome_info.txt`'s per-sequence
+"maximal covered length"): first hypothesis (repetitive regions generally
+harder to cover within v2's main chromosomes) was WRONG - main-chromosome
+coverage is actually comparable between versions (v1: 84.9%, v2: 86.6%,
+v2 slightly ahead). The real, confirmed driver is entirely in the
+"unplaced scaffold" category: v1's reference has 2,744 small unplaced
+scaffolds (34.9Mb total) that the Colombian draft aligns to reasonably
+well (~60% covered) - these are just ordinary sequence a fragmented 2014
+short-read assembly process couldn't connect to a chromosome, nothing
+structurally hard about them. v2's reference has only 158 unplaced
+scaffolds (10.2Mb total, since Hi-C scaffolding successfully placed almost
+everything), but what's left is disproportionately the genuinely hardest,
+most repetitive material even Hi-C couldn't place - and the Colombian
+draft assembly (short-read + ~3.2x Nanopore gap-filling, not PacBio-grade
+itself) can't reach that material either, so it aligns to only ~6% of it.
+Net effect: v1's apparent completeness is partly inflated by a reference
+that never demanded coverage of its hardest regions in the first place;
+v2's lower genome fraction reflects a harder, more honest reference, not
+a worse assembly. Caveat: "maximal covered length" per sequence doesn't
+arithmetically reconcile to the exact headline "Genome fraction (%)"
+metric (likely measures the single largest contiguous aligned block, not
+total non-contiguous coverage) - the qualitative pattern is solid, but
+this isn't a precise "X% of the gap is explained by Y" decomposition.
+
+Written up in full in `analysis/reports/genome_resources_report.html`
+(new "Final Assembly: v1 vs v2" section, side-by-side table + explanatory
+callout - republished, version 4) and `docs/RESULTS.md` item #7 (flipped
+to "✅ complete") and item #4 (flipped to "both v1 and v2"). Root
+`README.md` and `reference/colombian_scaffolded_genome/README.md`'s
+earlier "QUAST still running" notes also corrected.
+
+**Cross-validation finding: the actual experimental bdnf guide exactly
+reproduces between the two independent CRISPOR pipelines - 2026-09-20.**
+User question, after the "what's the purpose of each CRISPOR run" recap
+above: since `ko_guide_scan.py` scans EVERY candidate NGG guide in a
+gene's CDS, shouldn't the guide actually used in the wet-lab experiment
+(spacer `TGAGAGACGCCCCGGGCATG`, PAM `CGG`) show up as one of bdnf's own
+candidates, and shouldn't its off-targets match `crispresso/offtargets/`'s
+dedicated analysis of that same guide? Checked directly rather than
+reasoning it out:
+
+- The guide IS present in `ko_guide_scan.py`'s bdnf candidate list, both
+  versions: v1 CDS pos 137 (guideId `157forw`), v2 CDS pos 167 (guideId
+  `187forw`) - different CDS position numbering (different annotation),
+  same guide.
+- Both report `offtargetCount=8`, matching the long-established "8
+  off-target sites" figure used everywhere else in the project.
+- Pulled the actual 8 off-target coordinates + MIT/CFD scores from
+  `ko_guide_scan`'s own CRISPOR off-target TSV
+  (`bdnf_reference_crispor_offs.tsv` / `bdnf_reference_v2_crispor_offs.tsv`)
+  and diffed them against `crispresso{,_v2}/offtargets/combined/
+  combined_offtargets.csv` (the dedicated, purpose-built off-target-
+  discovery pipeline). Result: **8/8 coordinates match exactly, 8/8 MIT
+  scores match exactly, 8/8 CFD scores match exactly, for both v1 and
+  v2** (to the displayed decimal precision).
+
+Significance: v1's dedicated off-target list came from a one-time manual
+CRISPOR *website* run (see the "v1 CRISPOR off-target scan never
+re-run via container" discussion above); `ko_guide_scan.py` scored this
+same guide via the CRISPOR *container*. Getting an identical result from
+both routes is strong empirical evidence that a container-based re-run of
+`crispor_offtarget_scan.sh` for v1 (proposed earlier, left as an open
+"maybe later" item, never actually executed) would just reproduce numbers
+already effectively cross-validated here - so that reproducibility gap is
+functionally closed without needing to run it separately. v2's dedicated
+list (built via the container from the start) matching `ko_guide_scan`'s
+independent container run for the same guide is a second, equally clean
+confirmation, this time of both pipelines' internal consistency with each
+other under the same tool/method.
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
 ```

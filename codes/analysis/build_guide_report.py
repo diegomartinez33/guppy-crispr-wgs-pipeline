@@ -25,15 +25,21 @@ manual-scan-only candidate list, clearly flagged in the output.
 """
 import csv
 import json
+import os
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from ko_guide_scan import GENOME_CHOICES, OUT_DIR, find_gene_features, exon_junction_boundaries  # noqa: E402
+from ko_guide_scan import (  # noqa: E402
+    GENOME_CHOICES, OUT_DIR, REF_FASTA_V2, find_gene_features, exon_junction_boundaries,
+)
 
 GENES = ["bdnf", "agap3", "grin1a", "grin1b", "gria1a", "gria1b", "gria2b", "nlgn1"]
-POPULATION = "pseudogenome"
+# Env-var overridable (added 2026-09-20) so this can be run once per genome
+# version without editing it, matching run_ko_guide_scan.sh's convention -
+# e.g. POPULATION=pseudogenome_v2 python3 build_guide_report.py
+POPULATION = os.environ.get("POPULATION", "pseudogenome")
 TOP_N = 5
 TOP_OFFTARGETS = 3
 
@@ -97,16 +103,19 @@ def offtarget_summary(rows):
     ]
 
 
-def build_crispor_candidates(gene, ref_fasta_key, is_crispri, manual_rows, manual_key_fn,
+def build_crispor_candidates(gene, ref_suffix, is_crispri, manual_rows, manual_key_fn,
                               position_fn, out_prefix):
     """Return (candidates, crispor_available). candidates come from CRISPOR's
-    own guide TSV, joined with manual classification via target sequence."""
-    guide_path = OUT_DIR / f"{out_prefix}_reference_crispor_guides.tsv" if not is_crispri else \
-        OUT_DIR / f"{out_prefix}_reference_crispri_crispor_guides.tsv"
-    offs_path = OUT_DIR / f"{out_prefix}_reference_crispor_offs.tsv" if not is_crispri else \
-        OUT_DIR / f"{out_prefix}_reference_crispri_crispor_offs.tsv"
-    pop_guide_path = OUT_DIR / f"{out_prefix}_pseudogenome_crispor_guides.tsv" if not is_crispri else \
-        OUT_DIR / f"{out_prefix}_pseudogenome_crispri_crispor_guides.tsv"
+    own guide TSV, joined with manual classification via target sequence.
+    ref_suffix ("" for v1, "_v2" for v2) must match the REF_FASTA-identity-keyed
+    suffix ko_guide_scan.py/crispri_tss_scan.py use for their reference-side
+    CRISPOR output filenames (fixed 2026-09-20 - see those scripts' comments)."""
+    guide_path = OUT_DIR / f"{out_prefix}_reference{ref_suffix}_crispor_guides.tsv" if not is_crispri else \
+        OUT_DIR / f"{out_prefix}_reference{ref_suffix}_crispri_crispor_guides.tsv"
+    offs_path = OUT_DIR / f"{out_prefix}_reference{ref_suffix}_crispor_offs.tsv" if not is_crispri else \
+        OUT_DIR / f"{out_prefix}_reference{ref_suffix}_crispri_crispor_offs.tsv"
+    pop_guide_path = OUT_DIR / f"{out_prefix}_{POPULATION}_crispor_guides.tsv" if not is_crispri else \
+        OUT_DIR / f"{out_prefix}_{POPULATION}_crispri_crispor_guides.tsv"
 
     guides = load_tsv(guide_path)
     if not guides:
@@ -145,6 +154,7 @@ def build_crispor_candidates(gene, ref_fasta_key, is_crispri, manual_rows, manua
 
 def main():
     pop = GENOME_CHOICES[POPULATION]
+    ref_suffix = "_v2" if pop["ref_fasta"] == REF_FASTA_V2 else ""
     report = {}
 
     for gene in GENES:
@@ -190,7 +200,7 @@ def main():
             }
 
         ko_candidates, ko_crispor_available = build_crispor_candidates(
-            gene, None, False, ko_rows, ko_key, ko_position, gene
+            gene, ref_suffix, False, ko_rows, ko_key, ko_position, gene
         )
         if ko_crispor_available:
             ko_identical = [c for c in ko_candidates if c["classification"] == "IDENTICAL"]
@@ -246,7 +256,7 @@ def main():
             }
 
         ci_candidates, ci_crispor_available = build_crispor_candidates(
-            gene, None, True, ci_rows, ci_key, ci_position, gene
+            gene, ref_suffix, True, ci_rows, ci_key, ci_position, gene
         )
         if ci_crispor_available:
             ci_identical = [c for c in ci_candidates if c["classification"] == "IDENTICAL"]
@@ -293,7 +303,7 @@ def main():
         print(f"{gene}: KO {len(ko_rows)} guides (crispor={ko_crispor_available}, top={len(ko_top)}), "
               f"CRISPRi {len(ci_rows)} guides (crispor={ci_crispor_available}, top={len(ci_top)})", file=sys.stderr)
 
-    out_path = OUT_DIR / "report_data.json"
+    out_path = OUT_DIR / ("report_data.json" if POPULATION == "pseudogenome" else f"report_data_{POPULATION}.json")
     with open(out_path, "w") as fh:
         json.dump(report, fh, indent=2)
     print(f"\nWritten: {out_path}", file=sys.stderr)

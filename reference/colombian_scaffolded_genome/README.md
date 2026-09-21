@@ -7,6 +7,18 @@ before using this genome for any downstream analysis.
 **Date assembled:** July 2026
 **Contact:** diegoandres3322@gmail.com
 
+**Note (2026-09-20):** everything below describes the assembly scaffolded against the
+v1 reference (GCF_000633615.1). A second assembly, scaffolded the same way against the
+newer v2 reference (GCF_904066995.2), also exists at `reference/colombian_scaffolded_genome_v2/`
+and is now fully complete, including QUAST QC. v2 wins on most quality metrics (BUSCO C:96.3%
+vs v1's 95.5%; bdnf Liftoff coverage=0.980/sequence_ID=0.964 vs v1's 0.960/0.957; QUAST
+misassemblies 13,768 vs v1's 23,914; NA50 159Kb vs v1's 114Kb) — the one exception is genome
+fraction (v1: 92.2%, v2: 85.5%), which is a reference-composition effect rather than a real
+assembly regression, explained in `analysis/reports/genome_resources_report.html`'s "v1 vs v2"
+section. See [docs/RESULTS.md](../../docs/RESULTS.md#7-migration-to-the-v2-reference-genome--complete)
+for the full comparison and CLAUDE.md §8 for build detail. This document is not duplicated per
+version.
+
 ---
 
 ## What this is

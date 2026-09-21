@@ -589,10 +589,16 @@ def main():
               "(manual PAM scan results above are unaffected)")
     else:
         print("\n=== Running CRISPOR (Singularity) ===")
+        # Reference-side CRISPOR output filename must be keyed on REF_FASTA identity
+        # (not on args.population): "pseudogenome" and "scaffolded" both use
+        # REF_FASTA_V1 and should keep sharing this cache, but "pseudogenome_v2"
+        # uses REF_FASTA_V2 and writing to the same unsuffixed filename silently
+        # overwrote v1's reference-side TSVs on 2026-09-17 (found + fixed 2026-09-20).
+        ref_suffix = "_v2" if REF_FASTA == REF_FASTA_V2 else ""
         ref_genome_id = CRISPOR_REF_GENOME_IDS.get(REF_FASTA)
         if ref_genome_id:
             crispor_ref_scores = run_crispor(
-                ref_cds_seq, ref_genome_id, tmp_prefix + "_crispor_ref", str(OUT_DIR / f"{gene}_reference")
+                ref_cds_seq, ref_genome_id, tmp_prefix + "_crispor_ref", str(OUT_DIR / f"{gene}_reference{ref_suffix}")
             )
             print(f"CRISPOR reference guides scored: {len(crispor_ref_scores)}")
         else:

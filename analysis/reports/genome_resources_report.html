@@ -108,6 +108,7 @@
     <nav class="jump">
       <a href="#compare">Comparison</a>
       <a href="#assembly-qc">Assembly QC</a>
+      <a href="#v1-v2-compare">v1 vs v2</a>
       <a href="#pseudogenome">Pseudogenome</a>
     </nav>
   </div>
@@ -124,7 +125,7 @@
       <div class="scope-item"><div class="label">Annotation</div><div class="value">Liftoff v1.5.1</div></div>
     </div>
     <div class="callout" style="margin-top:20px;padding:16px 20px;border-radius:12px;background:var(--pseudo-soft);border:1px solid color-mix(in srgb,var(--pseudo) 35%,transparent);font-size:13.5px;">
-      <b>v2 status (GCF_904066995.2, male, PacBio+Hi-C):</b> the v2 pseudogenome is complete (31,226 genes, 12/12 verification checks passed, bdnf coverage=1.0/sequence_ID=0.999) — see <code>reference/pseudogenome_v2/</code>. The v2 de novo assembly is in progress (RagTag scaffolding done; gap-filling/polishing/QC running as of 2026-09-17) — this report will get a v1/v2 toggle once that finishes, matching the other visual reports.
+      <b>v2 status (GCF_904066995.2, male, PacBio+Hi-C):</b> both v2 resources are now complete. The v2 pseudogenome: 31,226 genes, 12/12 verification checks passed, bdnf coverage=1.0/sequence_ID=0.999 — see <code>reference/pseudogenome_v2/</code>. The v2 de novo assembly: gap-filling, polishing, annotation, and QUAST/BUSCO QC all finished 2026-09-20 — see the comparison below and <code>reference/colombian_scaffolded_genome_v2/</code>.
     </div>
   </section>
 
@@ -152,7 +153,7 @@
           <div><dt>Structural variants</dt><dd>Yes, in principle</dd></div>
           <div><dt>Coordinates</dt><dd>Its own (<code>_RagTag</code> suffix)</dd></div>
           <div><dt>Base accuracy</dt><dd>Draft quality — assembly errors possible</dd></div>
-          <div><dt>Annotation (Liftoff)</dt><dd>bdnf: coverage=0.960, sequence_ID=0.957</dd></div>
+          <div><dt>Annotation (Liftoff)</dt><dd>bdnf: coverage=0.960/seq_ID=0.957 (v1); 0.980/0.964 (v2)</dd></div>
           <div><dt>Recommended for</dt><dd>Structural analysis, novel sequence</dd></div>
           <div><dt>Status</dt><dd><span class="pill pill-denovo">Draft</span></dd></div>
         </dl>
@@ -163,8 +164,8 @@
   </section>
 
   <section id="assembly-qc" class="divider-top">
-    <h2>De Novo Assembly QC Progress (4 Stages)</h2>
-    <p class="section-sub">Gap-filling with Nanopore reads (~3.2x, see <code>[[nanopore_epigenome_data]]</code>) was the real completeness improvement; the subsequent Illumina polishing fixes point errors without changing the structure.</p>
+    <h2>De Novo Assembly QC Progress — v1 (4 Stages)</h2>
+    <p class="section-sub">Gap-filling with Nanopore reads (~3.2x, see <code>[[nanopore_epigenome_data]]</code>) was the real completeness improvement; the subsequent Illumina polishing fixes point errors without changing the structure. v2's assembly only got QC at the final stage (the intermediate-stage tradeoff analysis was already settled by this v1 progression, not re-litigated for v2) — see the direct v1/v2 comparison below.</p>
     <div class="stage-track">
       <div class="stage-pip">1 · raw scaffold</div>
       <div class="stage-pip">2 · polished (Illumina)</div>
@@ -176,6 +177,33 @@
         <thead><tr><th>Stage</th><th class="num">BUSCO Complete</th><th class="num">Fragmented</th><th class="num">Missing</th><th class="num">Genome Fraction</th><th class="num">N50</th><th class="num">Misassemblies</th></tr></thead>
         <tbody id="qc-tbody"></tbody>
       </table>
+    </div>
+  </section>
+
+  <section id="v1-v2-compare" class="divider-top">
+    <h2>Final Assembly: v1 vs v2</h2>
+    <p class="section-sub">Both at the same build stage (gap-filled + polished). v2 used a PacBio+Hi-C reference (GCF_904066995.2) to scaffold against, vs v1's 2014 short-read reference (GCF_000633615.1) — the underlying Colombian reads and assembly method (SPAdes → RagTag → TGS-GapCloser → NextPolish) are otherwise the same.</p>
+    <div class="table-scroll">
+      <table class="data" id="final-compare-table">
+        <thead><tr><th>Metric</th><th class="num">v1</th><th class="num">v2</th><th>Better</th></tr></thead>
+        <tbody>
+          <tr><td>BUSCO Complete</td><td class="num">95.5%</td><td class="num">96.3%</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>&nbsp;&nbsp;— Fragmented</td><td class="num">2.4%</td><td class="num">2.0%</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>&nbsp;&nbsp;— Missing</td><td class="num">2.1%</td><td class="num">1.7%</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td># contigs</td><td class="num">2,063</td><td class="num">83</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>N50</td><td class="num">29.4 Mb</td><td class="num">30.7 Mb</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>NA50 (aligned)</td><td class="num">114 Kb</td><td class="num">159 Kb</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td># misassemblies</td><td class="num">23,914</td><td class="num">13,768</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>Duplication ratio</td><td class="num">1.042</td><td class="num">1.029</td><td><span class="pill pill-safe">v2</span></td></tr>
+          <tr><td>Mismatches / 100kbp</td><td class="num">626</td><td class="num">647</td><td><span class="pill" style="background:var(--surface-alt);color:var(--ink-soft);">v1 (slight)</span></td></tr>
+          <tr><td>Indels / 100kbp</td><td class="num">149.98</td><td class="num">150.23</td><td><span class="pill" style="background:var(--surface-alt);color:var(--ink-soft);">≈ tied</span></td></tr>
+          <tr><td><b>Genome fraction</b></td><td class="num"><b>92.2%</b></td><td class="num"><b>85.5%</b></td><td><span class="pill" style="background:var(--high-soft);color:var(--high);">v1 (see note)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout" style="margin-top:20px;padding:18px 20px;border-radius:12px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);font-size:13.5px;">
+      <span class="eyebrow" style="display:block;margin-bottom:6px;">Reading the genome fraction gap</span>
+      v2 wins on essentially every metric that measures assembly <i>quality</i> — far fewer misassemblies, better long-range accuracy (NA50), less duplication, more complete gene content, and 25× fewer contigs. Genome fraction is the one exception, and it's a reference-composition effect, not a real regression: v2's reference (Hi-C-scaffolded) successfully placed nearly all of its sequence onto its 24 main chromosomes, leaving only a small (10.2Mb) "unplaced" leftover — but that leftover is disproportionately the genuinely hardest, most repetitive material, which this short-read-based Colombian assembly can't reach either way. v1's reference, being a fragmented 2014 short-read assembly, has thousands of small unplaced fragments (34.9Mb total) that are just <i>ordinary</i> sequence a scaffolding algorithm couldn't connect — not hard to align to, so v1's apparent completeness is partly inflated by a reference that never demanded coverage of its hardest regions in the first place. Confirmed directly: coverage of the 24 main chromosomes alone is comparable between versions (v1: 84.9%, v2: 86.6% — v2 slightly ahead), while coverage of each version's residual unplaced scaffolds diverges sharply (v1: ~60%, v2: ~6%).
     </div>
   </section>
 
@@ -191,7 +219,7 @@
   </section>
 
   <footer>
-    <p>Colombian Genome Resources Report · generated from assembly/qc_results/{busco,quast}_*/ and the READMEs of reference/pseudogenome/ and reference/colombian_scaffolded_genome/ · off-target_data project.</p>
+    <p>Colombian Genome Resources Report · generated from assembly/qc_results/{busco,quast}_*/ and the READMEs of reference/pseudogenome/ and reference/colombian_scaffolded_genome/ · off-target_data project, 2026-09-20 (v1/v2 final assembly comparison added).</p>
   </footer>
 </div>
 

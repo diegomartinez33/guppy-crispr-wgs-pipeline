@@ -10,16 +10,22 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
+# COVERAGE_DIR/OUTPUT_DIR/SGRNA_START/SGRNA_END are env-var overridable
+# (added 2026-09-20), same convention as get_editing_region_coverage.sh, so
+# v1 and v2 summaries can be produced side by side into separate directories
+# rather than overwriting each other's fixed-name CSVs - e.g.:
+#   COVERAGE_DIR=.../coverage/bdnf_site_v2 OUTPUT_DIR=.../coverage/csv_v2 \
+#   SGRNA_START=15849694 SGRNA_END=15849713 sbatch codes/analysis/summary_coverage.sh
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-COVERAGE_DIR=${PROJECT_DIR}/coverage/bdnf_site_v2
-OUTPUT_DIR=${PROJECT_DIR}/coverage/csv
+COVERAGE_DIR=${COVERAGE_DIR:-${PROJECT_DIR}/coverage/bdnf_site}
+OUTPUT_DIR=${OUTPUT_DIR:-${PROJECT_DIR}/coverage/csv}
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 
 mkdir -p "$OUTPUT_DIR"
 
 # ── Coordenadas del sitio CRISPR ──────────────────────────────────────────────
-SGRNA_START=15922039
-SGRNA_END=15922058
+SGRNA_START=${SGRNA_START:-15922039}
+SGRNA_END=${SGRNA_END:-15922058}
 CUT_SITE=$(( (SGRNA_START + SGRNA_END) / 2 ))   # centro del sgRNA ~15922048
 
 echo "Start time: $(date)"
@@ -102,9 +108,16 @@ done < "$SAMPLE_LIST"
 
 paste $PASTE_FILES \
   | awk 'BEGIN{OFS=","} {
-        # posición en col 1, luego depth en col 3,5,7... (skip pos repetidas)
+        # posición en col 1 (de positions.txt), luego cada muestra aporta
+        # 2 columnas (pos,depth) vía paste: col2=pos1,col3=depth1,col4=pos2,
+        # col5=depth2,... es decir depth está en 3,5,7,... (impares desde 3),
+        # NO en 2,4,6,... (que son las posiciones repetidas de cada muestra).
+        # Bug encontrado 2026-09-20: el loop original empezaba en i=2 (paso 2),
+        # extrayendo silenciosamente la posición repetida de cada muestra en
+        # vez de su profundidad real - por eso depth_per_position_all_samples.csv
+        # tenía valores ~15.9M (coordenadas genómicas) en vez de profundidad real.
         printf $1
-        for(i=2; i<=NF; i+=2) printf "," $i
+        for(i=3; i<=NF; i+=2) printf "," $i
         printf "\n"
     }' >> "$DEPTH_CSV"
 

@@ -20,7 +20,7 @@ analyzed against two public reference genomes:
 - **v1 — Guanapo (Trinidad)**, female, short-read (GCF_000633615.1, 2014) — the genome used in
   all of this project's historical results. Marked as *suppressed* by NCBI in 2026.
 - **v2 — male, PacBio+Hi-C** (GCF_904066995.2, 2025) — the species' current RefSeq genome, with
-  far superior contiguity. Migration in progress (see [docs/RESULTS.md](docs/RESULTS.md#7-migration-to-the-v2-reference-genome--in-progress)).
+  far superior contiguity. Migration complete (see [docs/RESULTS.md](docs/RESULTS.md#7-migration-to-the-v2-reference-genome--complete)).
 
 A core component of this work is addressing the genomic divergence between the Colombian
 population and these references in the context of CRISPR specificity — hence the two proprietary
@@ -164,6 +164,8 @@ conda activate tgsgapcloser_env # TGS-GapCloser v1.2.1
 - **v1:** GCF_000633615.1 — https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000633615.1/
 - **v2:** GCF_904066995.2 — https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_904066995.2/
 - **sgRNA site (v1):** `NC_024333.1:15922039-15922058`, negative strand
+- **sgRNA site (v2):** `NC_088832.1:15849694-15849713`, negative strand (lifted over from v1 via
+  minimap2, 100% identity)
 - **bdnf locus (v1 pseudogenome):** `NC_024333.1:15923726-15938393` (−)
 
 ## Cluster
@@ -183,7 +185,9 @@ the requirement — GATK HaplotypeCaller needs medium, SPAdes co-assembly needs 
 - Colombian pseudogenome: 99.5% annotation transfer (Liftoff)
 - Colombian de novo assembly: BUSCO 95.5% complete after gap-filling + polishing
 - CRISPR guide design completed for 8 candidate genes (bdnf, agap3, grin1a/b, gria1a/b, gria2b,
-  nlgn1) — see [Guppy CRISPR Atlas](analysis/ko_guide_scan/report/guppy_crispr_atlas.html)
+  nlgn1) against both v1 and v2 — see [Guppy CRISPR Atlas](analysis/ko_guide_scan/report/guppy_crispr_atlas.html)
+  (v1/v2 toggle); v2 also resolves a v1 limitation where 3 genes had no CRISPOR scores due to
+  ambiguous IUPAC codes in the older reference
 - PCR primers designed and validated in silico for bdnf (9 on-/off-target sites)
 
 See [docs/RESULTS.md](docs/RESULTS.md) for the full map with exact paths.

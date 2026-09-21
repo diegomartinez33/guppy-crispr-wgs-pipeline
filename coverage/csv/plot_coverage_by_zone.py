@@ -12,8 +12,12 @@ import numpy as np
 import os
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-INPUT_CSV  = "coverage_by_zone_all_samples.csv"
-OUTPUT_DIR = "coverage_zone_plots"
+# Env-var overridable (added 2026-09-20), same convention as plot_coverage.py.
+INPUT_CSV  = os.environ.get("INPUT_CSV", "coverage_by_zone_all_samples.csv")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "coverage_zone_plots")
+SGRNA_SEQ  = os.environ.get("SGRNA_SEQ", "TGAGAGACGCCCCGGGCATG")
+CHROMOSOME = os.environ.get("CHROMOSOME", "NC_024333.1")
+REGION_LABEL = os.environ.get("REGION_LABEL", "15,922,039–15,922,058")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── Color palette ─────────────────────────────────────────────────────────────
@@ -129,8 +133,8 @@ for ax, (metric, ylabel, title) in zip(axes, metrics):
     ax.grid(True, axis="y", linestyle="--", alpha=0.4)
 
 fig.suptitle(
-    "Coverage Metrics by Zone Around CRISPR-Cas9 Cut Site (bdnf)\n"
-    "sgRNA: TGAGAGACGCCCCGGGCATG | NC_024333.1:15,922,039–15,922,058",
+    f"Coverage Metrics by Zone Around CRISPR-Cas9 Cut Site (bdnf)\n"
+    f"sgRNA: {SGRNA_SEQ} | {CHROMOSOME}:{REGION_LABEL}",
     fontsize=12, fontweight="bold", y=1.02
 )
 

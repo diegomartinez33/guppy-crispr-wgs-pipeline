@@ -11,8 +11,9 @@
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
-ONTARGET_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic/merged
-OUTPUT_DIR=${PROJECT_DIR}/crispresso/compare/trimmomatic/merged
+source "${PROJECT_DIR}/codes/genome_versions.sh"
+ONTARGET_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/ontarget/trimmomatic/merged
+OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/compare/trimmomatic/merged
 
 mkdir -p "$OUTPUT_DIR" logs/
 
