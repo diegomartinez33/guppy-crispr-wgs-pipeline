@@ -82,14 +82,14 @@ flowchart TD
     T["trimmed_trimmomatic/*_paired.fastq.gz"] --> M
     M --> S["mapping/trimmomatic${OUT_SUFFIX}/*.sorted.bam"]
     S --> MG["merge_bams.sh\nsamtools merge (per group)"]
-    MG --> GB["mapping/trimmomatic/merged/{Control,RNP_Cas,Plasmid_Ko,Only_MNP}_merged.sorted.bam"]
+    MG --> GB["mapping/trimmomatic${OUT_SUFFIX}/merged/{Control,RNP_Cas,Plasmid_Ko,Only_MNP}_merged.sorted.bam"]
 ```
 
 | Script | SLURM resources | Dual-genome | Purpose |
 |---|---|---|---|
 | `codes/mapping/bwa_index.sh` | 4cpu, 32G, 10h, short | ✅ v1/v2 | Builds the BWA FM-index over `$REF` |
 | `codes/mapping/bwa_trimmomatic_array.sh` | array 1-15%8, 8cpu, 32G, 20h, short | ✅ v1/v2 | Aligns each sample, produces a sorted BAM + `flagstat` |
-| `codes/CRISPResso/merge_bams.sh` | 8cpu, 32G, 4h, short | v1-only | Merges each experimental group's markdup BAMs into one BAM per group |
+| `codes/CRISPResso/merge_bams.sh` | 8cpu, 32G, 4h, short | ✅ v1/v2 (2026-09-15) | Merges each experimental group's markdup BAMs into one BAM per group |
 
 ```bash
 bwa mem -t 8 -R "@RG\tID:${SAMPLE}\tSM:${SAMPLE}\tPL:ILLUMINA\tLB:lib1\tPU:unit1" \
@@ -284,8 +284,10 @@ bedtools makewindows -g genome.txt -w 10000 -s 2000 > windows_10kb_2kb.bed
 bedtools coverage -counts -a windows_10kb_2kb.bed -b snps.bed > window_counts_snp.bed
 # Z_THRESH = 4.0 (fallback if statsmodels is unavailable); primary threshold: FDR (Benjamini-Hochberg) < 0.05
 ```
-Historical result (v1): 403 merged hotspot regions, 1,780 windows with FDR<0.05. **v1-only**
-stage — hasn't been run under v2 yet (see [RESULTS.md](RESULTS.md)).
+Result (v1): 403 merged hotspot regions, 1,780 windows with FDR<0.05. Also run under v2
+(2026-09-15): 459 merged hotspot regions — see [RESULTS.md](RESULTS.md) for the full v1/v2
+comparison and the [consolidated visual report](../analysis/reports/hotspots_report.html)
+(v1/v2 toggle).
 
 ---
 
@@ -545,5 +547,6 @@ python3 codes/analysis/verify_rtqpcr_primers.py \
 
 **Output:** `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` — one row per
 primer×genome-version, with the matched gene, transcript, exon-membership, indel-aware identity%,
-and (v1 only, for now) population-variant status. Visual report:
+and population-variant status (v1 and v2, each checked against its own Colombian pseudogenome —
+closed 2026-09-21, previously v1-only pending the v2 pseudogenome). Visual report:
 [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html).

@@ -2529,7 +2529,7 @@ supplement to the manual scan, never the primary classifier, per this
 item's original goal statement above).
 ```
 
-### 8. Migration to GCF_904066995.2 (v2) — DONE 2026-09-05 to 2026-09-20
+### 8. Migration to GCF_904066995.2 (v2) — DONE 2026-09-05 to 2026-09-21
 ```
 Why: GCF_000633615.1 (Trinidad/Guanapo, female, short-read, 2014 - the
 reference this whole project has used) is now marked "suppressed" by NCBI
@@ -3563,6 +3563,99 @@ list (built via the container from the start) matching `ko_guide_scan`'s
 independent container run for the same guide is a second, equally clean
 confirmation, this time of both pipelines' internal consistency with each
 other under the same tool/method.
+
+**Stale-doc audit (2026-09-21).** Prompted by a user question about a
+stale "v1-only" tag found in `docs/PIPELINE.md` for `merge_bams.sh`
+(already parameterized + run for v2 on 2026-09-15 - the table row had
+just never been updated), did a systematic sweep of
+`docs/PIPELINE.md`/`docs/RESULTS.md`/`README.md`/the reference READMEs
+for the same class of bug: doc text claiming something wasn't done for
+v2 (or wasn't adopted/finished) when the actual on-disk data said
+otherwise. Found 3 more:
+- `docs/PIPELINE.md` §6 (Variant Hotspots): said "v1-only stage - hasn't
+  been run under v2 yet", but v2 hotspots completed 2026-09-15 (459
+  regions) and already has its own report tab. `docs/RESULTS.md` had
+  this right; PIPELINE.md just lagged.
+- `reference/colombian_scaffolded_genome/README.md`: said the gap-filled
+  +polished genome was "not yet adopted as the authoritative genome" and
+  the targeted-polishing result was "pending" - both stale since the
+  2026-09-17 promotion (see "v1 de novo assembly promotion bug" above);
+  `docs/RESULTS.md` had this right too, the README just wasn't updated
+  when the promotion happened. Also fixed a stale file size (692MB ->
+  686MB) and added the missing `pre_gapfill_archive/` row to the files
+  table.
+- `docs/RESULTS.md` itself, objectives #1 (Off-target WGS) and #3
+  (Colombian Pseudogenome): both still headed "✅ complete (v1)" with
+  v1-only path tables, even though every underlying v2 output
+  (`gatk_summary_v2/`, `editing_comparison_v2/`, `crispresso_v2/...`,
+  `gatk/trimmomatic_v2/vcf_filtered/`, `reference/pseudogenome_v2/`) has
+  existed and been verified since earlier in this migration (confirmed
+  by direct `ls`, not assumed) - just never reflected in these two
+  objectives' own headers/tables, unlike objectives #2/#4/#8/#9 which
+  already use the "both v1 and v2" + two-column pattern. Rewrote both to
+  match.
+
+One further check surfaced a *real*, not just documentation, gap:
+`verify_rtqpcr_primers.py`'s `population_check()` (RT-qPCR primer
+verification, item #9 below) was hardcoded to skip population-variant
+checking for any `ref_version != "v1"`, with a docstring reason
+("pseudogenome_v2 doesn't exist yet") that stopped being true on
+2026-09-15 once `reference/pseudogenome_v2/` was built - the function
+just never got updated to use it, even though the
+`REF_BY_VERSION`/`PSEUDOGENOME_BY_VERSION`/`CHAIN_BY_VERSION` dicts it
+already imports from `design_offtarget_primers.py` have had real v2
+entries the whole time. Every v2 row in
+`rtqpcr_primer_verification.csv` silently got `population_status=
+not_checked` as a result - confirmed directly by inspecting the CSV
+(16/16 v2 rows `not_checked` vs v1's real `IDENTICAL`/`VARIANT_FOUND`
+values), not assumed from the docstring. Closed: generalized
+`population_check()` to key off `row["ref_version"]` instead of a
+hardcoded `"v1"`, dropped the version guard, re-ran (job 729330, 6min).
+All 16 v2 rows now have real results: 15 `IDENTICAL`, 1
+`VARIANT_FOUND` - the same `rpl_13a_original_F` SNP at the same
+position (`10:T>G`) as v1, confirming `docs/RESULTS.md`'s existing
+narrative text ("also confirmed against v2, which matches the primer's
+original allele") that had actually been written ahead of the real
+check ever having been run. Updated `docs/PIPELINE.md` §10 and
+`docs/RESULTS.md` §6b accordingly.
+
+**Report bugs found + fixed (2026-09-21), reported by the user directly
+against the rendered pages, not the docs.** Checked all 6 HTML reports;
+found 2 real bugs and 1 false alarm:
+- `offtarget_wgs_report.html`: a **severe JS syntax error** - a leftover
+  stray `const SITES = [` line (no closing bracket) immediately before
+  `const DATA = {`, left over from some earlier edit. This broke the
+  entire `<script>` block, so NONE of it executed - explains both
+  symptoms the user saw at once: v1's tables never populated (the
+  `render()` call that fills them from `DATA` never ran) and clicking
+  the v2 button did nothing either (the event listeners are defined
+  after the syntax error, so they were never attached). One-line fix:
+  delete the stray line. Verified via brace/bracket/paren balance count
+  post-fix (node isn't available on this cluster). Republished to the
+  existing Artifact (version 5).
+- `rtqpcr_primer_verification_report.html`: genuinely missing v2's
+  population-check column - built back when `population_check()` only
+  ran for v1 (see the bug above), so its `ROWS` data and table only had
+  one "Colombian pseudogenome" column, and the masthead scope-strip
+  literally said "Population check: v1 pseudogenome". Now that the
+  underlying script/data covers both versions, split the single column
+  into "Pop. check (v1)" / "Pop. check (v2)", updated `ROWS` with the
+  real v2 values from the just-regenerated CSV (all 16 v2 rows match
+  their v1 counterpart exactly, including the one `VARIANT_FOUND`),
+  updated the scope-strip and the two prose findings that described the
+  check as v1-only, and updated Method step 5's text. Republished to the
+  existing Artifact (version 4).
+- `genome_resources_report.html`: the user also flagged "De Novo
+  Assembly QC Progress - v1 (4 Stages), no v2" as a possible bug -
+  checked directly against `assembly/qc_results/` and confirmed this is
+  **not a bug**: only `busco_gapfilled_polished_v2`/
+  `quast_gapfilled_polished_v2` exist for v2 (no `busco_v2`/
+  `busco_polished_v2`/`busco_gapfilled_v2` or QUAST equivalents) - v2
+  genuinely was only QC'd at the final stage, never the 3 intermediate
+  ones, exactly as the section's own subtext already said ("v2's
+  assembly only got QC at the final stage ... see the direct v1/v2
+  comparison below"). No change made; the existing "Final Assembly: v1
+  vs v2" section already covers the one stage both versions share.
 
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
 ```

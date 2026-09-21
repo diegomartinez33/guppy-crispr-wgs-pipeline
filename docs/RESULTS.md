@@ -3,19 +3,19 @@
 Where each already-generated result lives, organized by objective. ✅ = complete, 🔄 = in
 progress, ⏳ = pending. For detail on how each thing was generated see [PIPELINE.md](PIPELINE.md).
 
-## 1. Off-target WGS Analysis (GATK + CRISPResso2) — ✅ complete (v1)
+## 1. Off-target WGS Analysis (GATK + CRISPResso2) — ✅ complete, both v1 and v2
 
-| What | Path |
-|---|---|
-| Per-sample variant summary (counts, Ti/Tv) | `codes/analysis/gatk_summary/gatk_variant_summary.csv` + `gatk_summary_barplot.png`, `gatk_titv_boxplot.png` |
-| Genotypes at the 8 off-target sites (only OT4 has variants, pre-existing in Control) | `codes/analysis/gatk_summary/offtarget_genotypes.csv` + `offtarget_genotype_heatmap.png` |
-| % on-target vs off-target editing per sample/group | `codes/analysis/editing_comparison/editing_summary.csv` + `editing_heatmap.png`, `ontarget_barplot.png`, `offtarget_dotplot.png` |
-| Final list of the 8 off-targets (coordinates, MIT/CFD, locus) | `crispresso/offtargets/combined/combined_offtargets.csv` + `combined_offtargets_igv.bed` |
-| Final filtered VCFs (SNP/INDEL, whole genome) | `gatk/trimmomatic/vcf_filtered/{snps,indels}_filtered.vcf.gz` |
-| VCF restricted to the 8 off-target loci | `gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz` |
-| Per-sample CRISPResso2 reports (on-target, 15 folders + `merged/`) | `crispresso/ontarget/trimmomatic/<SAMPLE>/CRISPResso_on_<SAMPLE>/` |
-| Per-sample CRISPRessoWGS reports (8 off-target sites, 15 folders + `aggregate/`) | `crispresso/wgs/trimmomatic/<SAMPLE>/` |
-| **Consolidated visual report** | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) |
+| What | v1 path | v2 path |
+|---|---|---|
+| Per-sample variant summary (counts, Ti/Tv) | `codes/analysis/gatk_summary/gatk_variant_summary.csv` + `gatk_summary_barplot.png`, `gatk_titv_boxplot.png` | `codes/analysis/gatk_summary_v2/` (same files) |
+| Genotypes at the 8 off-target sites (only OT4 has variants, pre-existing in Control) | `codes/analysis/gatk_summary/offtarget_genotypes.csv` + `offtarget_genotype_heatmap.png` | `codes/analysis/gatk_summary_v2/offtarget_genotypes.csv` + heatmap — same finding (2 SNPs at OT4, pre-existing in Control) |
+| % on-target vs off-target editing per sample/group | `codes/analysis/editing_comparison/editing_summary.csv` + `editing_heatmap.png`, `ontarget_barplot.png`, `offtarget_dotplot.png` | `codes/analysis/editing_comparison_v2/` (same files) — matches v1 exactly per sample |
+| Final list of the 8 off-targets (coordinates, MIT/CFD, locus) | `crispresso/offtargets/combined/combined_offtargets.csv` + `combined_offtargets_igv.bed` | `crispresso_v2/offtargets/combined/combined_offtargets.csv` — 8/8 coordinates + scores match v1 (remapped) |
+| Final filtered VCFs (SNP/INDEL, whole genome) | `gatk/trimmomatic/vcf_filtered/{snps,indels}_filtered.vcf.gz` | `gatk/trimmomatic_v2/vcf_filtered/{snps,indels}_filtered.vcf.gz` (12.9M SNPs, 3.4M indels) |
+| VCF restricted to the 8 off-target loci | `gatk/trimmomatic/vcf_offtargets/offtarget_variants.vcf.gz` | `gatk/trimmomatic_v2/vcf_offtargets/offtarget_variants.vcf.gz` |
+| Per-sample CRISPResso2 reports (on-target, 15 folders + `merged/`) | `crispresso/ontarget/trimmomatic/<SAMPLE>/CRISPResso_on_<SAMPLE>/` | `crispresso_v2/ontarget/trimmomatic/<SAMPLE>/` (15 + `merged/`) |
+| Per-sample CRISPRessoWGS reports (8 off-target sites, 15 folders + `aggregate/`) | `crispresso/wgs/trimmomatic/<SAMPLE>/` | `crispresso_v2/wgs/trimmomatic/<SAMPLE>/` (15 + `aggregate/`) |
+| **Consolidated visual report** | [`analysis/reports/offtarget_wgs_report.html`](../analysis/reports/offtarget_wgs_report.html) — v1/v2 toggle | (same report, `v2` tab) |
 
 **Main finding:** no CRISPR-induced indel detected at any of the 8 off-target sites by GATK; the
 only site with variants (OT4) already had them in the Control group — a pre-existing population
@@ -48,11 +48,13 @@ since 2026-06-03 (never worked); re-running the fixed scripts for v1 reproduced 
 numbers exactly (403 regions, byte-identical CSV/BED) while finally populating those plots — no
 factual numbers changed, so the existing v1 report/Artifact needed no update.
 
-## 3. Colombian Pseudogenome — ✅ complete (v1)
+## 3. Colombian Pseudogenome — ✅ complete, both v1 and v2
 
-`reference/pseudogenome/` — genome + all indices (`.fai`, `.dict`, BWA, minimap2) + Liftoff
-annotation (99.5% transfer, 26,264 genes, 0 orphans) + `.chain` for exact liftover. Full detail,
-method, and limitations: **[reference/pseudogenome/README.md](../reference/pseudogenome/README.md)**.
+`reference/pseudogenome/` (v1) — genome + all indices (`.fai`, `.dict`, BWA, minimap2) + Liftoff
+annotation (99.5% transfer, 26,264 genes, 0 orphans) + `.chain` for exact liftover.
+`reference/pseudogenome_v2/` (v2) — same file set, 12/12 verification checks passed, Liftoff
+annotation 99.6% transfer (31,226 genes). Full detail, method, and limitations:
+**[reference/pseudogenome/README.md](../reference/pseudogenome/README.md)**.
 
 ## 4. Colombian De Novo Assembly — ✅ complete, both v1 and v2
 
@@ -153,6 +155,15 @@ DNA, and the gene is confirmed rather than known up front. Originally a one-off 
 | Verification script | `codes/analysis/verify_rtqpcr_primers.py` (+ `run_rtqpcr_primer_verification.sh`) |
 | Result table (8 pairs × v1/v2) | `analysis/rtqpcr_verification/rtqpcr_primer_verification.csv` |
 | **Visual report** | [`analysis/reports/rtqpcr_primer_verification_report.html`](../analysis/reports/rtqpcr_primer_verification_report.html) |
+
+**Population-variant check closed for v2 (2026-09-21):** `population_check()` was hardcoded to
+`v1` only (the v2 pseudogenome didn't exist when it was written) even though
+`REF_BY_VERSION`/`PSEUDOGENOME_BY_VERSION`/`CHAIN_BY_VERSION` — imported from
+`design_offtarget_primers.py` — already had real v2 entries once `reference/pseudogenome_v2/`
+was built (2026-09-15); the restriction was just never lifted, so every v2 row silently got
+`population_status=not_checked`. Generalized to use `row["ref_version"]` and re-ran: all 16 v2
+rows now have a real result (15 `IDENTICAL`, 1 `VARIANT_FOUND` — the same `rpl_13a_original_F`
+SNP as v1, at the same position, confirming the finding below).
 
 **New housekeeping primer candidates (2026-09-11, not yet in lab use):** since myosin's actual role
 is as the reference/housekeeping gene contrasted against `bdnf` expression after KO, 3 new

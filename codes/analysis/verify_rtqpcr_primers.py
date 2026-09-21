@@ -23,11 +23,12 @@ set without repeating the same gaps that were found and fixed there:
      fragmentary/absent in another (seen for v1's copy of a myosin
      paralog).
   5. POPULATION CHECK via exact liftover (.chain + CrossMap) of the
-     matched genomic footprint to the Colombian pseudogenome (v1 only
-     until the v2 pseudogenome exists), for exon-only positions - a
-     primer that matches genomic DNA is not automatically an mRNA
-     primer; only the sequence within a real exon reaches the mRNA/cDNA
-     RT-qPCR actually amplifies.
+     matched genomic footprint to the Colombian pseudogenome - each ref
+     version checked against its own pseudogenome (v1 against
+     reference/pseudogenome/, v2 against reference/pseudogenome_v2/), for
+     exon-only positions - a primer that matches genomic DNA is not
+     automatically an mRNA primer; only the sequence within a real exon
+     reaches the mRNA/cDNA RT-qPCR actually amplifies.
 
 Reused verbatim (no reimplementation): REF_FASTA_V1/V2, REF_GFF_V1/V2,
 faidx_seq(), revcomp() from ko_guide_scan.py; REF_BY_VERSION,
@@ -376,11 +377,13 @@ def verify_primer(name, seq, ref_version, tmp_prefix):
 
 
 def population_check(row, tmp_prefix):
-    """v1 hits only (pseudogenome_v2 doesn't exist yet - see CLAUDE.md item
-    #8 migration status). Runs for both EXACT and PARTIAL matches - for
-    PARTIAL (e.g. the myosin primers, no single paralog is a perfect
-    match), `hit_start`/`hit_end` are only the raw BLAST-matched core of
-    the primer (shorter than the full primer - see `blast_length` vs the
+    """Runs against whichever genome version the row was verified under
+    (v1 -> reference/pseudogenome/, v2 -> reference/pseudogenome_v2/, both
+    built by make_pseudogenome.sh - see CLAUDE.md item #8 migration
+    status). Runs for both EXACT and PARTIAL matches - for PARTIAL (e.g.
+    the myosin primers, no single paralog is a perfect match),
+    `hit_start`/`hit_end` are only the raw BLAST-matched core of the
+    primer (shorter than the full primer - see `blast_length` vs the
     primer's own length), not its whole footprint, since the exact
     aligned span within the mRNA isn't recovered by `water_align()`. This
     still answers a real question - whether a Colombian-specific variant
@@ -388,7 +391,8 @@ def population_check(row, tmp_prefix):
     that core - just not over the full primer length; flagged explicitly
     in `population_note` so it isn't confused with the exact, whole-primer
     check used for EXACT matches."""
-    if row.get("ref_version") != "v1" or row.get("mrna_match") not in ("EXACT", "PARTIAL"):
+    ref_version = row.get("ref_version")
+    if ref_version not in PSEUDOGENOME_BY_VERSION or row.get("mrna_match") not in ("EXACT", "PARTIAL"):
         row["population_status"] = "not_checked"
         return
     partial_coverage_note = ""
@@ -397,19 +401,19 @@ def population_check(row, tmp_prefix):
             f"covers only the {row['blast_length']}bp exact BLAST core of the "
             f"{len(row['sequence'])}bp primer, not its full footprint; "
         )
-    chain = CHAIN_BY_VERSION["v1"]
+    chain = CHAIN_BY_VERSION[ref_version]
     lifted = liftover_region(chain, row["chrom"], row["hit_start"], row["hit_end"], Path(tmp_prefix))
     if lifted is None:
         row["population_status"] = "liftover_failed"
         row["population_note"] = partial_coverage_note.rstrip("; ")
         return
     pg_chrom, pg_start, pg_end = lifted
-    v1_seq = faidx_seq(REF_BY_VERSION["v1"], row["chrom"], row["hit_start"], row["hit_end"])
-    pg_seq = faidx_seq(PSEUDOGENOME_BY_VERSION["v1"], pg_chrom, pg_start, pg_end)
+    ref_seq = faidx_seq(REF_BY_VERSION[ref_version], row["chrom"], row["hit_start"], row["hit_end"])
+    pg_seq = faidx_seq(PSEUDOGENOME_BY_VERSION[ref_version], pg_chrom, pg_start, pg_end)
     row["pseudogenome_region"] = f"{pg_chrom}:{pg_start}-{pg_end}"
-    row["population_status"] = "IDENTICAL" if v1_seq == pg_seq else "VARIANT_FOUND"
-    if v1_seq != pg_seq:
-        diffs = [f"{i+1}:{a}>{b}" for i, (a, b) in enumerate(zip(v1_seq, pg_seq)) if a != b]
+    row["population_status"] = "IDENTICAL" if ref_seq == pg_seq else "VARIANT_FOUND"
+    if ref_seq != pg_seq:
+        diffs = [f"{i+1}:{a}>{b}" for i, (a, b) in enumerate(zip(ref_seq, pg_seq)) if a != b]
         row["population_note"] = partial_coverage_note + "; ".join(diffs)
     elif partial_coverage_note:
         row["population_note"] = partial_coverage_note.rstrip("; ")

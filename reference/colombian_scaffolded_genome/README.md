@@ -207,11 +207,15 @@ precision cost concentrated in the newly-filled regions specifically —
 see "Targeted post-gap-fill polishing" below for the follow-up meant to
 recover some of that precision without giving up the completeness gain.
 
-Status as of this writing: **not yet adopted as the authoritative genome** -
-`colombian_scaffolded.fna` (unfilled) remains the default until the
-targeted-polishing follow-up is evaluated.
+**Update (2026-09-17): adopted.** Once the targeted post-gap-fill polishing below
+completed and QC'd clean, the gap-filled+polished genome was promoted to the canonical
+`colombian_scaffolded.fna` path (the pre-gap-fill scaffold was archived, not deleted, to
+`pre_gapfill_archive/`). All downstream artifacts (Liftoff annotation, BWA/BLAST/samtools
+indices) were rebuilt against it — see the Changelog entry below and CLAUDE.md §8 for the
+"v1 de novo assembly promotion bug" writeup (this promotion was initially missed, then
+found + fixed 2026-09-17).
 
-## Targeted post-gap-fill polishing (2026-08) — in progress
+## Targeted post-gap-fill polishing (2026-08/09) — complete, adopted
 
 Rationale: whole-genome short-read polishing already failed once (see
 "Polishing experiment" above) because it reprocessed reads the assembly
@@ -233,18 +237,26 @@ experiment, while the newly-filled Nanopore-derived regions - which have
 never been reconciled with Illumina data - are where real corrections
 should land.
 
-Result: pending, see Changelog / CLAUDE.md for the outcome once QC completes.
+Result (2026-09-07 QC, job 716452): a clean, low-risk win on top of gap-filling — BUSCO
+internal stop codons dropped 184→136 (-26%, the specific Nanopore-indel artifact this
+polish targeted), Complete ticked up 95.4%→95.5%, at essentially zero structural cost
+(genome fraction 92.088%→92.209%, misassemblies 23,532→23,914 — within noise, duplication
+ratio unchanged at 1.042). Does not recover the structural precision lost during
+gap-filling itself (that trade-off is inherent to TGS-GapCloser's long-read gap-filling and
+was already the accepted cost — see "Gap-filling experiment" above). **Adopted as the
+authoritative genome 2026-09-17** (see note near the top of this document).
 
 ## Files in this directory
 
 | File | Description |
 |---|---|
-| `colombian_scaffolded.fna` | The genome sequence (692MB, 692Mb total length) |
+| `colombian_scaffolded.fna` | The final, adopted genome sequence (686MB) — gap-filled (TGS-GapCloser) + polished (NextPolish), promoted to this canonical path 2026-09-17 |
 | `colombian_scaffolded.fna.{amb,ann,bwt,pac,sa}` | BWA index (pre-built, ready for read mapping) |
 | `colombian_scaffolded.fna.fai` | samtools faidx index |
 | `colombian_scaffolded.dict` | GATK/Picard sequence dictionary |
 | `colombian_scaffolded.liftoff.gff3` | Gene annotations transferred from the Trinidad reference |
 | `blast_db/colombian_scaffolded.n*` | Pre-built nucleotide BLAST database |
+| `pre_gapfill_archive/` | The original pre-gap-fill RagTag scaffold + its own indices/annotation (superseded 2026-09-17, kept for reference rather than deleted) |
 
 ## Recommended citation / acknowledgment
 
@@ -270,3 +282,18 @@ or as a dependency for other analyses.
   Started a targeted post-gap-fill NextPolish run to recover precision in
   the newly-filled regions specifically (see "Targeted post-gap-fill
   polishing" section) — result pending.
+- **2026-09-07** — Targeted post-gap-fill NextPolish QC completed (job
+  716452): BUSCO internal stop codons 184→136 (-26%), Complete
+  95.4%→95.5%, structural metrics essentially flat (genome fraction
+  92.088%→92.209%, misassemblies 23,532→23,914, duplication ratio
+  unchanged) — clean win, no new cost.
+- **2026-09-17** — Promoted the gap-filled+polished genome to the
+  canonical `colombian_scaffolded.fna` path (previously it sat only in
+  `assembly/nextpolish_output_gapfilled/`, a bug not caught until this
+  date — see CLAUDE.md §8 "v1 de novo assembly promotion bug"). The
+  pre-gap-fill scaffold was archived to `pre_gapfill_archive/`, not
+  deleted. Liftoff annotation and all indices rebuilt against the real
+  final genome; bdnf Liftoff quality improved from
+  coverage=0.945/sequence_ID=0.923 (stale scaffold) to
+  coverage=0.960/sequence_ID=0.957 (actual final assembly). This genome
+  is now genuinely authoritative, not just intended to be.
