@@ -91,7 +91,7 @@ source $(conda info --base)/etc/profile.d/conda.sh
 conda activate fastp_env       # fastp, pandas, matplotlib, multiqc
 
 # Personal conda (CRISPResso2, CrossMap, Liftoff, NextPolish)
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env # CRISPResso2, cas-offinder, pandas
 conda activate liftoff_env     # Liftoff v1.5.1 (annotation transfer for scaffolded assembly)
@@ -101,7 +101,7 @@ conda activate nextpolish_env  # NextPolish v1.4.1 (short-read polishing of scaf
 
 ### CRISPResso2 Activation (use in all CRISPResso scripts)
 ```bash
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"
@@ -112,7 +112,7 @@ export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"
 ## Project Directory Structure
 
 ```
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR  (repo root - auto-detected by scripts, see codes/genome_versions.sh)
 │
 ├── samples.txt                    → 15 sample names (one per line)
 ├── CLAUDE.md                      → this file
@@ -392,7 +392,7 @@ Goal: population-specific Colombian guppy genome via TRUE de novo co-assembly
 
 Modules: spades/4.0.0, ragtag/2.1.0, quast/5.0.2, busco/5.7.1
 Liftoff: not a module — installed via conda in a dedicated env:
-  CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+  CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
   source ${CONDA_BASE}/etc/profile.d/conda.sh
   conda activate liftoff_env
   (created with: mamba create -n liftoff_env -c bioconda -c conda-forge
@@ -608,7 +608,7 @@ Final:    8 unique off-target sites in combined_offtargets.csv
 #SBATCH --mail-user=diegoandres3322@gmail.com
 #SBATCH --mail-type=ALL
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$SAMPLE_LIST")
 
@@ -672,7 +672,7 @@ tabix -p vcf sample.g.vcf.gz
 ### CRISPResso2 Activation in SLURM
 ```bash
 # mamba shell hook fails in SLURM — use conda directly
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"

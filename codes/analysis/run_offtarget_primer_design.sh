@@ -15,13 +15,17 @@
 # variant check). Requires codes/analysis/setup_primer3.sh to have been
 # run once already (installs the primer3_core binary eprimer3 needs).
 #
+# PROJECT_DIR must be resolved before the "MODIFICAR AQUÍ" block below,
+# since SITES_CSV's own fallback references it - resolving it after would
+# leave SITES_CSV silently using the inner fallback's literal default instead.
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
+
 # ── MODIFICAR AQUÍ para otro gen/CSV de sitios ──────────────────────────
 GENE=${GENE:-bdnf}
-SITES_CSV=${SITES_CSV:-${PROJECT_DIR:-/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data}/crispresso/offtargets/combined/combined_offtargets.csv}
+SITES_CSV=${SITES_CSV:-${PROJECT_DIR}/crispresso/offtargets/combined/combined_offtargets.csv}
 REF_VERSION=${REF_VERSION:-v1}
 # ─────────────────────────────────────────────────────────────────────────
 
-PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 mkdir -p logs/ analysis/offtarget_primers
 
 module load emboss/6.6.0

@@ -71,6 +71,13 @@ igv_files*/*.fai
 codes/CRISPResso/test_200.sorted.bam
 codes/CRISPResso/test_200.sorted.bam.bai
 
+# fastqc_array.sh's own generated file list - was accidentally committed with
+# the author's absolute paths baked in; fastqc_array.sh only regenerates it
+# `if [ ! -f "$FILE_LIST" ]`, so tracking it meant a fresh clone would find
+# it already present and skip regeneration, silently trying to FastQC files
+# at paths that don't exist on a different account. Found 2026-09-22.
+codes/filtering/fastqc_trimmed_filelist.txt
+
 # Large data files — catch any stragglers not covered by directory rules
 *.bam
 *.bai

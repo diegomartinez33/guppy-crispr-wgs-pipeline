@@ -14,13 +14,17 @@
 # (BLAST locate -> GFF exon overlap -> EMBOSS water realign -> liftover
 # population check). Needs a BLAST-short primer CSV as input.
 #
+# PROJECT_DIR must be resolved before the "EDIT HERE" block below, since
+# PRIMERS_CSV's own fallback references it - resolving it after would leave
+# PRIMERS_CSV silently using the inner fallback's literal default instead.
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
+
 # ── EDIT HERE for a different primer set ──────────────────────────────────
-PRIMERS_CSV=${PRIMERS_CSV:-${PROJECT_DIR:-/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data}/analysis/rtqpcr_verification/rtqpcr_primers.csv}
+PRIMERS_CSV=${PRIMERS_CSV:-${PROJECT_DIR}/analysis/rtqpcr_verification/rtqpcr_primers.csv}
 REF_VERSIONS=${REF_VERSIONS:-v1,v2}
 POPULATION_CHECK=${POPULATION_CHECK:-1}
 # ─────────────────────────────────────────────────────────────────────────
 
-PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 mkdir -p logs/ analysis/rtqpcr_verification
 
 module load blast/2.14.1+

@@ -11,8 +11,9 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-TRIMMOMATIC_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/trimmed_trimmomatic
-FASTP_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/trimmed_fastp
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
+TRIMMOMATIC_DIR=${PROJECT_DIR}/trimmed_trimmomatic
+FASTP_DIR=${PROJECT_DIR}/trimmed_fastp
 
 FASTQC_TRIMMOMATIC=${TRIMMOMATIC_DIR}/fastqc_results
 FASTQC_FASTP=${FASTP_DIR}/fastqc_results
@@ -22,7 +23,7 @@ module load fastqc    # ajusta al nombre exacto
 
 # ── Construir lista de todos los archivos con su output dir ───────────────────
 # Genera una lista combinada: "archivo\tdirectorio_output"
-FILE_LIST=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/codes/filtering/fastqc_trimmed_filelist.txt
+FILE_LIST=${PROJECT_DIR}/codes/filtering/fastqc_trimmed_filelist.txt
 
 if [ ! -f "$FILE_LIST" ]; then
 

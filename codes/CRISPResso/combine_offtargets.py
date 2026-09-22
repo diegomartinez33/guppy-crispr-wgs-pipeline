@@ -6,9 +6,10 @@ para análisis con CRISPRessoWGS
 
 import pandas as pd
 import os
+from pathlib import Path
 
 # ── Configuración ─────────────────────────────────────────────────────────────
-PROJECT_DIR  = os.environ.get("PROJECT_DIR", "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data")
+PROJECT_DIR  = os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2]))
 REF_VERSION  = os.environ.get("REF_VERSION", "v1")
 OUT_SUFFIX   = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
 CASOFF_FILE  = os.path.join(PROJECT_DIR, f"crispresso{OUT_SUFFIX}/offtargets/offtargets.txt")

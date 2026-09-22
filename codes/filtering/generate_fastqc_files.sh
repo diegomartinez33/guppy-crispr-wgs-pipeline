@@ -1,10 +1,12 @@
 #!/bin/bash
 
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
+
 # Limpiar si existe una lista previa
 rm -f fastqc_trimmed_filelist.txt
 
-TRIMMOMATIC_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/trimmed_trimmomatic
-FASTP_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data/trimmed_fastp
+TRIMMOMATIC_DIR=${PROJECT_DIR}/trimmed_trimmomatic
+FASTP_DIR=${PROJECT_DIR}/trimmed_fastp
 
 FASTQC_TRIMMOMATIC=${TRIMMOMATIC_DIR}/fastqc_results
 FASTQC_FASTP=${FASTP_DIR}/fastqc_results
