@@ -35,7 +35,7 @@
 # parameterized shared one) so both runs remain independently reproducible
 # and their logs/configs don't collide.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 # INPUT_DIR (trimmed Illumina reads) is genome-version-independent - the
 # same 3 Control samples used to build the original SPAdes co-assembly,
@@ -88,7 +88,7 @@ EOF
 echo "run.cfg written: ${RUN_CFG}"
 cat "$RUN_CFG"
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate nextpolish_env
 

@@ -5,7 +5,7 @@
 # login node (not via sbatch).
 set -euo pipefail
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 
 echo "Creating tgsgapcloser_env..."

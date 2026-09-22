@@ -20,7 +20,7 @@ POPULATION=${POPULATION:-pseudogenome}   # "pseudogenome" (recomendado, ver abaj
 # parada internos, probablemente artefactos, no biología real) que podrían
 # confundirse con variantes poblacionales genuinas.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SCRIPT_DIR=${PROJECT_DIR}/codes/analysis
 OUT_DIR=${PROJECT_DIR}/analysis/ko_guide_scan
 

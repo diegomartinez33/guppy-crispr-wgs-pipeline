@@ -9,14 +9,14 @@
 #SBATCH --mail-user=diegoandres3322@gmail.com
 #SBATCH --mail-type=ALL
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 ONTARGET_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic
 OUTPUT_DIR=${PROJECT_DIR}/crispresso/pooled/trimmomatic
 mkdir -p "$OUTPUT_DIR" logs/
 
 # mamba shell hook fails in SLURM — use conda directly (see "CRISPResso2
 # Activation in SLURM" Known Issue in CLAUDE.md)
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"

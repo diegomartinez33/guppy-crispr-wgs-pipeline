@@ -40,7 +40,7 @@
 # sets sgs_rm_nread=0, passed through to seq_split's own -N flag). See
 # "NextPolish — N-content Rejection" in CLAUDE.md Known Issues.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 INPUT_DIR=${PROJECT_DIR}/trimmed_trimmomatic
 GENOME=${PROJECT_DIR}/reference/colombian_scaffolded_genome/colombian_scaffolded.fna
 WORKDIR=${PROJECT_DIR}/assembly/nextpolish_output
@@ -89,7 +89,7 @@ EOF
 echo "run.cfg written: ${RUN_CFG}"
 cat "$RUN_CFG"
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate nextpolish_env
 

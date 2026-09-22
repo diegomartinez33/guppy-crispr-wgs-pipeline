@@ -11,7 +11,7 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 INPUT_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}

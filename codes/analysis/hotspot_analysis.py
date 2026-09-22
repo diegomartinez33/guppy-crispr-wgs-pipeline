@@ -19,6 +19,7 @@ Usage (after hotspot_windows.sh completes; requires module load bcftools bedtool
 import re
 import os
 import subprocess
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -26,7 +27,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
+PROJECT_DIR = os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2]))
 REF_VERSION = os.environ.get("REF_VERSION", "v1")
 OUT_SUFFIX = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
 VCF_DIR     = os.path.join(PROJECT_DIR, f"gatk/trimmomatic{OUT_SUFFIX}/vcf_filtered")

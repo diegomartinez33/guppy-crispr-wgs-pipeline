@@ -23,7 +23,7 @@
 # already has -m 450 for any future from-scratch run) - it exists only to
 # recover this specific interrupted output directory.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 OUTPUT_DIR=${PROJECT_DIR}/assembly/spades_control_coassembly
 
 mkdir -p logs/

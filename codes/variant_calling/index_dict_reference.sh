@@ -2,7 +2,7 @@
 module load samtools/1.16.1
 module load gatk4/4.4.0.0
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 
 # 1. Crear .fai (samtools — segundos)

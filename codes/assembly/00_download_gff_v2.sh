@@ -7,7 +7,7 @@
 # hypatia is unverified.
 set -euo pipefail
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 REF_DIR=${PROJECT_DIR}/reference
 BASE_URL="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/066/995/GCF_904066995.2_P_reticulata-male-v2"
 GFF_NAME="GCF_904066995.2_P_reticulata-male-v2_genomic.gff.gz"

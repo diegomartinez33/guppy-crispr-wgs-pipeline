@@ -7,14 +7,14 @@
 #SBATCH --error=logs/crispresso_wgs_aggregate.err
 #SBATCH --partition=short
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 WGS_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/wgs/trimmomatic
 OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/wgs/trimmomatic/aggregate
 
 mkdir -p "$OUTPUT_DIR" logs/
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"

@@ -19,7 +19,7 @@
 # here (unlike QUAST) - full genome.nextpolish.fasta used, same as the
 # other busco_qc*.sh stages. Same odb10 fix as prior BUSCO stages.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled${OUT_SUFFIX}/genome.nextpolish.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results

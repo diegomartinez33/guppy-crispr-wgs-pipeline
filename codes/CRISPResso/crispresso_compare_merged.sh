@@ -10,7 +10,7 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 ONTARGET_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/ontarget/trimmomatic/merged
 OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/compare/trimmomatic/merged
@@ -18,7 +18,8 @@ OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/compare/trimmomatic/merged
 mkdir -p "$OUTPUT_DIR" logs/
 
 # ── Activar ambiente ──────────────────────────────────────────────────────────
-source /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/etc/profile.d/conda.sh
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 conda activate crispresso2_env
 
 echo "Start time: $(date)"

@@ -33,7 +33,7 @@
 # didn't help). racon is purpose-built for long-read consensus polishing.
 # --tgstype ont since this is Nanopore, not PacBio.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 # Input is the raw RagTag scaffold, NOT reference/colombian_scaffolded_genome/
 # colombian_scaffolded.fna - that path holds whatever the FINAL, already-
@@ -115,7 +115,7 @@ if [ "$FASTA_SEQ_COUNT" -ne "$READ_COUNT" ]; then
     exit 1
 fi
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate tgsgapcloser_env
 

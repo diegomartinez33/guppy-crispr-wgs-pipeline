@@ -11,7 +11,7 @@
 
 module load samtools/1.16.1
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 PSEUDO_DIR=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}
 MERGED_DIR=${PROJECT_DIR}/mapping/trimmomatic${OUT_SUFFIX}/merged

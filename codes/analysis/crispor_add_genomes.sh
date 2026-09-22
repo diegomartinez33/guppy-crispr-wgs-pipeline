@@ -48,7 +48,7 @@ set -euo pipefail
 # track). `set -euo pipefail` above now makes this script actually fail
 # (non-zero exit, SLURM state FAILED) if crisporAddGenome errors again.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SIF=${PROJECT_DIR}/codes/analysis/crispor_singularity/crispor_v5.2c_amd64.sif
 GENOMES_DIR=${PROJECT_DIR}/codes/analysis/crispor_singularity/genomes
 

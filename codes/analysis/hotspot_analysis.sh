@@ -26,6 +26,6 @@ module load bedtools/2.30.0
 # fragile ambient PATH/conda state - found 2026-09-15 on the v2 run.
 module load anaconda/conda4.12.0
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 
 python "${PROJECT_DIR}/codes/analysis/hotspot_analysis.py"

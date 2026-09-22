@@ -31,7 +31,7 @@
 # still (470G) than spades.py's own -m 450 so SPAdes's internal self-limit
 # triggers a graceful stop before the SLURM cgroup would hard-kill it.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 INPUT_DIR=${PROJECT_DIR}/trimmed_trimmomatic
 OUTPUT_DIR=${PROJECT_DIR}/assembly/spades_control_coassembly
 

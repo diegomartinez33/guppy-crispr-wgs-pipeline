@@ -15,7 +15,7 @@
 # there, same as the NCBI GFF downloads elsewhere in this project). Not
 # needed again unless the primer3_env conda environment is removed.
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 
 mamba create -y -n primer3_env -c bioconda -c conda-forge primer3=1.1.4

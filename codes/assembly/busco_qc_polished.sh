@@ -20,7 +20,7 @@
 # ("BUSCO — Hardcoded odb10 Version Check") for why odb12.2 cannot be used
 # with this BUSCO 5.7.1 install.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output/genome.nextpolish.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results
 BUSCO_DL=${QC_DIR}/busco_downloads

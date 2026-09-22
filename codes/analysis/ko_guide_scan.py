@@ -66,12 +66,13 @@ Usage:
     python3 ko_guide_scan.py --gene bdnf --no-crispor   # manual scan only
 """
 import argparse
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-PROJECT_DIR = Path("/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data")
+PROJECT_DIR = Path(os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2])))
 
 # v1 = GCF_000633615.1 (Trinidad/Guanapo, female, short-read, 2014) -
 # suppressed by NCBI as of 2026, kept for continuity/comparison.

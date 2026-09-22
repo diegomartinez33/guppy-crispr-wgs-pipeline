@@ -20,7 +20,7 @@ REF_VERSIONS=${REF_VERSIONS:-v1,v2}
 POPULATION_CHECK=${POPULATION_CHECK:-1}
 # ─────────────────────────────────────────────────────────────────────────
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 mkdir -p logs/ analysis/rtqpcr_verification
 
 module load blast/2.14.1+

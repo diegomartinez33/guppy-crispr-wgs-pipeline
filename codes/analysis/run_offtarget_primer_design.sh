@@ -21,14 +21,14 @@ SITES_CSV=${SITES_CSV:-${PROJECT_DIR:-/hpcfs/home/ing_civil/da.martinez33/UBC/of
 REF_VERSION=${REF_VERSION:-v1}
 # ─────────────────────────────────────────────────────────────────────────
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 mkdir -p logs/ analysis/offtarget_primers
 
 module load emboss/6.6.0
 module load minimap2
 module load samtools/1.16.1
 
-export EMBOSS_PRIMER3_CORE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/primer3_env/bin/primer3_core
+export EMBOSS_PRIMER3_CORE=${EMBOSS_PRIMER3_CORE:-${HOME}/miniconda3/envs/primer3_env/bin/primer3_core}
 
 echo "Start time: $(date)"
 echo "Gene: $GENE  Sites: $SITES_CSV  REF_VERSION: $REF_VERSION"

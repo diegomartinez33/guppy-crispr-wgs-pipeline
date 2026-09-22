@@ -22,7 +22,7 @@
 # Same odb10 fix as busco_qc.sh/busco_qc_polished.sh - see CLAUDE.md Known
 # Issues ("BUSCO — Hardcoded odb10 Version Check").
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SCAFFOLD=${PROJECT_DIR}/assembly/tgsgapcloser_output/colombian_gapfilled.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results
 BUSCO_DL=${QC_DIR}/busco_downloads

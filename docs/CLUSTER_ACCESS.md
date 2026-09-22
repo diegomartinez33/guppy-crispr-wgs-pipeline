@@ -24,7 +24,7 @@ intermediate data.
 
 | Directory | Approx. size | What it contains / generates it | Copied? |
 |---|---|---|---|
-| `reference/` | 23G | v1+v2 genomes + indices, Colombian pseudogenome (both versions), de novo assembled genome, BLAST dbs — the baseline for every possible analysis; the pseudogenome and assembly already carry the Colombian population's variant information | ✅ **Yes** |
+| `reference/` | 26G+ | v1+v2 genomes + indices, Colombian pseudogenome (both versions), de novo assembled genome, BLAST dbs — the baseline for every possible analysis; the pseudogenome and assembly already carry the Colombian population's variant information | ⚠️ **Partial** — only the pieces `codes/copy_to_shared_account.sh` actually needs (~19G of this 26G: the 4 population-genome dirs + the 2 base genome FASTAs/GFFs), not BWA indices or BLAST dbs (unused by the colleague-usable pipelines) |
 | `codes/analysis/crispor_singularity/` | 7.9G | CRISPOR Singularity container + registered genomes (now 5: `guppyRefTrinidad`, `guppyRefMaleV2`, `guppyColPseudogenome`, `guppyColPseudogenomeV2`, plus the bdnf-specific one) — required by `ko_guide_scan.py`/`crispri_tss_scan.py` ([PIPELINE.md §8](PIPELINE.md#8-crispr-guide-design-ko--crispri-per-gene)) | ✅ **Yes** |
 | `raw_fastq/` | 253G | Raw FASTQ for the 15 samples ([PIPELINE.md §1](PIPELINE.md#1-qc-and-read-trimming)) | ❌ No — no colleague pipeline needs it; to replicate QC/trimming, use your own samples |
 | `trimmed_fastp/` | 251G | fastp-trimmed reads (comparison only, not used downstream) | ❌ No |
@@ -36,31 +36,61 @@ intermediate data.
 | `assembly/` | 508G | SPAdes/RagTag/gap-filling/QC intermediate working directories (v1+v2) — the FINAL outputs of this process live in `reference/colombian_scaffolded_genome{,_v2}/`, which is copied | ❌ No |
 | `intermediate_files/` | 1.1G | Miscellaneous, not essential | ❌ No |
 
-**Total to copy: ≈31G** (not the full ~3.6TB — both figures grew since this table was first
-written, from the v2 migration work). Neither guide design nor primer design need anything else
-heavy — the off-target sites CSV (`combined_offtargets.csv`) is already small and lives in git;
-`primer3_env`/the EMBOSS module are a conda environment + cluster module that each colleague
-builds locally with `codes/analysis/setup_primer3.sh`, not a file to copy.
+**Total to copy: ≈27G** — not the full ~26G+ `reference/` directory shown in the table above (that
+number includes sample-specific working files this account doesn't need); the actual copied set
+is narrower: the 4 population-genome directories (pseudogenome v1/v2, de novo assembly v1/v2,
+~16.7G), the 2 base reference genomes + annotations required by `ko_guide_scan.py`/
+`crispri_tss_scan.py`/`design_offtarget_primers.py`/`verify_rtqpcr_primers.py` (~2.2G), and the
+CRISPOR container (7.9G). See `codes/copy_to_shared_account.sh` for the exact, current list — it
+supersedes the manual example that used to live in this section.
 
-**2026-09-17 note:** `reference/colombian_scaffolded_genome_v2/` (the v2 equivalent of the de novo
-assembly, gap-filled + polished) is being built as of this writing — once complete, its size will
-add to the `reference/` total above and it should be copied too (same category as the v1
-scaffolded genome).
+**2026-09-20 update:** `reference/colombian_scaffolded_genome_v2/` (the v2 de novo assembly,
+gap-filled + polished) completed and is included in the copy above — the 2026-09-17 note that
+used to be here (saying it was still being built) is resolved.
 
-## How to Copy (example, run by each user with their own credentials)
+## How to Copy (run by each user with their own credentials)
 
 ```bash
-# From your own hypatia account, to the shared account:
-rsync -avP --info=progress2 \
-  reference/ \
-  guppy-genome@hypatia.uniandes.edu.co:/destination/path/off-target_data/reference/
-
-rsync -avP --info=progress2 \
-  codes/analysis/crispor_singularity/ \
-  guppy-genome@hypatia.uniandes.edu.co:/destination/path/off-target_data/codes/analysis/crispor_singularity/
+bash codes/copy_to_shared_account.sh
 ```
 
-Adjust `/destination/path/` to the shared account's actual home directory. This agent does not
-run this copy — it requires shared-account credentials that were not shared in this conversation,
-and it's an operation between cluster user accounts that the data owner must initiate and
-supervise directly.
+This copies everything in the paragraph above in one pass, with per-item progress output — safe
+to re-run if interrupted (rsync skips files already up to date on the destination). Edit the
+`DEST_BASE` variable near the top of the script first if the shared account's layout should
+differ from mirroring this repo's own structure. Requires your own credentials/SSH keys for
+`guppy-genome@hypatia.uniandes.edu.co` — this agent does not run this copy itself, it's an
+operation between cluster user accounts that the data owner must initiate and supervise directly.
+
+## Setting Up Your Own Account
+
+One-time setup after cloning the repo to a new account (e.g. `guppy-genome`, or any other
+colleague account):
+
+1. **Miniconda**, installed at exactly `${HOME}/miniconda3` — every script in this repo defaults
+   `CONDA_BASE` to that path (overridable via the `CONDA_BASE` env var if you install elsewhere).
+   See the [official Miniconda installer instructions](https://www.anaconda.com/docs/getting-started/miniconda/install).
+2. **Conda environments** — only 2 are needed for the guide-design/primer-design pipelines this
+   account exists for (confirmed directly against the code, not assumed from the full pipeline's
+   dependency list below):
+   - `primer3_env` — has its own setup script: `bash codes/analysis/setup_primer3.sh`.
+   - `crossmap_env` — no setup script yet, create manually:
+     ```bash
+     conda create -n crossmap_env -c bioconda -c conda-forge crossmap=0.7.3
+     ```
+   - `ko_guide_scan.py`/`crispri_tss_scan.py` (guide design) need **no conda environment at all**
+     — only the cluster modules `minimap2`, `samtools/1.16.1`, `singularity/3.7.1`.
+   - The other envs in root [README.md](../README.md#conda-environments)'s "Conda Environments"
+     table (`crispresso2_env`, `liftoff_env`, `nextpolish_env`, `tgsgapcloser_env`, system-conda
+     `fastp_env`) belong to the WGS off-target / de novo assembly pipeline stages, which this
+     account isn't meant to replicate — skip them unless you specifically need the full pipeline
+     (in which case, follow README's full table).
+3. **SLURM job notification email** — every script's `#SBATCH --mail-user=` defaults to the
+   author's address (SBATCH directives can't reference shell variables, so this can't be made to
+   auto-detect). Override it either:
+   - per submission: `sbatch --mail-user=you@example.com --mail-type=ALL codes/.../script.sh`
+     (SLURM command-line flags take precedence over `#SBATCH` directives in the script body), or
+   - once, for every script: 
+     ```bash
+     grep -rl -e 'mail-user=diegoandres3322@gmail.com' -e 'mail-user=diegomartinez3322@gmail.com' codes/ \
+       | xargs sed -i 's/mail-user=diego[a-z]*3322@gmail.com/mail-user=you@example.com/'
+     ```

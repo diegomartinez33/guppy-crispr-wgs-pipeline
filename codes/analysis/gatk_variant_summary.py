@@ -20,6 +20,7 @@ Usage (requires module load bcftools/1.15.1):
 import subprocess
 import os
 import re
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -28,7 +29,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
+PROJECT_DIR = os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2]))
 REF_VERSION = os.environ.get("REF_VERSION", "v1")
 OUT_SUFFIX  = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
 VCF_DIR     = os.path.join(PROJECT_DIR, f"gatk/trimmomatic{OUT_SUFFIX}/vcf_filtered")

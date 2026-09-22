@@ -17,6 +17,15 @@
 # before this file existed, so nothing about the existing v1 pipeline or
 # its outputs changes.
 
+# Defensive fallback: every current caller already sets PROJECT_DIR before
+# sourcing this file, so this is a no-op today - it only protects a future
+# script that sources genome_versions.sh without setting PROJECT_DIR first.
+# ${BASH_SOURCE[0]} here correctly points to this file's own real path
+# regardless of the caller, since this file is always `source`d (never
+# itself exec'd/spooled by SLURM the way a submitted script is).
+_GV_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+PROJECT_DIR="${PROJECT_DIR:-${_GV_DIR}/..}"
+
 REF_VERSION=${REF_VERSION:-v1}
 
 case "$REF_VERSION" in

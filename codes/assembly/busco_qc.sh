@@ -26,7 +26,7 @@
 # Requires the lineage dataset pre-staged by 00_download_busco_lineage.sh
 # so this can run fully --offline.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SCAFFOLD=${PROJECT_DIR}/assembly/ragtag_output/ragtag.scaffold.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results
 BUSCO_DL=${QC_DIR}/busco_downloads

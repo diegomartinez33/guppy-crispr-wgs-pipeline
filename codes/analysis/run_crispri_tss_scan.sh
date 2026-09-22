@@ -12,7 +12,7 @@ POPULATION=${POPULATION:-pseudogenome}   # "pseudogenome" (recomendado), "scaffo
                           # o "pseudogenome_v2" (ver run_ko_guide_scan.sh)
 # ─────────────────────────────────────────────────────────────────────────
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SCRIPT_DIR=${PROJECT_DIR}/codes/analysis
 OUT_DIR=${PROJECT_DIR}/analysis/ko_guide_scan
 

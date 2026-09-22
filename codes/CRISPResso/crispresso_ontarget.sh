@@ -11,7 +11,7 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 INPUT_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
@@ -30,7 +30,8 @@ fi
 mkdir -p "$OUTPUT_DIR" logs/
 
 # ── Activar ambiente CRISPResso2 ──────────────────────────────────────────────
-source /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/etc/profile.d/conda.sh
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 eval "$(mamba shell hook --shell bash)"
 mamba activate crispresso2_env
 

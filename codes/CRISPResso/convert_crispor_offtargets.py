@@ -34,7 +34,7 @@ import os
 import sys
 import pandas as pd
 
-PROJECT_DIR = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
+PROJECT_DIR = os.environ.get("PROJECT_DIR", "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data")
 sys.path.insert(0, os.path.join(PROJECT_DIR, "codes", "analysis"))
 
 REF_VERSION = os.environ.get("REF_VERSION", "v1")

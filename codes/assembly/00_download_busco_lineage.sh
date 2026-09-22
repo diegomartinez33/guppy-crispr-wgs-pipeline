@@ -18,7 +18,7 @@
 # attempt).
 set -euo pipefail
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 DOWNLOAD_PATH=${PROJECT_DIR}/assembly/qc_results/busco_downloads
 LINEAGES_DIR=${DOWNLOAD_PATH}/lineages
 URL="https://busco-data.ezlab.org/v5/data/lineages/actinopterygii_odb10.2024-01-08.tar.gz"

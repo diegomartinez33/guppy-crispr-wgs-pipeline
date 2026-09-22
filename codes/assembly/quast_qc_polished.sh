@@ -20,7 +20,7 @@
 # Chr0_RagTag_np1212, appending the task sequence "1212" to every sequence
 # name during its 2 polishing rounds).
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 REF=${PROJECT_DIR}/reference/GCF_000633615.1_Guppy_female_1.0_MT_genomic.fna
 SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output/genome.nextpolish.noChr0.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results

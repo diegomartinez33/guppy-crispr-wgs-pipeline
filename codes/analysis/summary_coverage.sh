@@ -16,7 +16,7 @@
 # rather than overwriting each other's fixed-name CSVs - e.g.:
 #   COVERAGE_DIR=.../coverage/bdnf_site_v2 OUTPUT_DIR=.../coverage/csv_v2 \
 #   SGRNA_START=15849694 SGRNA_END=15849713 sbatch codes/analysis/summary_coverage.sh
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 COVERAGE_DIR=${COVERAGE_DIR:-${PROJECT_DIR}/coverage/bdnf_site}
 OUTPUT_DIR=${OUTPUT_DIR:-${PROJECT_DIR}/coverage/csv}
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt

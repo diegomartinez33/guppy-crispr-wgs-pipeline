@@ -10,7 +10,7 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 RAW_FASTQC=${PROJECT_DIR}/raw_fastq/fastqc_results
 TRIMMOMATIC_FASTQC=${PROJECT_DIR}/trimmed_trimmomatic/fastqc_results
 FASTP_FASTQC=${PROJECT_DIR}/trimmed_fastp/fastqc_results

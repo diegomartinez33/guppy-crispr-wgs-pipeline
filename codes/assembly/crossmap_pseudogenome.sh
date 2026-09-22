@@ -9,12 +9,12 @@
 #SBATCH --mail-user=diegoandres3322@gmail.com
 #SBATCH --mail-type=ALL
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crossmap_env
 export PATH="${CONDA_BASE}/envs/crossmap_env/bin:$PATH"
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 CHAIN=${PROJECT_DIR}/reference/pseudogenome/colombian_pseudogenome.chain
 GFF_IN=${PROJECT_DIR}/reference/GCF_000633615.1_annotation.gff
 OUT_DIR=${PROJECT_DIR}/reference/pseudogenome

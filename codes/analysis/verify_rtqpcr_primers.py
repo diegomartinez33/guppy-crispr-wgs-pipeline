@@ -46,6 +46,7 @@ primers.csv columns: pair_name,forward_seq,reverse_seq
 """
 import argparse
 import csv
+import os
 import re
 import subprocess
 import sys
@@ -57,7 +58,7 @@ from design_offtarget_primers import (  # noqa: E402
     REF_BY_VERSION, PSEUDOGENOME_BY_VERSION, CHAIN_BY_VERSION, CROSSMAP_BIN, liftover_region,
 )
 
-PROJECT_DIR = Path("/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data")
+PROJECT_DIR = Path(os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2])))
 OUT_DIR = PROJECT_DIR / "analysis" / "rtqpcr_verification"
 GFF_BY_VERSION = {"v1": REF_GFF_V1, "v2": REF_GFF_V2}
 BLAST_DB_DIR = {

@@ -20,7 +20,7 @@
 # Defaults below are v1's original values, with OUTPUT_DIR corrected from the
 # previously misleading "bdnf_site_v2" (that name predated this project's
 # REF_VERSION convention and never meant "genome version 2" - see CLAUDE.md).
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 BAM_DIR=${BAM_DIR:-${PROJECT_DIR}/mapping/trimmomatic}
 OUTPUT_DIR=${OUTPUT_DIR:-${PROJECT_DIR}/coverage/bdnf_site}

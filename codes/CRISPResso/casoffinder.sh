@@ -13,13 +13,13 @@
 # CONDA_BASE was referenced here before being defined (real bug, fixed
 # 2026-09 while porting this script to REF_VERSION - see crispresso_wgs.sh
 # for the correct pattern this now matches).
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 OUTPUT_DIR=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/offtargets
 

@@ -57,12 +57,12 @@ from ko_guide_scan import (  # noqa: E402
     REF_FASTA_V1, REF_FASTA_V2, faidx_seq, revcomp, align_cs, parse_cs_variants,
 )
 
-PROJECT_DIR = Path("/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data")
+PROJECT_DIR = Path(os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2])))
 OUT_DIR = PROJECT_DIR / "analysis" / "offtarget_primers"
 
 EMBOSS_PRIMER3_CORE = os.environ.get(
     "EMBOSS_PRIMER3_CORE",
-    "/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/primer3_env/bin/primer3_core",
+    str(Path.home() / "miniconda3/envs/primer3_env/bin/primer3_core"),
 )
 
 REF_BY_VERSION = {"v1": REF_FASTA_V1, "v2": REF_FASTA_V2}
@@ -82,7 +82,10 @@ CHAIN_BY_VERSION = {
     "v1": PROJECT_DIR / "reference/pseudogenome/colombian_pseudogenome.chain",
     "v2": PROJECT_DIR / "reference/pseudogenome_v2/colombian_pseudogenome.chain",
 }
-CROSSMAP_BIN = "/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/envs/crossmap_env/bin/CrossMap"
+CROSSMAP_BIN = os.environ.get(
+    "CROSSMAP_BIN",
+    str(Path.home() / "miniconda3/envs/crossmap_env/bin/CrossMap"),
+)
 
 
 def liftover_region(chain_file, chrom, start1, end1, tmp_path):

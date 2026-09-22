@@ -30,6 +30,7 @@ Outputs (codes/analysis/editing_comparison{,_v2}/):
 import os
 import re
 import warnings
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -40,7 +41,7 @@ import matplotlib.patches as mpatches
 warnings.filterwarnings("ignore")
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-PROJECT_DIR  = "/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data"
+PROJECT_DIR  = os.environ.get("PROJECT_DIR", str(Path(__file__).resolve().parents[2]))
 REF_VERSION  = os.environ.get("REF_VERSION", "v1")
 OUT_SUFFIX   = "" if REF_VERSION == "v1" else f"_{REF_VERSION}"
 CRISPRESSO_DIR = f"crispresso{OUT_SUFFIX}"

@@ -1,10 +1,11 @@
 #!/bin/bash
 
-source /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/etc/profile.d/conda.sh
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 eval "$(mamba shell hook --shell bash)"
 mamba activate crispresso2_env
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 #REGION="NC_024333.1:15922039-15922058"
 REGION="NC_024333.1:15921941-15922141"

@@ -29,7 +29,7 @@
 # (genome.nextpolish.noChr0.fasta - NextPolish renamed it to
 # Chr0_RagTag_np1212, appending the task sequence "1212" during polishing).
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 SCAFFOLD=${PROJECT_DIR}/assembly/nextpolish_output_gapfilled${OUT_SUFFIX}/genome.nextpolish.noChr0.fasta
 QC_DIR=${PROJECT_DIR}/assembly/qc_results

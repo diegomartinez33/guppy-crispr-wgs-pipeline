@@ -26,7 +26,7 @@ set -euo pipefail
 # genome instead - see convert_crispor_offtargets.py and CLAUDE.md,
 # "Migration to GCF_904066995.2 (v2)".
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 SIF=${PROJECT_DIR}/codes/analysis/crispor_singularity/crispor_v5.2c_amd64.sif
 GENOMES_DIR=${PROJECT_DIR}/codes/analysis/crispor_singularity/genomes
 

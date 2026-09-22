@@ -5,7 +5,7 @@
 # internet access on hypatia is unverified.
 set -euo pipefail
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 REF_DIR=${PROJECT_DIR}/reference
 BASE_URL="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/633/615/GCF_000633615.1_Guppy_female_1.0_MT"
 GFF_NAME="GCF_000633615.1_Guppy_female_1.0_MT_genomic.gff.gz"

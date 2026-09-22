@@ -8,7 +8,7 @@
 #SBATCH --error=logs/reindex_gvcf_%A_%a.err
 #SBATCH --partition=short
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 GVCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/gvcf
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt

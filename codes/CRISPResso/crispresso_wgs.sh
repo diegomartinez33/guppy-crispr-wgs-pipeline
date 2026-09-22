@@ -11,7 +11,7 @@
 #SBATCH --mail-type=ALL
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 SAMPLE_LIST=${PROJECT_DIR}/samples.txt
 BAM_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/markdup
@@ -21,7 +21,7 @@ REGION_FILE=${PROJECT_DIR}/crispresso${OUT_SUFFIX}/offtargets/combined/offtarget
 mkdir -p "$OUTPUT_DIR" logs/
 
 # ── Activar ambiente ──────────────────────────────────────────────────────────
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate crispresso2_env
 export PATH="${CONDA_BASE}/envs/crispresso2_env/bin:$PATH"

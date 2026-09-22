@@ -29,7 +29,7 @@
 # 2026-09-17 while scoping the v2 de novo assembly work - the old
 # scaffold-stage files were archived to pre_gapfill_archive/, not deleted.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 GENOME_STAGE=${GENOME_STAGE:-scaffold}
 case "$GENOME_STAGE" in
@@ -51,7 +51,7 @@ if [ ! -f "$NEW_FASTA" ]; then
     exit 1
 fi
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate liftoff_env
 

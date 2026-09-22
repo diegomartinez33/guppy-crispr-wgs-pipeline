@@ -7,11 +7,12 @@
 #SBATCH --error=logs/crispresso_compare.err
 #SBATCH --partition=your_partition
 
-source /hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso/etc/profile.d/conda.sh
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 eval "$(mamba shell hook --shell bash)"
 mamba activate crispresso2_env
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 ONTARGET_DIR=${PROJECT_DIR}/crispresso/ontarget/trimmomatic
 OUTPUT_DIR=${PROJECT_DIR}/crispresso/compare
 

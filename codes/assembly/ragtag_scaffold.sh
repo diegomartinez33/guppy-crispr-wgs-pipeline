@@ -27,7 +27,7 @@
 # instead of writing each individually, as a second safeguard against the
 # same class of hang even at 500K contigs.
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 # CONTIGS is genome-version-independent (SPAdes de novo assembly of raw
 # reads, not aligned to any particular reference) - only the scaffolding

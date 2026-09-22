@@ -9,11 +9,11 @@
 #SBATCH --mail-user=diegoandres3322@gmail.com
 #SBATCH --mail-type=ALL
 
-CONDA_BASE=/hpcfs/home/ing_civil/da.martinez33/miniconda3_crispresso
+CONDA_BASE=${CONDA_BASE:-${HOME}/miniconda3}
 source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate liftoff_env
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 TRINIDAD_GFF=${REF_GFF}
 PSEUDO=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}/colombian_pseudogenome.fna

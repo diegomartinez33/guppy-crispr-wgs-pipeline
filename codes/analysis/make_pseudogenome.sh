@@ -13,7 +13,7 @@ module load bcftools/1.15.1
 module load samtools/1.16.1
 module load bwa/0.7.17
 
-PROJECT_DIR=/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/../.." >/dev/null 2>&1 && pwd)}}"
 source "${PROJECT_DIR}/codes/genome_versions.sh"
 VCF_DIR=${PROJECT_DIR}/gatk/trimmomatic${OUT_SUFFIX}/vcf_filtered
 OUT_DIR=${PROJECT_DIR}/reference/pseudogenome${OUT_SUFFIX}
