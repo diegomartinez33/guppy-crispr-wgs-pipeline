@@ -3711,6 +3711,114 @@ limit, but far too large to usefully pass as literal tool-call text.
   `docs/RESULTS.md` (objectives #1, #2, #9, and the Visual Reports
   summary table) with the new report links and plot-count notes.
 
+**Made the whole pipeline portable (PROJECT_DIR + adjacent hardcoded
+personal-account paths) — 2026-09-22/23, requested by the user so the
+shared `guppy-genome@hypatia` account (and any future colleague account)
+can clone-and-run without hand-editing dozens of files.** Every script
+hardcoded the author's absolute path
+(`/hpcfs/home/ing_civil/da.martinez33/UBC/off-target_data`) as
+`PROJECT_DIR=`. Investigated via an Explore agent (full inventory: 67
+bash + 11 Python files) and a Plan agent before touching anything - the
+design pass surfaced a real, non-obvious finding: for `sbatch`-submitted
+scripts, `$0`/`BASH_SOURCE[0]` do NOT point at the script's real repo
+location (SLURM spools a copy to `/var/spool/slurmd` and execs that
+copy instead), so naive self-location via `dirname "$0"` would silently
+break under real `sbatch` submission while still passing `bash -n` and
+even a manual `bash script.sh` test. Fix instead leans on
+`$SLURM_SUBMIT_DIR` (SLURM's own record of the submission cwd, reliable
+since every `#SBATCH --output=logs/...` path in the repo is already
+relative, i.e. the pipeline already required `sbatch` be invoked from
+the repo root) with a 3-tier precedence: explicit override >
+`SLURM_SUBMIT_DIR` > self-location via `BASH_SOURCE`/`$0` (for direct,
+non-sbatch invocation). Python scripts use
+`Path(__file__).resolve().parents[2]` with an env-var override instead
+- no SLURM spool-copy caveat there, since none of the 11 are themselves
+sbatch-submitted.
+
+Also fixed the same class of problem in `CONDA_BASE` (21 files total,
+including 6 that had a literal `source .../conda.sh` line with no
+variable at all) and `CROSSMAP_BIN`/`EMBOSS_PRIMER3_CORE` in
+`design_offtarget_primers.py` - default changed from the author's
+literal `miniconda3_crispresso` path to `${HOME}/miniconda3`, confirmed
+to match the shared account's actual real layout
+(`/hpcfs/home/cursos/guppy-genome/miniconda3`) rather than assumed.
+Created `~/miniconda3 -> ~/miniconda3_crispresso` symlink on the
+author's own account so this change was genuinely zero-behavior-change
+for existing runs (verified: the real `sbatch` sanity test below
+resolved to the exact same path as before). `#SBATCH --mail-user=` left
+untouched everywhere (SBATCH directives can't reference shell
+variables, structurally impossible to parameterize) - override paths
+documented in `docs/CLUSTER_ACCESS.md` instead, alongside a new
+"Setting Up Your Own Account" section (miniconda location, and - found
+by checking the actual code, not assumed from the full pipeline's
+dependency list - only 2 conda envs are genuinely needed for the
+colleague-usable guide-design/primer-design pipelines: `primer3_env`
+and `crossmap_env`).
+
+Implementation delegated to 4 parallel agents (by subdirectory:
+CRISPResso/, assembly/, variant_calling+mapping+filtering/, analysis/)
+plus `genome_versions.sh`/`copy_to_shared_account.sh` done directly -
+80 files total. Verified with a **real `sbatch` submission** (job
+731240, not just `bash -n`), which is the one thing static checks can't
+guarantee - confirmed `PROJECT_DIR` resolved correctly under actual
+SLURM spooling. Full-repo straggler grep afterward: zero remaining
+hardcoded paths.
+
+**Follow-up: closed 5 real gaps found via external review, 2026-09-22.**
+The first pass above wasn't actually complete - a second look (prompted
+by the user, not self-caught) found: (1) an ordering bug in
+`run_offtarget_primer_design.sh`/`run_rtqpcr_primer_verification.sh` -
+`SITES_CSV`/`PRIMERS_CSV` were computed using their own
+`${PROJECT_DIR:-<old literal>}` fallback *before* the self-resolving
+`PROJECT_DIR=` line ran later in the same file, so they silently kept
+using the old hardcoded path regardless of the fix below them - fixed
+by moving `PROJECT_DIR` resolution earlier; (2) `combine_offtargets.py`/
+`convert_crispor_offtargets.py` kept a hardcoded literal as their
+`os.environ.get()` fallback instead of self-locating via
+`Path(__file__)` like the other 9 Python scripts - a deliberate but
+wrong simplification in the original design; (3)
+`generate_fastqc_files.sh`/`fastqc_array.sh` hardcoded
+`TRIMMOMATIC_DIR`/`FASTP_DIR`/`FILE_LIST` directly, no `PROJECT_DIR`
+involved at all - explicitly scoped out of the original batch without
+flagging it clearly enough; (4)
+`codes/filtering/fastqc_trimmed_filelist.txt` was tracked in git with
+the author's absolute paths baked in - `fastqc_array.sh` only
+regenerates it `if [ ! -f "$FILE_LIST" ]`, so a fresh clone would find
+it already present and skip regeneration, silently trying to FastQC
+files at nonexistent paths - untracked and gitignored; (5) `CLAUDE.md`
+itself had 6 occurrences inside sections explicitly meant as
+copy-paste reference material ("Common SLURM Script Template",
+"CRISPResso2 Activation - use in all CRISPResso scripts") that were
+wrongly left alone as "historical" in the first pass - fixed to match
+the portable pattern (this paragraph's own surrounding template lines
+are the result).
+
+**Second follow-up: `SLURM_SUBMIT_DIR` precedence bug in
+`copy_to_shared_account.sh`, found live on the destination account,
+2026-09-23.** The user actually ran `copy_to_shared_account.sh` on
+`guppy-genome`'s side (from a compute node, `cd`'d into `codes/`,
+inside what was almost certainly an interactive SLURM session
+originally started from within `codes/`) and hit
+`rsync: change_dir ".../off-target_data/codes//reference/pseudogenome"
+failed` - `PROJECT_DIR` resolved one level too deep. Root cause: this
+script trusted `SLURM_SUBMIT_DIR` with the same 3-tier precedence as
+the sbatch-submitted scripts, but `copy_to_shared_account.sh` is never
+itself submitted via `sbatch` - it's always run directly - so a stale
+`SLURM_SUBMIT_DIR` inherited from an unrelated earlier interactive
+session silently overrode the correct self-location logic. Fixed by
+dropping the `SLURM_SUBMIT_DIR` tier from this one file's precedence
+chain specifically (explicit override > self-location only) - verified
+by reproducing the exact stale-variable scenario locally before
+confirming the fix, then confirmed for real: the user re-ran the copy
+successfully afterward (all 4 population-genome dirs + 6 base
+genome/GFF files + the CRISPOR container all transferred). Also added
+SSH `ControlMaster`/`ControlPersist` connection multiplexing to the
+same script - 11 separate `rsync` calls previously meant 11 password
+prompts (the shared account is password-only, no SSH key trust set up
+from this session); now the first call authenticates once and the rest
+reuse that connection automatically, confirmed by the user's real run
+(only 1 password prompt shown across the whole transfer).
+
 ### 9. PCR Primer Design for On-/Off-Target Validation — bdnf v1 DONE 2026-09-08
 ```
 codes/analysis/design_offtarget_primers.py (+ run_offtarget_primer_design.sh),

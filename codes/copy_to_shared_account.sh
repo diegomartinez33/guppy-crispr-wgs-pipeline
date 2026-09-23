@@ -17,27 +17,51 @@
 
 set -e
 
-PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/.." >/dev/null 2>&1 && pwd)}}"
+# No SLURM_SUBMIT_DIR tier here, unlike the sbatch-submitted scripts
+# elsewhere in codes/ - this script is always run directly (`bash
+# codes/copy_to_shared_account.sh`), never via sbatch, so trusting
+# SLURM_SUBMIT_DIR would only pick up a stale value inherited from some
+# unrelated earlier interactive SLURM session, silently overriding the
+# correct self-location below (found 2026-09-22: a user with a lingering
+# SLURM_SUBMIT_DIR from an interactive session launched inside codes/ hit
+# exactly this, and PROJECT_DIR resolved one level too deep).
+PROJECT_DIR="${PROJECT_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/.." >/dev/null 2>&1 && pwd)}"
 cd "$PROJECT_DIR"
 
 DEST_USER="guppy-genome"
 DEST_HOST="hypatia.uniandes.edu.co"
-DEST_BASE="~/off-target_data"   # adjust if the shared account uses a different layout
+DEST_BASE="~/CRISPRGuppy/guppy-crispr-wgs-pipeline"   # adjust if the shared account uses a different layout
 
-RSYNC="rsync -avP --info=progress2"
+# 11 separate rsync calls below - without connection reuse, that's 11
+# separate password prompts (the shared account has no SSH key set up from
+# this session, so it's password-only). SSH ControlMaster/ControlPersist
+# multiplexes them: the first call authenticates and becomes the "master"
+# connection, every later call to the same host reuses it automatically -
+# one password prompt total, not eleven. ControlPersist=600 keeps the
+# connection open for 10 minutes after the last rsync exits, then SSH
+# closes it on its own (the explicit `-O exit` at the end also closes it
+# immediately once this script finishes, whichever comes first).
+SSH_CONTROL_PATH="/tmp/ssh-cm-${DEST_USER}-${DEST_HOST}-$$"
+SSH_OPTS="-o ControlMaster=auto -o ControlPath=${SSH_CONTROL_PATH} -o ControlPersist=600"
+RSYNC=(rsync -avP --info=progress2 -e "ssh ${SSH_OPTS}")
+
+cleanup() {
+    ssh -o ControlPath="${SSH_CONTROL_PATH}" -O exit "${DEST_USER}@${DEST_HOST}" 2>/dev/null || true
+}
+trap cleanup EXIT
 
 copy_dir() {
     local src="$1" dst="$2"
     echo ""
     echo "=== ${src} -> ${DEST_USER}@${DEST_HOST}:${dst} ==="
-    $RSYNC "${src}/" "${DEST_USER}@${DEST_HOST}:${dst}/"
+    "${RSYNC[@]}" "${src}/" "${DEST_USER}@${DEST_HOST}:${dst}/"
 }
 
 copy_file() {
     local src="$1" dst_dir="$2"
     echo ""
     echo "=== ${src} -> ${DEST_USER}@${DEST_HOST}:${dst_dir}/ ==="
-    $RSYNC "${src}" "${DEST_USER}@${DEST_HOST}:${dst_dir}/"
+    "${RSYNC[@]}" "${src}" "${DEST_USER}@${DEST_HOST}:${dst_dir}/"
 }
 
 START=$(date +%s)
